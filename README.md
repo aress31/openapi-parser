@@ -2,9 +2,13 @@
 # swurg
 ## A Burp extension for REST API testing.
 
-This is an ongoing project... 
-Parsing of the inBody parameter has to be added.
-The source codes have to be cleaned/optimised.
+During engagement involving REST API, it is often a real pain and lost of time to chain Burp with other tool such as SOAP-UI just to parse the Swagger. Therefore, after posting a request on the PortSwigger support forum (<https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>) more than 4 months ago, I have just decided to take the lead and try to implement my first Burp extension.
+
+Please note, that the project is not completed yet. I am still developing it and any feedback would of course be welcome. At the moment, only the parsing of inBody parameter should be implemented and the code optimized in order to have a stable first version of the extension.
+
+The following screenshot shows the plugin interface, for obvious reason the screenshot does not present any sensitive information:
+![compilation](images/swurg.png)
+
 
 ## Features
 * Parse Swagger files.
