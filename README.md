@@ -33,6 +33,9 @@ Feedbacks and comments would be much appreciated.
 
 ![compilation](images/compilation.png)
 
+Alternatively, you can download the **swurg.jar** included in the repository. The MD5 hash of this file is:
+5C349AD7BA92C561756E809A1BDE09D1
+
 ### Burp settings
 1. Under the Burp Extender/Options tab, set the Java Environement to the lib folder containing the gson library.
 
