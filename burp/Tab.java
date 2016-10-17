@@ -180,7 +180,7 @@ public class Tab implements ITab {
 		    try {
 		    	gson = new Gson();
 		        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-		        REST api = gson.fromJson(bufferedReader, REST.class);
+		        RESTful api = gson.fromJson(bufferedReader, RESTful.class);
 		   		String infoText = "Title: " + api.getInfo().getTitle() + " | " +
 		   			"Version: " + api.getInfo().getVersion()  + " | " +
 		   			"Swagger: " + api.getSwagger();
@@ -200,18 +200,18 @@ public class Tab implements ITab {
 		} 
 	}
 
-	private void populateTable(REST api) {
+	private void populateTable(RESTful api) {
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
 
 		for (String protocol : api.getSchemes()) {
 			String host = api.getHost();
 			String basePath = api.getBasePath();
 
-			for (Map.Entry<String,JsonElement> path: api.getPaths().entrySet()) {
+			for (Map.Entry<String, JsonElement> path: api.getPaths().entrySet()) {
 				String endpoint = path.getKey();
 				String url = basePath + endpoint;
 
-				for (Map.Entry<String,JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
+				for (Map.Entry<String, JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
 					Call call = gson.fromJson(entry.getValue(), Call.class);
 					String httpMethod = entry.getKey().toUpperCase();
 					String inQueryParams = "";
@@ -228,7 +228,8 @@ public class Tab implements ITab {
 						}
 					);
 
-					populateHttpRequests(httpMethod, url, host, protocol, call.getParameters(), call.getConsumes(), call.getProduces());
+					populateHttpRequests(httpMethod, url, host, protocol, call.getParameters(), 
+						api.getDefinitions(), call.getConsumes(), call.getProduces());
 
 					rowIndex++;
 				}
@@ -260,13 +261,30 @@ public class Tab implements ITab {
 		}
 	}
 
-	private String parseInQueryParams(List<Call.Parameter> params) {
+	private String parseInPathParams(List<Parameter> params) {
 		String result = "";
 
 		if (params != null) {
 			result = "?";
 
-			for (Call.Parameter param : params) {
+			for (Parameter param : params) {
+				if (param.getIn().equals("path"))
+				result += param.getName() + "={" + param.getType() + "}&";
+			}
+
+			result = result.substring(0, result.length() - 1);
+		}
+
+		return result;
+	}
+
+	private String parseInQueryParams(List<Parameter> params) {
+		String result = "";
+
+		if (params != null) {
+			result = "?";
+
+			for (Parameter param : params) {
 				if (param.getIn().equals("query"))
 				result += param.getName() + "={" + param.getType() + "}&";
 			}
@@ -277,14 +295,51 @@ public class Tab implements ITab {
 		return result;
 	}
 
-	private String parseInBodyParams(List<Call.Parameter> params) {
+	private String parseInBodyParams(List<Parameter> params, JsonObject definitions) {
 		String result = "";
+		
+		if (params != null) {
+			for (Parameter param : params) {
+				if (param.getIn().equals("body")) {
+					result += parseSchemaParams(param.getName(), definitions);
+				}
+			}
+
+			result = result.substring(0, result.length() - 1);
+		}
 
 		return result;
 	}
 
-	private void populateHttpRequests(String httpMethod, String url, String host, String protocol, List<Call.Parameter> params,
-			List<String> consumes, List<String> produces) {
+	// Really messy but does the job - needs improvements!
+	private String parseSchemaParams(String param, JsonObject definitions) {
+		String result = "";
+
+		for (Map.Entry<String, JsonElement> entry: definitions.entrySet()) {
+			if (entry.getKey().equals(param)) {
+				Schema schema = gson.fromJson(entry.getValue(), Schema.class);
+
+				if (schema.getProperties() != null) {
+					for (Map.Entry<String, JsonElement> entry1: schema.getProperties().entrySet()) {
+						for (Map.Entry<String, JsonElement> entry2: entry1.getValue().getAsJsonObject().entrySet()) {
+							if (entry2.getKey().equals("type")) {
+								result += entry1.getKey() + "={" + entry2.getValue().getAsString() + "}&";
+							} else if (entry2.getKey().equals("$ref")) {
+								String[] parts = entry2.getValue().getAsString().split("/");
+								stderr.println(parts[parts.length - 1]);
+								result += parseSchemaParams(parts[parts.length - 1], definitions);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private void populateHttpRequests(String httpMethod, String url, String host, String protocol, List<Parameter> params,	
+		JsonObject definitions, List<String> consumes, List<String> produces) {
 		switch (httpMethod) {
 			case "GET": {
 				String request = "GET " + url + parseInQueryParams(params) + " HTTP/1.1" + "\n" 
@@ -303,7 +358,7 @@ public class Tab implements ITab {
 					+ "Accept: " + String.join(",", produces) + "\n"
 					+ "Content-Type: " + String.join(",", consumes)
 					+ "\n\n"
-					+ parseInBodyParams(params);
+					+ parseInBodyParams(params, definitions);
 				HttpRequest httpRequest = new HttpRequest(host, (Integer) protocolToPort(protocol).get(0), 
 					(Boolean) protocolToPort(protocol).get(1), request.getBytes());
 

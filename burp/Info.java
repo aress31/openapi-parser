@@ -16,11 +16,20 @@
 
 package burp;
 
-public class BurpExtender implements IBurpExtender {
-	
-	@Override
-	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-		callbacks.setExtensionName("Swurg");
-		callbacks.addSuiteTab(new Tab(callbacks));
-	}
+public class Info {
+    private String version;
+    private String title;
+
+    public Info(String version, String title) {
+        this.version = version;
+        this.title = title;
+    }
+
+    public String getVersion() {
+        return this.version;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
 }

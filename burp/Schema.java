@@ -16,11 +16,22 @@
 
 package burp;
 
-public class BurpExtender implements IBurpExtender {
-	
-	@Override
-	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-		callbacks.setExtensionName("Swurg");
-		callbacks.addSuiteTab(new Tab(callbacks));
-	}
+import com.google.gson.JsonObject;
+
+public class Schema {
+	private String type;
+    private JsonObject properties;
+
+	public Schema(String type, JsonObject properties) {
+		this.type = type;
+		this.properties = properties;
+    }
+
+    public String getType() {
+    	return this.type;
+    }
+
+    public JsonObject getProperties() {
+    	return this.properties;
+    }
 }

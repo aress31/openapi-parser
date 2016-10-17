@@ -46,7 +46,7 @@ public class ContextMenu extends JPopupMenu {
             public void actionPerformed(ActionEvent e) {
                 int[] rowIndexes = data.getTable().getSelectedRows();
 
-                // Selected rows
+                // Highlighted rows
                 for(int i = 0; i < rowIndexes.length; i++) {
                     HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
 
@@ -61,7 +61,7 @@ public class ContextMenu extends JPopupMenu {
             public void actionPerformed(ActionEvent e) {
                 int[] rowIndexes = data.getTable().getSelectedRows();
 
-                // Selected rows 1 2 3
+                // Highlighted rows 
                 for(int i = 0; i < rowIndexes.length; i++) {
 
                     HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
@@ -77,7 +77,7 @@ public class ContextMenu extends JPopupMenu {
             public void actionPerformed(ActionEvent e) {
                 int[] rowIndexes = data.getTable().getSelectedRows();
 
-                // Selected rows
+                // Highlighted rows
                 for(int i = 0; i < rowIndexes.length; i++) {
                     HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
 
