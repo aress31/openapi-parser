@@ -17,8 +17,6 @@
 package burp;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
 
 import java.awt.BorderLayout;
@@ -35,18 +33,26 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.*;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
 public class Tab implements ITab {
-	private IBurpExtenderCallbacks callbacks;
 	private PrintWriter stderr;
+	private Helper helper = new Helper();
 
 	private ContextMenu contextMenu;
 	private JLabel infoLabel;
@@ -54,14 +60,11 @@ public class Tab implements ITab {
 	private JTable table;
 	private JTextField fileTextField;
 
-	private Gson gson;
 	private int rowIndex = 1;
 
-	// Something to use with the # in the table maybe...
 	private List<HttpRequest> httpRequests;
 
   	public Tab(IBurpExtenderCallbacks callbacks) {
-  		this.callbacks = callbacks;
   		stderr = new PrintWriter(callbacks.getStderr(), true);
 
  		httpRequests = new ArrayList<HttpRequest>();
@@ -71,12 +74,12 @@ public class Tab implements ITab {
   		// main container
   		container = new JPanel();
   		container.setLayout(new BorderLayout());
-  		container.add(drawFilePanel(), BorderLayout.NORTH);
-  		container.add(drawScrollTable());
-  		container.add(drawInfoPanel(), BorderLayout.SOUTH);
+  		container.add(drawJFilePanel(), BorderLayout.NORTH);
+  		container.add(drawJScrollTable());
+  		container.add(drawJInfoPanel(), BorderLayout.SOUTH);
 	}
 
-	private JPanel drawFilePanel() {
+	private JPanel drawJFilePanel() {
   		JPanel panel = new JPanel();
   		JLabel label = new JLabel("Parse from file:");
   		fileTextField = new JTextField("", 32);
@@ -92,16 +95,75 @@ public class Tab implements ITab {
   		return panel;
 	}
 
-	private JScrollPane drawScrollTable() {
+	class ButtonListener implements ActionListener {
+		ButtonListener() {
+			super();
+		}
+
+		public void actionPerformed (ActionEvent e) {
+			if (e.getSource() instanceof JButton) {
+				processFile();
+			}
+		}
+	}
+
+	private void processFile() {
+		JFileChooser fileChooser = new JFileChooser();
+	 	FileFilter filter = new FileNameExtensionFilter("Swagger Files (*.json)", "json");
+		int result = fileChooser.showOpenDialog(container);
+
+		fileChooser.addChoosableFileFilter(filter);
+		fileChooser.setFileFilter(filter);
+
+		if (result == JFileChooser.APPROVE_OPTION) {
+		    File file = fileChooser.getSelectedFile();
+
+		    //This is where a real application would open the file.
+		    fileTextField.setText(file.getName());
+			infoLabel.setForeground(Color.BLACK);
+			infoLabel.setText(null);
+
+		    try {
+		    	Gson gson = new Gson();
+		        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+		        RESTful api = gson.fromJson(bufferedReader, RESTful.class);
+		   		String infoText = "Title: " + api.getInfo().getTitle() + " | " +
+		   			"Version: " + api.getInfo().getVersion()  + " | " +
+		   			"Swagger: " + api.getSwagger();
+
+				infoLabel.setForeground(Color.BLACK);
+		   		infoLabel.setText(infoText);
+
+		   		populateJTable(api);
+		   	} catch (Exception ex) {
+				StringWriter stringWriter = new StringWriter();
+				ex.printStackTrace(new PrintWriter(stringWriter));
+				stderr.println(stringWriter.toString());
+
+				infoLabel.setForeground(Color.RED);
+		   		infoLabel.setText("An error occured, please check the logs for further details");
+		   	}
+		} 
+	}
+
+	@SuppressWarnings("serial")
+	private JScrollPane drawJScrollTable() {
 		Object columns[] = {
 			"#",
-			"Method",
-			"Host", 
+			"Host",
+			"Method", 
 			"Base Path",
-			"Endpoint"
+			"Endpoint",
+			"Params"
 		};
 		Object rows[][] = {};
-        table = new JTable(new DefaultTableModel(rows, columns));
+        table = new JTable(new DefaultTableModel(rows, columns) {
+		    @Override
+		    public boolean isCellEditable(int rows, int columns) {
+		       return false;
+		    }
+		});
+
         JScrollPane scrollPane = new JScrollPane(table);
 
         table.setSelectionForeground(Color.BLACK);
@@ -121,11 +183,8 @@ public class Tab implements ITab {
 		    	}
 		    }
 
-		    private void show(MouseEvent e){
-		    	int selectedRow = table.rowAtPoint(e.getPoint());
-            	int selectedColumn = table.columnAtPoint(e.getPoint());
-
-            	DataStructure data = new DataStructure(
+		    private void show(MouseEvent e) {
+		    	DataStructure data = new DataStructure(
               		table, 
               		httpRequests,
               		fileTextField,
@@ -140,83 +199,41 @@ public class Tab implements ITab {
 		return scrollPane;
 	}
 
-	private JPanel drawInfoPanel() {
-		JPanel panel = new JPanel();
-  		infoLabel = new JLabel("Copyright 2016 Alexandre Teyar All Rights Reserved");
+	public void resizeColumnWidth(JTable table) {
+	    final TableColumnModel columnModel = table.getColumnModel();
 
-  		panel.add(infoLabel);
+	    for (int column = 0; column < table.getColumnCount(); column++) {
+	        int width = 16; // Min width
 
-  		return panel;
+	        for (int row = 0; row < table.getRowCount(); row++) {
+	            TableCellRenderer renderer = table.getCellRenderer(row, column);
+	            Component comp = table.prepareRenderer(renderer, row, column);
+	            width = Math.max(comp.getPreferredSize().width +1 , width);
+	        }
+
+	        if(width > 300) {
+	            width = 300;
+	        }
+
+	        columnModel.getColumn(column).setPreferredWidth(width);
+	    }
 	}
 
-	class ButtonListener implements ActionListener {
-		ButtonListener() {
-			super();
-		}
-
-		public void actionPerformed (ActionEvent e) {
-			if (e.getSource() instanceof JButton) {
-				parseFile();
-			}
-		}
-	}
-
-	private void parseFile() {
-		JFileChooser fileChooser = new JFileChooser();
-	 	FileFilter filter = new FileNameExtensionFilter("Swagger Files (*.json)", "json");
-		int result = fileChooser.showOpenDialog(container);
-
-		fileChooser.addChoosableFileFilter(filter);
-		fileChooser.setFileFilter(filter);
-
-		if (result == JFileChooser.APPROVE_OPTION) {
-		    File file = fileChooser.getSelectedFile();
-
-		    //This is where a real application would open the file.
-		    fileTextField.setText(file.getName());
-			infoLabel.setForeground(Color.BLACK);
-			infoLabel.setText(null);
-
-		    try {
-		    	gson = new Gson();
-		        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-		        REST api = gson.fromJson(bufferedReader, REST.class);
-		   		String infoText = "Title: " + api.getInfo().getTitle() + " | " +
-		   			"Version: " + api.getInfo().getVersion()  + " | " +
-		   			"Swagger: " + api.getSwagger();
-
-				infoLabel.setForeground(Color.BLACK);
-		   		infoLabel.setText(infoText);
-
-		   		populateTable(api);
-		   	} catch (Exception ex) {
-				StringWriter stringWriter = new StringWriter();
-				ex.printStackTrace(new PrintWriter(stringWriter));
-				stderr.println(stringWriter.toString());
-
-				infoLabel.setForeground(Color.RED);
-		   		infoLabel.setText("An error occured, please check the logs for further details");
-		   	}
-		} 
-	}
-
-	private void populateTable(REST api) {
+	private void populateJTable(RESTful api) {
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		Gson gson = new Gson();
 
 		for (String protocol : api.getSchemes()) {
 			String host = api.getHost();
 			String basePath = api.getBasePath();
 
-			for (Map.Entry<String,JsonElement> path: api.getPaths().entrySet()) {
+			for (Map.Entry<String, JsonElement> path: api.getPaths().entrySet()) {
 				String endpoint = path.getKey();
 				String url = basePath + endpoint;
 
-				for (Map.Entry<String,JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
-					Call call = gson.fromJson(entry.getValue(), Call.class);
+				for (Map.Entry<String, JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
+					Path call = gson.fromJson(entry.getValue(), Path.class);
 					String httpMethod = entry.getKey().toUpperCase();
-					String inQueryParams = "";
-					String inBodyParams = "";
-
 					call.setType(httpMethod);
 
 					model.addRow(new Object[] {
@@ -224,11 +241,15 @@ public class Tab implements ITab {
 							httpMethod,	
 							host, 
 							basePath, 
-							endpoint			
+							endpoint,
+							helper.parseParams(call.getParameters())		
 						}
 					);
 
-					populateHttpRequests(httpMethod, url, host, protocol, call.getParameters(), call.getConsumes(), call.getProduces());
+					resizeColumnWidth(table);
+
+					helper.populateHttpRequests(httpRequests, httpMethod, url, host, protocol, call.getParameters(), 
+						api.getDefinitions(), call.getConsumes(), call.getProduces());
 
 					rowIndex++;
 				}
@@ -236,98 +257,13 @@ public class Tab implements ITab {
 		}
 	}
 
-	private List<Object> protocolToPort(String protocol) {
-		List<Object> result = new ArrayList<Object>();
+	private JPanel drawJInfoPanel() {
+		JPanel panel = new JPanel();
+  		infoLabel = new JLabel("Copyright 2016 Alexandre Teyar All Rights Reserved");
 
-		switch (protocol) {
-			case "http": {
-				result.add(80);
-				result.add(false);
-				return result;
-			}
+  		panel.add(infoLabel);
 
-			case "https": {
-				result.add(443);
-				result.add(true);
-				return result;
-			}
-
-			default: {
-				infoLabel.setForeground(Color.RED);
-				infoLabel.setText("Transport protocol not implemented");
-				return null;
-			}
-		}
-	}
-
-	private String parseInQueryParams(List<Call.Parameter> params) {
-		String result = "";
-
-		if (params != null) {
-			result = "?";
-
-			for (Call.Parameter param : params) {
-				if (param.getIn().equals("query"))
-				result += param.getName() + "={" + param.getType() + "}&";
-			}
-
-			result = result.substring(0, result.length() - 1);
-		}
-
-		return result;
-	}
-
-	private String parseInBodyParams(List<Call.Parameter> params) {
-		String result = "";
-
-		return result;
-	}
-
-	private void populateHttpRequests(String httpMethod, String url, String host, String protocol, List<Call.Parameter> params,
-			List<String> consumes, List<String> produces) {
-		switch (httpMethod) {
-			case "GET": {
-				String request = "GET " + url + parseInQueryParams(params) + " HTTP/1.1" + "\n" 
-					+ "Host: " + host + "\n" 
-					+ "Accept: " + String.join(",", produces);
-				HttpRequest httpRequest = new HttpRequest(host, (Integer) protocolToPort(protocol).get(0), 
-					(Boolean) protocolToPort(protocol).get(1), request.getBytes());
-
-				httpRequests.add(httpRequest);
-				break;
-			}
-
-			case "POST": {
-				String request = "POST " + url + " HTTP/1.1" + "\n"
-					+ "Host: " + host + "\n" 
-					+ "Accept: " + String.join(",", produces) + "\n"
-					+ "Content-Type: " + String.join(",", consumes)
-					+ "\n\n"
-					+ parseInBodyParams(params);
-				HttpRequest httpRequest = new HttpRequest(host, (Integer) protocolToPort(protocol).get(0), 
-					(Boolean) protocolToPort(protocol).get(1), request.getBytes());
-
-				httpRequests.add(httpRequest);
-				break;
-			}
-
-			case "DELETE": {
-				String request = "DELETE " + url + parseInQueryParams(params) + " HTTP/1.1" + "\n"
-					+ "Host: " + host + "\n"
-					+ "Accept: " + String.join(",", produces);
-				HttpRequest httpRequest = new HttpRequest(host, (Integer) protocolToPort(protocol).get(0), 
-					(Boolean) protocolToPort(protocol).get(1), request.getBytes());
-
-				httpRequests.add(httpRequest);
-				break;
-			}
-
-			default: {
-				infoLabel.setForeground(Color.RED);
-				infoLabel.setText("HTTP method not implemented");
-				break;
-			}
-		}
+  		return panel;
 	}
 
 	@Override

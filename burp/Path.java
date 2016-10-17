@@ -20,14 +20,14 @@ import com.google.gson.JsonObject;
 
 import java.util.List;
 
-public class Call {
+public class Path {
 	private String type;
 	private List<String> consumes;
 	private List<String> produces;
 	private List<Parameter> parameters;
     private JsonObject responses;
 
-	public Call(List<String> consumes, List<String> produces, List<Parameter> parameters, JsonObject responses) {
+	public Path(List<String> consumes, List<String> produces, List<Parameter> parameters, JsonObject responses) {
 		this.consumes = consumes;
 		this.produces = produces;
 		this.parameters = parameters;
@@ -56,35 +56,5 @@ public class Call {
     
     public JsonObject getResponses() {
     	return this.responses;
-    }
-
-    public class Parameter {
-        private String name;
-        private String in;
-        private Boolean required;
-        private String type;
-
-        public Parameter(String name, String in, Boolean required, String type) {
-            this.name = name;
-            this.in = in;
-            this.required = required;
-            this.type = type;
-        }
-
-        public String getName() {
-            return this.name;
-        }
-
-        public String getIn() {
-            return this.in;
-        }
-
-        public Boolean getRequired() {
-            return this.required;
-        }
-
-        public String getType() {
-            return this.type;
-        }
     }
 }

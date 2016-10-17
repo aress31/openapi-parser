@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 
 import java.util.List;
 
-public class REST {
+public class RESTful {
 	private String swagger;
 	private Info info;
     private String host;
@@ -29,7 +29,8 @@ public class REST {
     private JsonObject paths;
     private JsonObject definitions;
 
-	public REST(String swagger, Info info, String host, String basePath, List<String> schemes, JsonObject paths, JsonObject definitions) {
+	public RESTful(String swagger, Info info, String host, String basePath, List<String> schemes, 
+        JsonObject paths, JsonObject definitions) {
 		this.swagger = swagger;
 		this.info = info;
 		this.host = host;
@@ -65,23 +66,5 @@ public class REST {
 
     public JsonObject getDefinitions() {
     	return this.definitions;
-    }
-
-    public class Info {
-        private String version;
-        private String title;
-
-        public Info(String version, String title) {
-            this.version = version;
-            this.title = title;
-        }
-
-        public String getVersion() {
-            return this.version;
-        }
-
-        public String getTitle() {
-            return this.title;
-        }
     }
 }

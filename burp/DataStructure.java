@@ -18,8 +18,9 @@ package burp;
 
 import java.awt.Color;
 
-import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 
 import java.util.List;
 
