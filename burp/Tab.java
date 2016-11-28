@@ -151,8 +151,8 @@ public class Tab implements ITab {
 	private JScrollPane drawJScrollTable() {
 		Object columns[] = {
 			"#",
-			"Host",
 			"Method", 
+			"Host",
 			"Base Path",
 			"Endpoint",
 			"Params"
