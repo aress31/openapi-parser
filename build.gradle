@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+dependencies {
+    compile files("lib/gson.jar")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'burp'
+        }
+    }
+}
+
+task fatJar(type: Jar) {
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
