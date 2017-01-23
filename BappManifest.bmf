@@ -6,6 +6,6 @@ SerialVersion: 0
 MinPlatformVersion: 0
 ProOnly: False
 Author: Alexandre Teyar
-ShortDescription: Parse Swagger.io files
+ShortDescription: Parses Swagger files.
 EntryPoint: build/libs/swagger-parser-all.jar
 BuildCommand: gradle fatJar
