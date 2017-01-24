@@ -20,6 +20,7 @@ The extension is still in development, feedback and comments would be much appre
 * Sends requests to the repeater.
 
 ## Installation
+### Compilation
 1. Download the repository.
 
         $ git clone https://github.com/AresS31/swurg
