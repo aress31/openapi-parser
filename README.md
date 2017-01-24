@@ -1,7 +1,9 @@
 ![swurg](images/swurg_logo.png)
 # swurg
 ## A Burp extension for RESTful API testing.
-During penetration testing of RESTful API, it can be time consuming to chain Burp with other tools such as SOAP-UI. However, this is often necessary in order to parse the API description for use with Burp's scanning capabilities. Therefore, after posting a request for improvement on the PortSwigger support forum, see <https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>, in July 2015, I decided to take the lead and implement a solution myself.
+During penetration testing of RESTful API, it can be time consuming to chain Burp with other tools such as SOAP-UI. However, this is often necessary in order to parse the API description for use with Burp's scanning capabilities. 
+
+Therefore, after posting a request for improvement on the PortSwigger support forum, see <https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>, in July 2015, I decided to take the lead and implement a solution myself.
 
 The following screenshot shows the plugin interface, for obvious reasons the screenshot does not present any sensitive information:
 ![compilation](images/swurg.png)
@@ -13,24 +15,23 @@ The extension is still in development, feedback and comments would be much appre
 * Parses Swagger files.
 * Responsive GUI.
 * Sends requests to the active scanner.
-* Sends requests to the repeater.
 * Sends requests to the intruder.
+* Sends requests to the repeater.
 
 ## Installation
 1. Download the repository.
 
-    $ git clone https://github.com/AresS31/swurg
-    $ cd swurg
+        $ git clone https://github.com/AresS31/swurg
 
 2. Put the `gson` jarfile inside `.\lib\com\google\gson\`.
 
 2. Compile the Java source code:
 
-    $ javac.exe -cp .\lib\com\gson\gson-2.9.0.jar -d .\build\ .\burp\*.java
+        $ javac.exe -cp .\lib\com\gson\gson-2.9.0.jar -d .\build\ .\burp\*.java
 
 3. Create the swurg jarfile:
 
-    $ jar.exe cf swurg.jar -C build burp
+        $ jar.exe cf swurg.jar -C build burp
 
 ![compilation](images/compilation.png)
 
