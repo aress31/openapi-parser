@@ -23,8 +23,7 @@ The extension is still in development, feedback and comments would be much appre
 1. Download the repository.
 
         $ git clone https://github.com/AresS31/swurg
-
-2. Put the `gson` jarfile inside `.\lib\com\google\gson\`.
+        $ cd .\swurg\
 
 2. Compile the Java source code:
 
