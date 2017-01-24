@@ -113,7 +113,7 @@ public class Helper {
 		return result;
 	}
 
-	// Really messy but does the job - needs improvements!
+	// Really messy but does the job -- needs improvements!
 	public String parseSchemaParams(String param, JsonObject definitions) {
 		Gson gson = new Gson();
 		String result = "";

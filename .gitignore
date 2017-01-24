@@ -1,4 +1,4 @@
 build/
-lib/com/
-lib/META-INF/
+lib/
+*.jar
 *.swp
