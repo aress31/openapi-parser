@@ -28,7 +28,7 @@ The extension is still in development, feedback and comments would be much appre
 
 2. Compile the Java source code:
 
-        $ javac.exe -cp .\lib\com\gson\gson-2.9.0.jar -d .\build\ .\burp\*.java
+        $ javac.exe -cp .\lib\com\gson\gson-2.8.0.jar -d .\build\ .\burp\*.java
 
 3. Create the swurg jarfile:
 
