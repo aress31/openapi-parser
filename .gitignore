@@ -1,4 +1,3 @@
 build/
-lib/com/
-lib/META-INF/
+swurg.jar
 *.swp

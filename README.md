@@ -1,45 +1,45 @@
 ![swurg](images/swurg_logo.png)
 # swurg
-## A Burp extension for REST API testing.
-During external engagement involving REST API testing, it is more than often a real lost of time to have to chain Burp with other tool such as SOAP-UI. This step is however necessary to parse the provided API Swagger description to be able to use the Burp scanning capabilities. Therefore, after posting a request for improvement on the PortSwigger support forum, see <https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>, in July 2015, I decided to take the lead and to implement it myself. 
+## A Burp extension for RESTful API testing.
+During penetration testing of RESTful API, it can be time consuming to chain Burp with other tools such as SOAP-UI. However, this is often necessary in order to parse the API description for use with Burp's scanning capabilities. 
 
-The following screenshot shows the plugin interface, for obvious reason the screenshot does not present any sensitive information:
+Therefore, after posting a request for improvement on the PortSwigger support forum, see <https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>, in July 2015, I decided to take the lead and implement a solution myself.
+
+The following screenshot shows the plugin interface, for obvious reasons the screenshot does not present any sensitive information:
+
 ![compilation](images/swurg.png)
 
 ## Project information
-The extension is still in developement. 
-Feedbacks and comments would be much appreciated. 
+The extension is still in development, feedback and comments would be much appreciated. 
 
 ## Features
-* Parse Swagger files.
+* Parses Swagger files.
 * Responsive GUI.
-* Send requests to the active scanner.
-* Send requests to the repeater
-* Send requests to the intruder.
+* Sends requests to the active scanner.
+* Sends requests to the intruder.
+* Sends requests to the repeater.
 
 ## Installation
 ### Compilation
-1. Download the repositiory.
+1. Download the repository.
 
-2. Add the gson jar inside the lib folder.
+        $ git clone https://github.com/AresS31/swurg
+        $ cd .\swurg\
 
-2. Compile the source and set the classpath:
+2. Compile the Java source code:
 
-		$ javac.exe -cp .\lib\gson.jar -d .\build\ .\burp\*.java
+        $ javac.exe -cp .\lib\com\gson\gson-2.8.0.jar -d .\build\ .\burp\*.java
 
-3. Create the swurg jar file:
+3. Create the swurg jarfile:
 
-		$ jar.exe cf swurg.jar -C build burp
+        $ jar.exe cf swurg.jar -C build burp
 
 ![compilation](images/compilation.png)
 
-Alternatively, you can download the **swurg.jar** included in the repository. The MD5 hash of this file is:
-5C349AD7BA92C561756E809A1BDE09D1
-
 ### Burp settings
-1. Under the Burp Extender/Options tab, set the Java Environement to the lib folder containing the gson library.
+1. In Burp, under the `Extender/Options` tab, set the `Java Environment` path to the library folder containing the `gson` jarfile.
 
-2. Under the Burp Extender/Extensions tab, click on the Add button and load the swurg jar. 
+2. In Burp, under the `Extender/Options` tab, click on the `Add` button and load the swurg jarfile. 
 
 ![burp_settings](images/burp_settings.png)
 
@@ -63,4 +63,4 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-   limitations under the License. 
+   limitations under the License.
