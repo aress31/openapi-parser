@@ -273,6 +273,6 @@ public class Tab implements ITab {
 
 	@Override
 	public String getTabCaption() {
-		return "Swurg";
+		return "Swagger Parser";
    	}
 }

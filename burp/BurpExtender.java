@@ -20,7 +20,7 @@ public class BurpExtender implements IBurpExtender {
 	
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-		callbacks.setExtensionName("Swurg");
+		callbacks.setExtensionName("Swagger Parser");
 		callbacks.addSuiteTab(new Tab(callbacks));
 	}
 }
