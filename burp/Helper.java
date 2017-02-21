@@ -29,24 +29,29 @@ public class Helper {
 		super();
     }
 
-	public List<Object> protocolToPort(String protocol) {
-		List<Object> result = new ArrayList<Object>();
+	public String emitHost(String host) {
+		//drop the port number, if one is present
+		return host.split(":")[0];
+	}
 
+	public int emitPort(String host, String protocol) {
+		//if a port is defined in the swagger host field, use it
+		String[] hostparts = host.split(":");
+		if (hostparts.length == 2){
+			return Integer.parseInt(hostparts[1]);
+		}
+		//if no port is defined, guess based on the value of the scheme field
 		switch (protocol) {
 			case "http": {
-				result.add(80);
-				result.add(false);
-				return result;
+				return 80;
 			}
 
 			case "https": {
-				result.add(443);
-				result.add(true);
-				return result;
+				return 443;
 			}
 
 			default: {
-				return null;
+				return 0;
 			}
 		}
 	}
@@ -162,8 +167,10 @@ public class Helper {
 				+ parseInBodyParams(params, definitions);
 		}
 
-		HttpRequest httpRequest = new HttpRequest(host, (Integer) protocolToPort(protocol).get(0), 
-			(Boolean) protocolToPort(protocol).get(1), request.getBytes());
+		int port = emitPort(host, protocol);
+		host = emitHost(host);
+		boolean useHttps = protocol.equals("https");
+		HttpRequest httpRequest = new HttpRequest(host, (Integer) port, useHttps, request.getBytes());
 
 		httpRequests.add(httpRequest);
 	}
