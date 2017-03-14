@@ -40,7 +40,7 @@ public class RESTful {
 		this.definitions = definitions;
     }
 
-    public String getSwagger() {
+    public String getSwaggerVersion() {
     	return this.swagger;
     }
 

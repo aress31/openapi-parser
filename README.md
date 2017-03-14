@@ -10,14 +10,14 @@ The following screenshot shows the plugin interface, for obvious reasons the scr
 ![compilation](images/swurg.png)
 
 ## Project information
-The extension is still in development, feedback and comments would be much appreciated. 
+The extension is still in development, feedback and comments would be much appreciated.
 
 ## Features
-* Parses Swagger files.
+* Parse Swagger files.
 * Responsive GUI.
-* Sends requests to the active scanner.
-* Sends requests to the intruder.
-* Sends requests to the repeater.
+* Send requests to the active scanner.
+* Send requests to the intruder.
+* Send requests to the repeater.
 
 ## Installation
 ### Compilation
@@ -28,7 +28,7 @@ The extension is still in development, feedback and comments would be much appre
 
 2. Compile the Java source code:
 
-        $ javac.exe -cp .\lib\com\gson\gson-2.8.0.jar -d .\build\ .\burp\*.java
+        $ javac.exe -cp .\lib\com\google\gson\gson-2.8.0.jar -d .\build\ .\burp\*.java
 
 3. Create the swurg jarfile:
 

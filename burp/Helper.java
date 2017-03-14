@@ -25,31 +25,34 @@ import java.util.Map;
 import java.util.List;
 
 public class Helper {
-	public Helper() {
-		super();
+
+    public ArrayList<Scheme> buildSchemes(RESTful api) {
+        ArrayList<Scheme> schemes = new ArrayList<Scheme>();
+
+        if (api.getSchemes() != null) {
+            for (String protocol: api.getSchemes())
+                schemes.add(new Scheme(protocol));
+        } else
+            schemes.add(schemeFromHost(api.getHost()));
+
+        return schemes;
     }
 
-	public List<Object> protocolToPort(String protocol) {
-		List<Object> result = new ArrayList<Object>();
+    public Scheme schemeFromHost(String host) {
+        String[] hostParts = host.split(":");  
 
-		switch (protocol) {
-			case "http": {
-				result.add(80);
-				result.add(false);
-				return result;
-			}
+        if (hostParts.length == 2) {
+            int port = Integer.parseInt(hostParts[1]);
 
-			case "https": {
-				result.add(443);
-				result.add(true);
-				return result;
-			}
+            return (new Scheme(port));
+        } else
+            return null;
+    }
 
-			default: {
-				return null;
-			}
-		}
-	}
+    public String validateHostSyntax(String host) {
+        // Drop the port number if present
+        return host.split(":")[0];
+    }
 
 	public String parseParams(List<Parameter> params) {
 		String result = "";
@@ -141,29 +144,37 @@ public class Helper {
 		return result;
 	}
 
-	public void populateHttpRequests(List<HttpRequest> httpRequests,String httpMethod, String url, String host, String protocol, List<Parameter> params,	
+	public void populateHttpRequests(List<HttpRequest> httpRequests, String httpMethod, String url, String host, int port, Boolean encryption, List<Parameter> params,	
 		JsonObject definitions, List<String> consumes, List<String> produces) {
 		String request = "";
 
-		if (consumes != null) {
+		if (consumes != null && produces != null) {
 			request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
-				+ "Host: " + host + "\n" 
-				+ "Accept: " + String.join(",", produces) + "\n"
-				+ "Content-Type: " + String.join(",", consumes)
-				+ "\n\n"
-				+ parseInBodyParams(params, definitions);
-		}
+			+ "Host: " + host + "\n" 
+			+ "Accept: " + String.join(",", produces) + "\n"
+			+ "Content-Type: " + String.join(",", consumes)
+			+ "\n\n"
+			+ parseInBodyParams(params, definitions);
+		} else if (consumes != null) {
+			request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
+			+ "Host: " + host + "\n" 
+			+ "Content-Type: " + String.join(",", consumes)
+			+ "\n\n"
+			+ parseInBodyParams(params, definitions);
+		} else if (produces != null) {
+            request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
+            + "Host: " + host + "\n" 
+            + "Accept: " + String.join(",", produces) + "\n"
+            + "\n\n"
+            + parseInBodyParams(params, definitions);
+        } else {                
+            request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
+            + "Host: " + host + "\n" 
+            + "\n\n"
+            + parseInBodyParams(params, definitions);
+        }
 
-		else {
-				request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
-				+ "Host: " + host + "\n" 
-				+ "Accept: " + String.join(",", produces) 
-				+ "\n\n"
-				+ parseInBodyParams(params, definitions);
-		}
-
-		HttpRequest httpRequest = new HttpRequest(host, (Integer) protocolToPort(protocol).get(0), 
-			(Boolean) protocolToPort(protocol).get(1), request.getBytes());
+		HttpRequest httpRequest = new HttpRequest(host, port, encryption, request.getBytes());
 
 		httpRequests.add(httpRequest);
 	}

@@ -51,228 +51,234 @@ import java.util.Map;
 import java.util.List;
 
 public class Tab implements ITab {
-	private PrintWriter stderr;
-	private Helper helper = new Helper();
+    private PrintWriter stderr;
+    private Helper helper = new Helper();
 
-	private ContextMenu contextMenu;
-	private JLabel infoLabel;
-	private JPanel container;
-	private JTable table;
-	private JTextField fileTextField;
+    private ContextMenu contextMenu;
+    private JLabel infoLabel;
+    private JPanel container;
+    private JTable table;
+    private JTextField fileTextField;
 
-	private int rowIndex = 1;
+    private int rowIndex = 1;
 
-	private List<HttpRequest> httpRequests;
+    private List<HttpRequest> httpRequests;
 
-  	public Tab(IBurpExtenderCallbacks callbacks) {
-  		stderr = new PrintWriter(callbacks.getStderr(), true);
+    public Tab(IBurpExtenderCallbacks callbacks) {
+        contextMenu = new ContextMenu(callbacks);
+        httpRequests = new ArrayList<HttpRequest>();
+        stderr = new PrintWriter(callbacks.getStderr(), true);
 
- 		httpRequests = new ArrayList<HttpRequest>();
+        // main container
+        container = new JPanel();
+        container.setLayout(new BorderLayout());
+        container.add(drawJFilePanel(), BorderLayout.NORTH);
+        container.add(drawJScrollTable());
+        container.add(drawJInfoPanel(), BorderLayout.SOUTH);
+    }
 
-  		contextMenu = new ContextMenu(callbacks);
+    private JPanel drawJFilePanel() {
+        JPanel panel = new JPanel();
+        JLabel label = new JLabel("Parse file:");
+        fileTextField = new JTextField("", 48);
+        JButton button = new JButton("File");
 
-  		// main container
-  		container = new JPanel();
-  		container.setLayout(new BorderLayout());
-  		container.add(drawJFilePanel(), BorderLayout.NORTH);
-  		container.add(drawJScrollTable());
-  		container.add(drawJInfoPanel(), BorderLayout.SOUTH);
-	}
+        fileTextField.setEditable(false);
+        button.addActionListener(new ButtonListener());
 
-	private JPanel drawJFilePanel() {
-  		JPanel panel = new JPanel();
-  		JLabel label = new JLabel("Parse from file:");
-  		fileTextField = new JTextField("", 32);
-  		JButton button = new JButton("Select File");
+        panel.add(label);
+        panel.add(fileTextField);
+        panel.add(button);
 
-		fileTextField.setEditable(false);
-  		button.addActionListener(new ButtonListener());
+        return panel;
+    }
 
-  		panel.add(label);
-  		panel.add(fileTextField);
-  		panel.add(button);
+    class ButtonListener implements ActionListener {
+        ButtonListener() {
+            super();
+        }
 
-  		return panel;
-	}
+        public void actionPerformed (ActionEvent e) {
+            if (e.getSource() instanceof JButton) {
+                processFile();
+            }
+        }
+    }
 
-	class ButtonListener implements ActionListener {
-		ButtonListener() {
-			super();
-		}
+    private void processFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        FileFilter filter = new FileNameExtensionFilter("Swagger File (*.json)", "json");
+        int result = fileChooser.showOpenDialog(container);
 
-		public void actionPerformed (ActionEvent e) {
-			if (e.getSource() instanceof JButton) {
-				processFile();
-			}
-		}
-	}
+        fileChooser.addChoosableFileFilter(filter);
+        fileChooser.setFileFilter(filter);
 
-	private void processFile() {
-		JFileChooser fileChooser = new JFileChooser();
-	 	FileFilter filter = new FileNameExtensionFilter("Swagger Files (*.json)", "json");
-		int result = fileChooser.showOpenDialog(container);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
 
-		fileChooser.addChoosableFileFilter(filter);
-		fileChooser.setFileFilter(filter);
+            //This is where a real application would open the file.
+            fileTextField.setText(file.getName());
+            infoLabel.setForeground(Color.BLACK);
+            infoLabel.setText(null);
 
-		if (result == JFileChooser.APPROVE_OPTION) {
-		    File file = fileChooser.getSelectedFile();
+            try {
+                Gson gson = new Gson();
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                RESTful api = gson.fromJson(bufferedReader, RESTful.class);
+                String infoText = "Title: " + api.getInfo().getTitle() + " | " +
+                    "Version: " + api.getInfo().getVersion()  + " | " +
+                    "Swagger Version: " + api.getSwaggerVersion();
 
-		    //This is where a real application would open the file.
-		    fileTextField.setText(file.getName());
-			infoLabel.setForeground(Color.BLACK);
-			infoLabel.setText(null);
+                infoLabel.setForeground(Color.BLACK);
+                infoLabel.setText(infoText);
 
-		    try {
-		    	Gson gson = new Gson();
-		        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-		        RESTful api = gson.fromJson(bufferedReader, RESTful.class);
-		   		String infoText = "Title: " + api.getInfo().getTitle() + " | " +
-		   			"Version: " + api.getInfo().getVersion()  + " | " +
-		   			"Swagger: " + api.getSwagger();
+                populateJTable(api);
+            } catch (Exception ex) {
+                StringWriter stringWriter = new StringWriter();
+                ex.printStackTrace(new PrintWriter(stringWriter));
+                stderr.println(stringWriter.toString());
 
-				infoLabel.setForeground(Color.BLACK);
-		   		infoLabel.setText(infoText);
+                infoLabel.setForeground(Color.RED);
+                infoLabel.setText("A fatal error occured, please check the logs for further information");
+            }
+        } 
+    }
 
-		   		populateJTable(api);
-		   	} catch (Exception ex) {
-				StringWriter stringWriter = new StringWriter();
-				ex.printStackTrace(new PrintWriter(stringWriter));
-				stderr.println(stringWriter.toString());
-
-				infoLabel.setForeground(Color.RED);
-		   		infoLabel.setText("An error occured, please check the logs for further details");
-		   	}
-		} 
-	}
-
-	@SuppressWarnings("serial")
-	private JScrollPane drawJScrollTable() {
-		Object columns[] = {
-			"#",
-			"Method", 
-			"Host",
-			"Base Path",
-			"Endpoint",
-			"Params"
-		};
-		Object rows[][] = {};
+    @SuppressWarnings("serial")
+    private JScrollPane drawJScrollTable() {
+        Object columns[] = {
+            "#",
+            "Method", 
+            "Host",
+            "Protocol",
+            "Base Path",
+            "Endpoint",
+            "Params"
+        };
+        Object rows[][] = {};
         table = new JTable(new DefaultTableModel(rows, columns) {
-		    @Override
-		    public boolean isCellEditable(int rows, int columns) {
-		       return false;
-		    }
-		});
+            @Override
+            public boolean isCellEditable(int rows, int columns) {
+               return false;
+            }
+        });
 
         JScrollPane scrollPane = new JScrollPane(table);
 
         table.setSelectionForeground(Color.BLACK);
-        table.addMouseListener(new MouseAdapter() {    		
-        	@Override
-			public void mouseReleased(MouseEvent e) { 
-				int selectedRow = table.rowAtPoint(e.getPoint());
+        table.addMouseListener(new MouseAdapter() {         
+            @Override
+            public void mouseReleased(MouseEvent e) { 
+                int selectedRow = table.rowAtPoint(e.getPoint());
 
-		        if (selectedRow >= 0 && selectedRow < table.getRowCount()) {
-		        	if (!table.getSelectionModel().isSelectedIndex(selectedRow)) {
-						table.setRowSelectionInterval(selectedRow, selectedRow);
-		        	}
-		        }
+                if (selectedRow >= 0 && selectedRow < table.getRowCount()) {
+                    if (!table.getSelectionModel().isSelectedIndex(selectedRow)) {
+                        table.setRowSelectionInterval(selectedRow, selectedRow);
+                    }
+                }
 
-			    if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {  
-		        	this.show(e);
-		    	}
-		    }
+                if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {  
+                    this.show(e);
+                }
+            }
 
-		    private void show(MouseEvent e) {
-		    	DataStructure data = new DataStructure(
-              		table, 
-              		httpRequests,
-              		fileTextField,
-              		infoLabel
-            	);
+            private void show(MouseEvent e) {
+                DataStructure data = new DataStructure(
+                    table, 
+                    httpRequests,
+                    fileTextField,
+                    infoLabel
+                );
             
-				contextMenu.setDataStructure(data);
-				contextMenu.show(e.getComponent(), e.getX(), e.getY());
-		    }
-		});
+                contextMenu.setDataStructure(data);
+                contextMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        });
 
-		return scrollPane;
-	}
+        return scrollPane;
+    }
 
-	public void resizeColumnWidth(JTable table) {
-	    final TableColumnModel columnModel = table.getColumnModel();
+    public void resizeColumnWidth(JTable table) {
+        final TableColumnModel columnModel = table.getColumnModel();
 
-	    for (int column = 0; column < table.getColumnCount(); column++) {
-	        int width = 16; // Min width
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = 16; // Min width
 
-	        for (int row = 0; row < table.getRowCount(); row++) {
-	            TableCellRenderer renderer = table.getCellRenderer(row, column);
-	            Component comp = table.prepareRenderer(renderer, row, column);
-	            width = Math.max(comp.getPreferredSize().width +1 , width);
-	        }
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component comp = table.prepareRenderer(renderer, row, column);
+                width = Math.max(comp.getPreferredSize().width +1 , width);
+            }
 
-	        if(width > 300) {
-	            width = 300;
-	        }
+            if(width > 300) {
+                width = 300;
+            }
 
-	        columnModel.getColumn(column).setPreferredWidth(width);
-	    }
-	}
+            columnModel.getColumn(column).setPreferredWidth(width);
+        }
+    }
 
-	private void populateJTable(RESTful api) {
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
-		Gson gson = new Gson();
+    private void populateJTable(RESTful api) {
+        Gson gson = new Gson();
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        ArrayList<Scheme> schemes = helper.buildSchemes(api);
 
-		for (String protocol : api.getSchemes()) {
-			String host = api.getHost();
-			String basePath = api.getBasePath();
+        if (schemes.isEmpty()) {
+            infoLabel.setForeground(Color.RED);
+            infoLabel.setText("Invalid Swagger format detected, please ensure that the `schemes` is completed or the `host` has a port number");            
+        }
 
-			for (Map.Entry<String, JsonElement> path: api.getPaths().entrySet()) {
-				String endpoint = path.getKey();
-				String url = basePath + endpoint;
+        for (Scheme scheme: schemes) {
+            String basePath = api.getBasePath();
+            String host = helper.validateHostSyntax(api.getHost());
 
-				for (Map.Entry<String, JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
-					Path call = gson.fromJson(entry.getValue(), Path.class);
-					String httpMethod = entry.getKey().toUpperCase();
-					call.setType(httpMethod);
+            for (Map.Entry<String, JsonElement> path: api.getPaths().entrySet()) {
+                String endpoint = path.getKey();
+                String url = basePath + endpoint;
 
-					model.addRow(new Object[] {
-							rowIndex,
-							httpMethod,	
-							host, 
-							basePath, 
-							endpoint,
-							helper.parseParams(call.getParameters())		
-						}
-					);
+                for (Map.Entry<String, JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
+                    Path call = gson.fromJson(entry.getValue(), Path.class);
+                    String httpMethod = entry.getKey().toUpperCase();
+                    call.setType(httpMethod);
 
-					resizeColumnWidth(table);
+                    model.addRow(new Object[] {
+                            rowIndex,
+                            httpMethod,
+                            host,
+                            scheme.getProtocol(), 
+                            basePath, 
+                            endpoint,
+                            helper.parseParams(call.getParameters())
+                        }
+                    );
 
-					helper.populateHttpRequests(httpRequests, httpMethod, url, host, protocol, call.getParameters(), 
-						api.getDefinitions(), call.getConsumes(), call.getProduces());
+                    resizeColumnWidth(table);
 
-					rowIndex++;
-				}
-			}
-		}
-	}
+                    helper.populateHttpRequests(httpRequests, httpMethod, url, host, scheme.getPort(), scheme.getEncryption(), call.getParameters(), 
+                        api.getDefinitions(), call.getConsumes(), call.getProduces());
 
-	private JPanel drawJInfoPanel() {
-		JPanel panel = new JPanel();
-  		infoLabel = new JLabel("Copyright 2016 Alexandre Teyar All Rights Reserved");
+                    rowIndex++;
+                }
+            }
+        }
+    }
 
-  		panel.add(infoLabel);
+    private JPanel drawJInfoPanel() {
+        JPanel panel = new JPanel();
+        infoLabel = new JLabel("Copyright \u00a9 2016 Alexandre Teyar All Rights Reserved");
 
-  		return panel;
-	}
+        panel.add(infoLabel);
 
-	@Override
-	public Component getUiComponent() {
-		return container;
-	}
+        return panel;
+    }
 
-	@Override
-	public String getTabCaption() {
-		return "Swagger Parser";
-   	}
+    @Override
+    public Component getUiComponent() {
+        return container;
+    }
+
+    @Override
+    public String getTabCaption() {
+        return "Swagger Parser";
+    }
 }

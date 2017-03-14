@@ -26,11 +26,12 @@ import javax.swing.table.DefaultTableModel;
 
 @SuppressWarnings("serial")
 public class ContextMenu extends JPopupMenu {
+    DataStructure data;
+    
     JMenuItem clearAll;
     JMenuItem intruder;
     JMenuItem repeater;
     JMenuItem scanner;
-    DataStructure data;
 
     public ContextMenu(IBurpExtenderCallbacks callbacks){
         this.clearAll = new JMenuItem("Clear all");
@@ -100,7 +101,7 @@ public class ContextMenu extends JPopupMenu {
 
     private void clear() {
         data.setFileTextField("");
-        data.setInfoLabel("Copyright 2016 Alexandre Teyar All Rights Reserved");
+        data.setInfoLabel("Copyright \u00a9 2016 Alexandre Teyar All Rights Reserved");
         DefaultTableModel model = (DefaultTableModel) data.getTable().getModel();
         model.setRowCount(0);
         data.getHttpRequests().clear();
