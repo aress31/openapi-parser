@@ -20,8 +20,8 @@ The extension is still in development, feedback and comments would be much appre
 * Send requests to the repeater.
 
 ## Installation
-### Windows
-#### Compilation
+### Compilation 
+#### Windows
 1. Download the repository.
 
         $ git clone https://github.com/AresS31/swurg
@@ -37,8 +37,7 @@ The extension is still in development, feedback and comments would be much appre
 
 ![compilation](images/compilation.png)
 
-### Linux
-#### Compilation
+#### Linux
 1. Download the repository.
 
         $ git clone https://github.com/AresS31/swurg
