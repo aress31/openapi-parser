@@ -13,14 +13,15 @@ The following screenshot shows the plugin interface, for obvious reasons the scr
 The extension is still in development, feedback and comments would be much appreciated.
 
 ## Features
-* Parse Swagger files.
+* Parse Swagger JSON files (YAML files are not supported at the moment).
 * Responsive GUI.
 * Send requests to the active scanner.
 * Send requests to the intruder.
 * Send requests to the repeater.
 
 ## Installation
-### Compilation
+### Windows
+#### Compilation
 1. Download the repository.
 
         $ git clone https://github.com/AresS31/swurg
@@ -36,6 +37,22 @@ The extension is still in development, feedback and comments would be much appre
 
 ![compilation](images/compilation.png)
 
+### Linux
+#### Compilation
+1. Download the repository.
+
+        $ git clone https://github.com/AresS31/swurg
+        $ cd .\swurg\
+        $ mkdir build
+
+2. Compile the Java source code:
+
+        $ javac -cp ./lib/com/google/gson/gson-2.8.0.jar -d ./build/ ./burp/*.java
+
+3. Create the swurg jarfile:
+
+        $ jar cf swurg.jar -C build burp
+        
 ### Burp settings
 1. In Burp, under the `Extender/Options` tab, set the `Java Environment` path to the library folder containing the `gson` jarfile.
 
@@ -48,7 +65,7 @@ The extension is still in development, feedback and comments would be much appre
 #### google-gson:
 The *google-gson* library is required. 
 
-<http://repo1.maven.org/maven2/com/google/code/gson/gson/2.7/>
+<https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.0/>
 
 ## License
    Copyright (C) 2016 Alexandre Teyar
