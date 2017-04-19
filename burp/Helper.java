@@ -58,11 +58,13 @@ public class Helper {
 		String result = "";
 
 		if (params != null) {
-			for (Parameter param : params) {
-				result += param.getName() + ", ";
-			}
+            if (!(params.isEmpty())) {
+    			for (Parameter param : params) {
+    				result += param.getName() + ", ";
+    			}
 
-			result = result.substring(0, result.length() - 2);
+    			result = result.substring(0, result.length() - 2);
+            }
 		}
 
 		return result;

@@ -51,8 +51,8 @@ import java.util.Map;
 import java.util.List;
 
 public class Tab implements ITab {
-    private PrintWriter stderr;
     private Helper helper = new Helper();
+    private PrintWriter stderr;
 
     private ContextMenu contextMenu;
     private JLabel infoLabel;
@@ -116,7 +116,6 @@ public class Tab implements ITab {
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
 
-            //This is where a real application would open the file.
             fileTextField.setText(file.getName());
             infoLabel.setForeground(Color.BLACK);
             infoLabel.setText(null);
