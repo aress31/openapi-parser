@@ -3,7 +3,7 @@ ExtensionType: 1
 Name: Swagger Parser
 RepoName: swagger-parser
 ScreenVersion: 1.3
-SerialVersion: 4
+SerialVersion: 5
 MinPlatformVersion: 0
 ProOnly: False
 Author: Alexandre Teyar
