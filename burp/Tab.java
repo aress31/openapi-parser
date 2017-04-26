@@ -181,9 +181,16 @@ public class Tab implements ITab {
                 }
             }
 
+            @Override
+            public void mousePressed(MouseEvent e) { 
+                if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {  
+                    this.show(e);
+                }
+            }
+
             private void show(MouseEvent e) {
                 DataStructure data = new DataStructure(
-                    table, 
+                    table,
                     httpRequests,
                     fileTextField,
                     infoLabel
