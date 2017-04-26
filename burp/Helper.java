@@ -166,12 +166,12 @@ public class Helper {
 		} else if (produces != null) {
             request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
             + "Host: " + host + "\n" 
-            + "Accept: " + String.join(",", produces) + "\n"
+            + "Accept: " + String.join(",", produces)
             + "\n\n"
             + parseInBodyParams(params, definitions);
         } else {                
             request = httpMethod + " " + parseInPathParams(url, params) + parseInQueryParams(params) + " HTTP/1.1" + "\n"
-            + "Host: " + host + "\n" 
+            + "Host: " + host
             + "\n\n"
             + parseInBodyParams(params, definitions);
         }
