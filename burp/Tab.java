@@ -108,10 +108,10 @@ public class Tab implements ITab {
     private void processFile() {
         JFileChooser fileChooser = new JFileChooser();
         FileFilter filter = new FileNameExtensionFilter("Swagger File (*.json)", "json");
-        int result = fileChooser.showOpenDialog(container);
-
         fileChooser.addChoosableFileFilter(filter);
         fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(container);
 
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
