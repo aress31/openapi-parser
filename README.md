@@ -5,7 +5,7 @@ During penetration testing of RESTful API, it can be time consuming to chain Bur
 
 Therefore, after posting a request for improvement on the PortSwigger support forum, see <https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>, in July 2015, I decided to take the lead and implement a solution myself.
 
-The following screenshot shows the plugin interface, for obvious reasons the screenshot does not present any sensitive information:
+The following screenshot shows the plugin interface:
 
 ![compilation](images/swurg.png)
 
@@ -34,7 +34,7 @@ The extension is still in development, feedback and comments would be much appre
         $ gradle fatJar
         
 ### Burp settings
-1. In Burp, under the `Extender/Options` tab, click on the `Add` button and load the swurg-all jarfile. 
+1. In Burp, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Dependencies
 ### Third-party libraries
