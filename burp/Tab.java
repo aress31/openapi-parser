@@ -42,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -108,10 +109,10 @@ public class Tab implements ITab {
     private void processFile() {
         JFileChooser fileChooser = new JFileChooser();
         FileFilter filter = new FileNameExtensionFilter("Swagger File (*.json)", "json");
-        int result = fileChooser.showOpenDialog(container);
-
         fileChooser.addChoosableFileFilter(filter);
         fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(container);
 
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
@@ -124,6 +125,10 @@ public class Tab implements ITab {
                 Gson gson = new Gson();
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
                 RESTful api = gson.fromJson(bufferedReader, RESTful.class);
+                if(api.getHost() == null) {
+                    String host = JOptionPane.showInputDialog("Host is missing. Please enter one below.\nFormat: <host> or <host>:<port>");
+                    api.setHost(host);
+                }
                 String infoText = "Title: " + api.getInfo().getTitle() + " | " +
                     "Version: " + api.getInfo().getVersion()  + " | " +
                     "Swagger Version: " + api.getSwaggerVersion();

@@ -67,4 +67,9 @@ public class RESTful {
     public JsonObject getDefinitions() {
     	return this.definitions;
     }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 }
+
