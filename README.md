@@ -34,7 +34,7 @@ The extension is still in development, feedback and comments would be much appre
         $ gradle fatJar
         
 ### Burp settings
-1. In Burp, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
+In Burp, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Dependencies
 ### Third-party libraries
