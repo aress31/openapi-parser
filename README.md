@@ -21,48 +21,25 @@ The extension is still in development, feedback and comments would be much appre
 
 ## Installation
 ### Compilation 
-#### Windows
-1. Download the repository.
+#### Windows & Linux
+1. Install gradle (https://gradle.org/)
+
+2. Download the repository.
 
         $ git clone https://github.com/AresS31/swurg
         $ cd .\swurg\
 
-2. Compile the Java source code:
-
-        $ javac.exe -cp .\lib\com\google\gson\gson-2.8.0.jar -d .\build\ .\burp\*.java
-
 3. Create the swurg jarfile:
 
-        $ jar.exe cf swurg.jar -C build burp
-
-![compilation](images/compilation.png)
-
-#### Linux
-1. Download the repository.
-
-        $ git clone https://github.com/AresS31/swurg
-        $ cd .\swurg\
-        $ mkdir build
-
-2. Compile the Java source code:
-
-        $ javac -cp ./lib/com/google/gson/gson-2.8.0.jar -d ./build/ ./burp/*.java
-
-3. Create the swurg jarfile:
-
-        $ jar cf swurg.jar -C build burp
+        $ gradle fatJar
         
 ### Burp settings
-1. In Burp, under the `Extender/Options` tab, set the `Java Environment` path to the library folder containing the `gson` jarfile.
-
-2. In Burp, under the `Extender/Options` tab, click on the `Add` button and load the swurg jarfile. 
-
-![burp_settings](images/burp_settings.png)
+1. In Burp, under the `Extender/Options` tab, click on the `Add` button and load the swurg-all jarfile. 
 
 ## Dependencies
 ### Third-party libraries
 #### google-gson:
-The *google-gson* library is required. 
+The *google-gson* library is required and included in this repository. 
 
 <https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.0/>
 
