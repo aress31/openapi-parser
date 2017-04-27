@@ -68,7 +68,7 @@ public class ContextMenu extends JPopupMenu {
 
                     HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
                     callbacks.sendToRepeater(httpRequest.getHost(), httpRequest.getPort(), httpRequest.getUseHttps(), 
-                        httpRequest.getRequest(), (String) data.getTable().getValueAt(rowIndexes[i], 4));
+                        httpRequest.getRequest(), (String) data.getTable().getValueAt(rowIndexes[i], 5));
                 }
             }
         });
