@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -50,8 +50,8 @@ import javax.swing.table.TableColumnModel;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
-
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import burp.IBurpExtenderCallbacks;
+import burp.ITab;
 
 public class Tab implements ITab {
     private Helper helper = new Helper();

@@ -14,8 +14,9 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg;
 
+import burp.IBurpExtenderCallbacks;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

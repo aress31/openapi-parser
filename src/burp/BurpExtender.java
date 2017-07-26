@@ -16,20 +16,15 @@
 
 package burp;
 
-public class Info {
-    private String version;
-    private String title;
+import burp.IBurpExtender;
+import burp.IBurpExtenderCallbacks;
+import swurg.Tab;
 
-    public Info(String version, String title) {
-        this.version = version;
-        this.title = title;
-    }
-
-    public String getVersion() {
-        return this.version;
-    }
-
-    public String getTitle() {
-        return this.title;
-    }
+public class BurpExtender implements IBurpExtender {
+	
+	@Override
+	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+		callbacks.setExtensionName("Swagger Parser");
+		callbacks.addSuiteTab(new Tab(callbacks));
+	}
 }

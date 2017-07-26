@@ -14,24 +14,22 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg;
 
-import com.google.gson.JsonObject;
+public class Info {
+    private String version;
+    private String title;
 
-public class Schema {
-	private String type;
-    private JsonObject properties;
-
-	public Schema(String type, JsonObject properties) {
-		this.type = type;
-		this.properties = properties;
+    public Info(String version, String title) {
+        this.version = version;
+        this.title = title;
     }
 
-    public String getType() {
-    	return this.type;
+    public String getVersion() {
+        return this.version;
     }
 
-    public JsonObject getProperties() {
-    	return this.properties;
+    public String getTitle() {
+        return this.title;
     }
 }
