@@ -18,7 +18,7 @@ package burp;
 
 import burp.IBurpExtender;
 import burp.IBurpExtenderCallbacks;
-import swurg.Tab;
+import swurg.ui.Tab;
 
 public class BurpExtender implements IBurpExtender {
 	

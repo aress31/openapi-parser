@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package swurg;
+package swurg.ui;
 
 import burp.IBurpExtenderCallbacks;
 import java.awt.event.ActionEvent;
@@ -24,6 +24,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.table.DefaultTableModel;
+import swurg.model.DataStructure;
+import swurg.model.HttpRequest;
 
 @SuppressWarnings("serial")
 public class ContextMenu extends JPopupMenu {

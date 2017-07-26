@@ -14,24 +14,34 @@
 #    limitations under the License. 
 */
 
-package swurg;
+package swurg.model;
 
-import com.google.gson.JsonObject;
+public class HttpRequest {
+	private String host;
+    private int port;
+    boolean useHttps;
+    private byte[] request;
 
-public class Schema {
-	private String type;
-    private JsonObject properties;
-
-	public Schema(String type, JsonObject properties) {
-		this.type = type;
-		this.properties = properties;
+    public HttpRequest(String host, int port, boolean useHttps, byte[] request) {
+    	this.host = host;
+    	this.port = port;
+    	this.useHttps = useHttps;
+    	this.request = request;
     }
 
-    public String getType() {
-    	return this.type;
+    public String getHost() {
+    	return this.host;
     }
 
-    public JsonObject getProperties() {
-    	return this.properties;
+   	public int getPort() {
+    	return this.port;
+    }
+
+   	public boolean getUseHttps() {
+   		return this.useHttps;
+    }
+
+    public byte[] getRequest() {
+    	return this.request;
     }
 }

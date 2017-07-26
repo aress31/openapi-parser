@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package swurg;
+package swurg.ui;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -46,7 +46,12 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-
+import swurg.model.DataStructure;
+import swurg.model.HttpRequest;
+import swurg.model.Path;
+import swurg.model.RESTful;
+import swurg.model.Scheme;
+import swurg.utils.Helper;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
