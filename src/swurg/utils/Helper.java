@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -22,6 +22,11 @@ import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 import java.util.Map;
+import swurg.model.HttpRequest;
+import swurg.model.Parameter;
+import swurg.model.RESTful;
+import swurg.model.Schema;
+import swurg.model.Scheme;
 import java.util.List;
 
 public class Helper {

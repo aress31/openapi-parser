@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg.ui;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -46,10 +46,17 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-
+import swurg.model.DataStructure;
+import swurg.model.HttpRequest;
+import swurg.model.Path;
+import swurg.model.RESTful;
+import swurg.model.Scheme;
+import swurg.utils.Helper;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
+import burp.IBurpExtenderCallbacks;
+import burp.ITab;
 
 public class Tab implements ITab {
     private Helper helper = new Helper();
@@ -108,9 +115,14 @@ public class Tab implements ITab {
 
     private void processFile() {
         JFileChooser fileChooser = new JFileChooser();
-        FileFilter filter = new FileNameExtensionFilter("Swagger File (*.json)", "json");
-        fileChooser.addChoosableFileFilter(filter);
-        fileChooser.setFileFilter(filter);
+        
+        FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
+        fileChooser.addChoosableFileFilter(filterJson);
+
+        /*FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
+        fileChooser.addChoosableFileFilter(filterYml);*/
+        
+        fileChooser.setFileFilter(filterJson);
 
         int result = fileChooser.showOpenDialog(container);
 

@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg.model;
 
 import java.awt.Color;
 

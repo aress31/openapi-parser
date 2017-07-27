@@ -1,3 +1,9 @@
 build/
 swurg.jar
 *.swp
+.classpath
+.gradle/
+.project
+.settings/
+.vscode/
+bin/

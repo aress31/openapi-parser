@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package burp;
+package swurg.model;
 
 public class Scheme {
     private int port;
