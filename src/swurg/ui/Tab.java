@@ -119,8 +119,8 @@ public class Tab implements ITab {
         FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
         fileChooser.addChoosableFileFilter(filterJson);
 
-        FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
-        fileChooser.addChoosableFileFilter(filterYml);
+        /*FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
+        fileChooser.addChoosableFileFilter(filterYml);*/
         
         fileChooser.setFileFilter(filterJson);
 
