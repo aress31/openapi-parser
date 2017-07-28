@@ -22,19 +22,6 @@ test {
     testLogging.showStandardStreams = true   
 }
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
-        }
-    }
-    test {
-
-        java {    
-            srcDir 'test'
-        }
-    }
-}
 
 task fatJar(type: Jar) {
     baseName = project.name + '-all'

@@ -32,7 +32,7 @@ public class LoaderTest extends TestCase {
         
         Loader loader = new Loader();
 
-        RESTful result = loader.process(new File("test/testApi.json"));        
+        RESTful result = loader.process(new File("src/test/resources/testApi.json"));        
         
         assertNotNull("Processed object is null", result);
         
@@ -50,7 +50,7 @@ public class LoaderTest extends TestCase {
             Path path = result.getPaths().get(pathKey);
 
             logger.info("<Path......>");
-            logger.info("http methods map = " + path.getHttpMethods());
+            logger.info("http methods = " + path.getHttpMethods());
         }
     }
 }

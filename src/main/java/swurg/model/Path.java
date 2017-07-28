@@ -16,10 +16,11 @@
 
 package swurg.model;
 
-import java.util.List;
+
 import java.util.Map;
 
 public class Path {
+
     private Map<String, Map<String, HttpMethod>> httpMethods;
 
 	public Path(Map<String, Map<String, HttpMethod>> httpMethods) {

@@ -151,7 +151,7 @@ public class Tab implements ITab {
                     String host = JOptionPane.showInputDialog("Host is missing. Please enter one below.\nFormat: <host> or <host>:<port>");
                     api.setHost(host);
                 }
-                
+
                 String infoText = "Title: " + api.getInfo().getTitle() + " | " +
                     "Version: " + api.getInfo().getVersion()  + " | " +
                     "Swagger Version: " + api.getSwaggerVersion();
@@ -277,7 +277,7 @@ public class Tab implements ITab {
                 for (String key : methodKeys) {
 
                     stdout.println(key);
-                    Map<String, HttpMethod> methodMap = path.getValue().getHttpMethods().get(key);
+                   // Map<String, HttpMethod> methodMap = path.getValue().getHttpMethods().get(key);
 
                     // TODO interate over map!
                 }

@@ -16,6 +16,7 @@
 
 package swurg.model;
 
+import com.google.gson.annotations.Expose;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ public class RESTful {
     private String host;
     private String basePath;
     private List<String> schemes;
+    
     private Map<String, Path> paths;
     private Map<String, Definition> definitions;
 

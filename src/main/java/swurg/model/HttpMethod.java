@@ -16,18 +16,24 @@
 
 package swurg.model;
 
+import com.google.gson.annotations.Expose;
 import java.util.List;
 import java.util.Map;
 
 public class HttpMethod {
+	private String summary;
 	private String description;
 	private String operationId;
+
 	private List<String> consumes;
 	private List<String> produces;
+	
 	private List<Parameter> parameters;
     private Map<Integer, HttpCode> responses;
 
-	public HttpMethod(List<String> consumes, List<String> produces, List<Parameter> parameters, Map<Integer, HttpCode> responses) {
+	public HttpMethod(String summary, String description, List<String> consumes, List<String> produces, List<Parameter> parameters, Map<Integer, HttpCode> responses) {		
+		this.summary = summary;
+		this.description = description;
 		this.consumes = consumes;
 		this.produces = produces;
 		this.parameters = parameters;
