@@ -19,7 +19,7 @@ package swurg.model;
 public class HttpRequest {
 	private String host;
     private int port;
-    boolean useHttps;
+    private boolean useHttps;
     private byte[] request;
 
     public HttpRequest(String host, int port, boolean useHttps, byte[] request) {

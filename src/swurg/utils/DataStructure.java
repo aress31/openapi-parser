@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package swurg.model;
+package swurg.utils;
 
 import java.awt.Color;
 
@@ -23,6 +23,9 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 
 import java.util.List;
+
+
+import swurg.model.HttpRequest;
 
 public class DataStructure {
 	private List<HttpRequest> httpRequests;

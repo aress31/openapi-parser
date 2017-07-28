@@ -24,8 +24,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.table.DefaultTableModel;
-import swurg.model.DataStructure;
 import swurg.model.HttpRequest;
+import swurg.utils.DataStructure;
 
 @SuppressWarnings("serial")
 public class ContextMenu extends JPopupMenu {

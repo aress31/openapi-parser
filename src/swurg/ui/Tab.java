@@ -17,7 +17,6 @@
 package swurg.ui;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -46,11 +45,13 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import swurg.model.DataStructure;
+
+import swurg.model.HttpMethod;
 import swurg.model.HttpRequest;
 import swurg.model.Path;
 import swurg.model.RESTful;
 import swurg.model.Scheme;
+import swurg.utils.DataStructure;
 import swurg.utils.Helper;
 import java.util.ArrayList;
 import java.util.Map;
@@ -242,9 +243,8 @@ public class Tab implements ITab {
     }
 
     private void populateJTable(RESTful api) {
-        Gson gson = new Gson();
         DefaultTableModel model = (DefaultTableModel) table.getModel();
-        ArrayList<Scheme> schemes = helper.buildSchemes(api);
+        ArrayList<Scheme> schemes = helper.instanciateSchemes(api);
 
         if (schemes.isEmpty()) {
             infoLabel.setForeground(Color.RED);
@@ -255,32 +255,31 @@ public class Tab implements ITab {
             String basePath = api.getBasePath();
             String host = helper.validateHostSyntax(api.getHost());
 
-            for (Map.Entry<String, JsonElement> path: api.getPaths().entrySet()) {
-                String endpoint = path.getKey();
-                String url = basePath + endpoint;
-
-                for (Map.Entry<String, JsonElement> entry: path.getValue().getAsJsonObject().entrySet()) {
-                    Path call = gson.fromJson(entry.getValue(), Path.class);
-                    String httpMethod = entry.getKey().toUpperCase();
-                    call.setType(httpMethod);
-
-                    model.addRow(new Object[] {
-                            rowIndex,
-                            httpMethod,
-                            host,
-                            scheme.getProtocol(), 
-                            basePath, 
-                            endpoint,
-                            helper.parseParams(call.getParameters())
-                        }
-                    );
-
-                    resizeColumnWidth(table);
-
-                    helper.populateHttpRequests(httpRequests, httpMethod, url, host, scheme.getPort(), scheme.getEncryption(), call.getParameters(), 
-                        api.getDefinitions(), call.getConsumes(), call.getProduces());
-
-                    rowIndex++;
+            for (Map.Entry<String, Path> path: api.getPaths().entrySet()) {
+                String url = basePath + path.getKey();
+                
+                for (Map.Entry<String, HttpMethod> httpMethod: path.getValue().getHttpMethods().entrySet()) {
+	                // a path is a collection as of item as well
+	            	
+	            	String httpMethodType = httpMethod.getKey();
+	            
+	                model.addRow(new Object[] {
+	                        rowIndex,
+	                        httpMethodType,
+	                        host,
+	                        scheme.getProtocol(), 
+	                        basePath, 
+	                        path.getKey(),
+	                        helper.parseParams(httpMethod.getValue().getParameters())
+	                    }
+	                );
+	
+	                resizeColumnWidth(table);
+	
+	                helper.populateHttpRequests(httpRequests, httpMethodType, url, host, scheme.getPort(), scheme.getEncryption(), httpMethod.getValue().getParameters(), 
+	                    api.getDefinitions(), httpMethod.getValue().getConsumes(), httpMethod.getValue().getProduces());
+	
+	                rowIndex++;
                 }
             }
         }

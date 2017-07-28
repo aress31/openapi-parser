@@ -16,9 +16,8 @@
 
 package swurg.model;
 
-import com.google.gson.JsonObject;
-
 import java.util.List;
+import java.util.Map;
 
 public class RESTful {
 	private String swagger;
@@ -26,11 +25,11 @@ public class RESTful {
     private String host;
     private String basePath;
     private List<String> schemes;
-    private JsonObject paths;
-    private JsonObject definitions;
+    private Map<String, Path> paths;
+    private Map<String, Definition> definitions;
 
 	public RESTful(String swagger, Info info, String host, String basePath, List<String> schemes, 
-        JsonObject paths, JsonObject definitions) {
+			Map<String, Path> paths, Map<String, Definition> definitions) {
 		this.swagger = swagger;
 		this.info = info;
 		this.host = host;
@@ -60,11 +59,11 @@ public class RESTful {
     	return this.schemes;
     }
 
-    public JsonObject getPaths() {
+    public Map<String, Path> getPaths() {
     	return this.paths;
     }
 
-    public JsonObject getDefinitions() {
+    public Map<String, Definition> getDefinitions() {
     	return this.definitions;
     }
 

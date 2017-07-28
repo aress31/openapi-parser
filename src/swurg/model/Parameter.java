@@ -16,16 +16,16 @@
 
 package swurg.model;
 
-import com.google.gson.JsonObject;
-
 public class Parameter {
     private String name;
+    private String description;
     private String in;
     private Boolean required;
     private String type;
-    private JsonObject schema;
+    private Schema schema;
 
-    public Parameter(String name, String in, Boolean required, String type, JsonObject schema) {
+    public Parameter(String description, String name, String in, Boolean required, String type, Schema schema) {
+        this.description = description;
         this.name = name;
         this.in = in;
         this.required = required;
@@ -49,7 +49,7 @@ public class Parameter {
         return this.type;
     }
 
-    public JsonObject getSchema() {
+    public Schema getSchema() {
         return this.schema;
     }
 }

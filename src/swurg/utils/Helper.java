@@ -17,13 +17,14 @@
 package swurg.utils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 import java.util.Map;
+
+import swurg.model.Definition;
 import swurg.model.HttpRequest;
 import swurg.model.Parameter;
+import swurg.model.Property;
 import swurg.model.RESTful;
 import swurg.model.Schema;
 import swurg.model.Scheme;
@@ -31,7 +32,7 @@ import java.util.List;
 
 public class Helper {
 
-    public ArrayList<Scheme> buildSchemes(RESTful api) {
+    public ArrayList<Scheme> instanciateSchemes(RESTful api) {
         ArrayList<Scheme> schemes = new ArrayList<Scheme>();
 
         if (api.getSchemes() != null) {
@@ -105,13 +106,13 @@ public class Helper {
 		return result;
 	}
 
-	public String parseInBodyParams(List<Parameter> params, JsonObject definitions) {
+	public String parseInBodyParams(List<Parameter> params, Map<String, Definition> definitions) {
 		String result = "";
 		
 		if (params != null) {
 			for (Parameter param : params) {
 				if (param.getIn().equals("body")) {
-					result += parseSchemaParams(param.getName(), definitions);
+					result += parseSchemaParams(param, definitions);
 				}
 			}
 		}
@@ -123,36 +124,46 @@ public class Helper {
 		return result;
 	}
 
-	// Really messy but does the job -- needs improvements!
-	public String parseSchemaParams(String param, JsonObject definitions) {
-		Gson gson = new Gson();
+	public String parseSchemaParams(Parameter param, Map<String, Definition> definitions) {
 		String result = "";
 
-		for (Map.Entry<String, JsonElement> entry: definitions.entrySet()) {
-			if (entry.getKey().equals(param)) {
-				Schema schema = gson.fromJson(entry.getValue(), Schema.class);
+		if (param.getSchema() != null) {
+			Schema schema = param.getSchema();
 
-				if (schema.getProperties() != null) {
-					for (Map.Entry<String, JsonElement> entry1: schema.getProperties().entrySet()) {
-						for (Map.Entry<String, JsonElement> entry2: entry1.getValue().getAsJsonObject().entrySet()) {
-							if (entry2.getKey().equals("type")) {
-								result += entry1.getKey() + "={" + entry2.getValue().getAsString() + "}&";
-							} else if (entry2.getKey().equals("$ref")) {
-								String[] parts = entry2.getValue().getAsString().split("/");
-
-								result += parseSchemaParams(parts[parts.length - 1], definitions);
-							}
-						}
+			if (schema.getProperties() != null) {
+				for (Map.Entry<String, Property> entry: schema.getProperties().entrySet()) {
+					if (entry.getValue().getType() != null)
+						result += entry.getKey() + "={" + entry.getValue().getType() + "}&";
+					else if (entry.getValue().getRef() != null) {
+						String[] parts = schema.getRef().split("/");
+						result += parseParamsFromDefinition(parts[parts.length - 1], definitions);
 					}
+				}
+			} else if (schema.getRef() != null) {
+				String[] parts = schema.getRef().split("/");
+				result += parseParamsFromDefinition(parts[parts.length - 1], definitions);
+			}
+		}
+		
+		return result;
+	}
+	
+	public String parseParamsFromDefinition(String paramName, Map<String, Definition> definitions) {
+		String result = "";
+
+		for (Map.Entry<String, Definition> entry: definitions.entrySet()) {
+			if (entry.getKey().equals(paramName)) {
+				for (Map.Entry<String, Property> entry1: entry.getValue().getProperties().entrySet()) {
+					result += entry1.getKey() + "={" + entry1.getValue().getType() + "}&";					
 				}
 			}
 		}
-
+		
 		return result;
 	}
-
+		
 	public void populateHttpRequests(List<HttpRequest> httpRequests, String httpMethod, String url, String host, int port, Boolean encryption, List<Parameter> params,	
-		JsonObject definitions, List<String> consumes, List<String> produces) {
+		Map<String, Definition> definitions, List<String> consumes, List<String> produces) {
 		String request = "";
 
 		if (consumes != null && produces != null) {

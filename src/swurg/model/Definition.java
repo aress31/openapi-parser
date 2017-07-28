@@ -16,29 +16,22 @@
 
 package swurg.model;
 
-import java.util.List;
 import java.util.Map;
 
-public class Schema {
-	private String type;
-    private String $ref;
-    private List<String> items;
+public class Definition {
+    private String type;
     private Map<String, Property> properties;
 
-	public Schema(String type, String $ref, Map<String, Property> properties) {
-		this.type = type;
-		this.properties = properties;
+       public Definition(String type, Map<String, Property> properties) {
+        this.type = type;
+        this.properties = properties;
     }
 
     public String getType() {
-    	return this.type;
-    }
-    
-    public String getRef() {
-    	return this.$ref;
+        return this.type;
     }
 
     public Map<String, Property> getProperties() {
-    	return this.properties;
+        return this.properties;
     }
 }

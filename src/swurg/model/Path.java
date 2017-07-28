@@ -16,45 +16,17 @@
 
 package swurg.model;
 
-import com.google.gson.JsonObject;
-
 import java.util.List;
+import java.util.Map;
 
 public class Path {
-	private String type;
-	private List<String> consumes;
-	private List<String> produces;
-	private List<Parameter> parameters;
-    private JsonObject responses;
+    private Map<String, HttpMethod> httpMethods;
 
-	public Path(List<String> consumes, List<String> produces, List<Parameter> parameters, JsonObject responses) {
-		this.consumes = consumes;
-		this.produces = produces;
-		this.parameters = parameters;
-		this.responses = responses;
+	public Path(Map<String, HttpMethod> httpMethods) {
+		this.httpMethods = httpMethods;
     }
-
-    public void setType(String type) {
-    	this.type = type;
-    }
-
-    public String getType() {
-    	return this.type;
-    }
-    
-    public List<String> getConsumes() {
-    	return this.consumes;
-    }
-    
-    public List<String> getProduces() {
-    	return this.produces;
-    }
-    
-    public List<Parameter> getParameters() {
-    	return this.parameters;
-    }
-    
-    public JsonObject getResponses() {
-    	return this.responses;
+	
+    public Map<String, HttpMethod> getHttpMethods() {
+    	return this.httpMethods;
     }
 }

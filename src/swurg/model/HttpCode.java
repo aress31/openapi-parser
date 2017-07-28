@@ -16,29 +16,20 @@
 
 package swurg.model;
 
-import java.util.List;
-import java.util.Map;
+public class HttpCode {
+    private String description;
+    private Schema schema;
 
-public class Schema {
-	private String type;
-    private String $ref;
-    private List<String> items;
-    private Map<String, Property> properties;
-
-	public Schema(String type, String $ref, Map<String, Property> properties) {
-		this.type = type;
-		this.properties = properties;
+    public HttpCode(String description, Schema schema) {
+        this.description = description;
+        this.schema = schema;
     }
 
-    public String getType() {
-    	return this.type;
-    }
-    
-    public String getRef() {
-    	return this.$ref;
+    public String getDescription() {
+        return this.description;
     }
 
-    public Map<String, Property> getProperties() {
-    	return this.properties;
+    public Schema getSchema() {
+        return this.schema;
     }
 }
