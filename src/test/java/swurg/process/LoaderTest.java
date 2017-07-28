@@ -52,6 +52,8 @@ public class LoaderTest extends TestCase {
             logger.info("<Path......>");
             logger.info("http methods = " + path.getHttpMethods());
         }
+
+        logger.info("TODO - Finish these assertions to check the RESTful object is populated correctly");
     }
 }
 

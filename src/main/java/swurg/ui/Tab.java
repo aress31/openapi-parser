@@ -268,10 +268,6 @@ public class Tab implements ITab {
             for (Map.Entry<String, Path> path: api.getPaths().entrySet()) {
                 String url = basePath + path.getKey();
 
-                stdout.println("path = " + path);
-                stdout.println("path.value = " + path.getValue());
-                stdout.println("path.value.httpmethods = " + path.getValue().getHttpMethods());
-
                 Set<String> methodKeys = path.getValue().getHttpMethods().keySet();
 
                 for (String key : methodKeys) {
