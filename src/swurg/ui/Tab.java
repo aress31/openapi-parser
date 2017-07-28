@@ -51,10 +51,12 @@ import swurg.model.HttpRequest;
 import swurg.model.Path;
 import swurg.model.RESTful;
 import swurg.model.Scheme;
+import swurg.process.Loader;
 import swurg.utils.DataStructure;
 import swurg.utils.Helper;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
 import burp.IBurpExtenderCallbacks;
 import burp.ITab;
@@ -62,6 +64,7 @@ import burp.ITab;
 public class Tab implements ITab {
     private Helper helper = new Helper();
     private PrintWriter stderr;
+    private PrintWriter stdout;
 
     private ContextMenu contextMenu;
     private JLabel infoLabel;
@@ -77,6 +80,7 @@ public class Tab implements ITab {
         contextMenu = new ContextMenu(callbacks);
         httpRequests = new ArrayList<HttpRequest>();
         stderr = new PrintWriter(callbacks.getStderr(), true);
+        stdout = new PrintWriter(callbacks.getStdout(), true);
 
         // main container
         container = new JPanel();
@@ -84,6 +88,8 @@ public class Tab implements ITab {
         container.add(drawJFilePanel(), BorderLayout.NORTH);
         container.add(drawJScrollTable());
         container.add(drawJInfoPanel(), BorderLayout.SOUTH);
+
+        stdout.println("Tab created");
     }
 
     private JPanel drawJFilePanel() {
@@ -115,6 +121,8 @@ public class Tab implements ITab {
     }
 
     private void processFile() {
+        stdout.println("processFile()");
+
         JFileChooser fileChooser = new JFileChooser();
         
         FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
@@ -135,13 +143,15 @@ public class Tab implements ITab {
             infoLabel.setText(null);
 
             try {
-                Gson gson = new Gson();
-                BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-                RESTful api = gson.fromJson(bufferedReader, RESTful.class);
-                if(api.getHost() == null) {
+                
+                Loader loader = new Loader();
+                RESTful api = loader.process(file);
+
+                if (api.getHost() == null) {
                     String host = JOptionPane.showInputDialog("Host is missing. Please enter one below.\nFormat: <host> or <host>:<port>");
                     api.setHost(host);
                 }
+                
                 String infoText = "Title: " + api.getInfo().getTitle() + " | " +
                     "Version: " + api.getInfo().getVersion()  + " | " +
                     "Swagger Version: " + api.getSwaggerVersion();
@@ -257,8 +267,23 @@ public class Tab implements ITab {
 
             for (Map.Entry<String, Path> path: api.getPaths().entrySet()) {
                 String url = basePath + path.getKey();
+
+                stdout.println("path = " + path);
+                stdout.println("path.value = " + path.getValue());
+                stdout.println("path.value.httpmethods = " + path.getValue().getHttpMethods());
+
+                Set<String> methodKeys = path.getValue().getHttpMethods().keySet();
+
+                for (String key : methodKeys) {
+
+                    stdout.println(key);
+                    Map<String, HttpMethod> methodMap = path.getValue().getHttpMethods().get(key);
+
+                    // TODO interate over map!
+                }
+
                 
-                for (Map.Entry<String, HttpMethod> httpMethod: path.getValue().getHttpMethods().entrySet()) {
+                /*for (Map.Entry<String, HttpMethod> httpMethod: path.getValue().getHttpMethods().entrySet()) {
 	                // a path is a collection as of item as well
 	            	
 	            	String httpMethodType = httpMethod.getKey();
@@ -280,7 +305,7 @@ public class Tab implements ITab {
 	                    api.getDefinitions(), httpMethod.getValue().getConsumes(), httpMethod.getValue().getProduces());
 	
 	                rowIndex++;
-                }
+                }*/
             }
         }
     }

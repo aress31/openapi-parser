@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 public class Path {
-    private Map<String, HttpMethod> httpMethods;
+    private Map<String, Map<String, HttpMethod>> httpMethods;
 
-	public Path(Map<String, HttpMethod> httpMethods) {
+	public Path(Map<String, Map<String, HttpMethod>> httpMethods) {
 		this.httpMethods = httpMethods;
     }
 	
-    public Map<String, HttpMethod> getHttpMethods() {
+    public Map<String, Map<String, HttpMethod>> getHttpMethods() {
     	return this.httpMethods;
     }
 }
