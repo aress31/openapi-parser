@@ -17,31 +17,31 @@
 package swurg.model;
 
 public class HttpRequest {
-	private String host;
+    private String host;
     private int port;
     private boolean useHttps;
     private byte[] request;
 
     public HttpRequest(String host, int port, boolean useHttps, byte[] request) {
-    	this.host = host;
-    	this.port = port;
-    	this.useHttps = useHttps;
-    	this.request = request;
+        this.host = host;
+        this.port = port;
+        this.useHttps = useHttps;
+        this.request = request;
     }
 
     public String getHost() {
-    	return this.host;
+        return this.host;
     }
 
-   	public int getPort() {
-    	return this.port;
+    public int getPort() {
+        return this.port;
     }
 
-   	public boolean getUseHttps() {
-   		return this.useHttps;
+    public boolean getUseHttps() {
+        return this.useHttps;
     }
 
     public byte[] getRequest() {
-    	return this.request;
+        return this.request;
     }
 }

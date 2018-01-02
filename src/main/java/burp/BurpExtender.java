@@ -16,15 +16,13 @@
 
 package burp;
 
-import burp.IBurpExtender;
-import burp.IBurpExtenderCallbacks;
 import swurg.ui.Tab;
 
 public class BurpExtender implements IBurpExtender {
-	
-	@Override
-	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-		callbacks.setExtensionName("Swagger Parser");
-		callbacks.addSuiteTab(new Tab(callbacks));
-	}
+
+    @Override
+    public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+        callbacks.setExtensionName("Swagger Parser");
+        callbacks.addSuiteTab(new Tab(callbacks));
+    }
 }

@@ -16,44 +16,57 @@
 
 package swurg.process;
 
-import java.io.File;
+import io.swagger.models.HttpMethod;
+import io.swagger.models.Operation;
+import io.swagger.models.Path;
+import io.swagger.models.Swagger;
+import io.swagger.models.parameters.Parameter;
 import junit.framework.TestCase;
-import swurg.model.Path;
-import swurg.model.RESTful;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Map;
 
 public class LoaderTest extends TestCase {
 
     private Logger logger = LoggerFactory.getLogger("LoaderTest");
 
-    public void testProcess() throws Exception {
-        
+    public void testProcess() {
         Loader loader = new Loader();
+        Swagger swagger = loader.process(new File("src/test/resources/petstore.json"));
 
-        RESTful result = loader.process(new File("src/test/resources/testApi.json"));        
-        
-        assertNotNull("Processed object is null", result);
-        
-        logger.info("<Schemes......>");
+        assertNotNull("Processed object is null", swagger);
 
-        for (String scheme : result.getSchemes()) {
-            logger.info(scheme);
+        logger.info("--- Swagger ---");
+        logger.info("Info: " + swagger.getInfo());
+        logger.info("Host: " + swagger.getHost());
+        logger.info("Base path: " + swagger.getBasePath());
+        logger.info("Schemes: " + swagger.getSchemes());
+        logger.info("Consumes: " + swagger.getConsumes());
+        logger.info("Produces: " + swagger.getProduces());
+        logger.info("Paths: " + swagger.getPaths());
+        logger.info("Parameters: " + swagger.getParameters());
+
+        for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
+            logger.info("--- Endpoint ---");
+            logger.info("Path: " + path.getKey());
+
+            for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap().entrySet()) {
+                logger.info("HTTP Method: " + operation.getKey().toString());
+                logger.info("Schemes: " + operation.getValue().getSchemes());
+                logger.info("Consumes: " + operation.getValue().getConsumes());
+                logger.info("Produces: " + operation.getValue().getProduces());
+                logger.info("Parameters: " + operation.getValue().getParameters());
+
+
+                logger.info("--- Parameter ---");
+                for (Parameter parameter : operation.getValue().getParameters()) {
+                    logger.info("Name: " + parameter.getName());
+                    logger.info("Type: " + parameter.getIn());
+                    logger.info("Pattern: " + parameter.getPattern());
+                }
+            }
         }
-
-        logger.info("<Path Keys......>");
-
-        for (String pathKey : result.getPaths().keySet()) {
-            logger.info(pathKey);
-
-            Path path = result.getPaths().get(pathKey);
-
-            logger.info("<Path......>");
-            logger.info("http methods = " + path.getHttpMethods());
-        }
-
-        logger.info("TODO - Finish these assertions to check the RESTful object is populated correctly");
     }
 }
-

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.8.9">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.8.9/e0e758381a6579cb2029dace23a7209b90ac7232/jackson-annotations-2.8.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.8.9/830eda77a8aaaf68a87c7dad29b3d6acd4f4f074/jackson-annotations-2.8.9-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -16,45 +16,40 @@
 
 package swurg.utils;
 
-import java.awt.Color;
-
-import javax.swing.JLabel;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-
-import java.util.List;
-
-
 import swurg.model.HttpRequest;
 
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
 public class DataStructure {
-	private List<HttpRequest> httpRequests;
+    private JTable jTable;
+    private JTextField jTextField;
+    private JLabel jLabel;
 
-	private JTable table;
-	private JTextField fileTextField;
-	private JLabel infoLabel;
+    private List<HttpRequest> httpRequests;
 
-	public DataStructure(JTable table, List<HttpRequest> httpRequests, JTextField fileTextField, JLabel infoLabel) {
-		this.table = table;
-		this.httpRequests = httpRequests;
-		this.fileTextField = fileTextField;
-		this.infoLabel = infoLabel;
-	}
+    public DataStructure(JTable jTable, List<HttpRequest> httpRequests, JTextField jTextField, JLabel jLabel) {
+        this.jTable = jTable;
+        this.httpRequests = httpRequests;
+        this.jTextField = jTextField;
+        this.jLabel = jLabel;
+    }
 
-	public JTable getTable() {
-		return this.table;
-	}
+    public JTable getTable() {
+        return this.jTable;
+    }
 
-	public List<HttpRequest> getHttpRequests() {
-		return this.httpRequests;
-	}
+    public List<HttpRequest> getHttpRequests() {
+        return this.httpRequests;
+    }
 
-	public void setFileTextField(String text) {
-		this.fileTextField.setText(text);
-	}
+    public void setJTextFieldFile(String text) {
+        this.jTextField.setText(text);
+    }
 
-	public void setInfoLabel(String text) {
-		this.infoLabel.setForeground(Color.BLACK);
-		this.infoLabel.setText(text);
-	}
+    public void setJLabelInfo(String text) {
+        this.jLabel.setForeground(Color.BLACK);
+        this.jLabel.setText(text);
+    }
 }

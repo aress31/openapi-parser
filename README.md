@@ -1,50 +1,55 @@
 ![swurg](images/swurg_logo.png)
 # swurg
-## A Burp extension for RESTful API testing.
-During penetration testing of RESTful API, it can be time consuming to chain Burp with other tools such as SOAP-UI. However, this is often necessary in order to parse the API description for use with Burp's scanning capabilities. 
+## A Burp Suite extension for RESTful API testing.
+During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
 
-Therefore, after posting a request for improvement on the PortSwigger support forum, see <https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement>, in July 2015, I decided to take the lead and implement a solution myself.
+Therefore, after posting a request for improvement on the PortSwigger support forum, see [Swagger Parser and Wsdler improvement](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement "Swagger Parser and Wsdler improvement"), in July 2015, I decided to take the lead and implement a solution myself.
 
 The following screenshot shows the plugin interface:
 
 ![compilation](images/swurg.png)
 
 ## Project information
-The extension is still in development, feedback and comments would be much appreciated.
+The extension is still in development, feedbacks and comments are much appreciated.
 
-## Features
-* Parse Swagger JSON files (YAML files are not supported at the moment).
+# Supported Features
+* Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
 * Responsive GUI.
-* Send requests to the active scanner.
-* Send requests to the intruder.
-* Send requests to the repeater.
+* Send requests to the following Burp Suite tabs:
+    * Intruder.
+    * Repeater.
+    * Scanner.
 
 ## Installation
 ### Compilation 
 #### Windows & Linux
-1. Install gradle (https://gradle.org/)
-
+1. Install gradle (<https://gradle.org/>)
 2. Download the repository.
-
-        $ git clone https://github.com/AresS31/swurg
-        $ cd .\swurg\
-
+```
+$ git clone https://github.com/AresS31/swurg
+$ cd .\swurg\
+```
 3. Create the swurg jarfile:
+```
+$ gradle fatJar
+```
 
-        $ gradle fatJar
-        
-### Burp settings
-In Burp, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
+### Burp Suite settings
+In the Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
+
+## Possible Improvements
+- [ ] Add new features.
+- [ ] Source code optimisation.
 
 ## Dependencies
 ### Third-party libraries
-#### google-gson:
-The *google-gson* library is required and included in this repository. 
+#### Swagger Parser:
+The *Swagger Parser* library is required and imported in this project. 
 
-<https://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.0/>
+<https://mvnrepository.com/artifact/io.swagger/swagger-parser/1.0.33>
 
 ## License
-   Copyright (C) 2016 Alexandre Teyar
+Copyright (C) 2016 - 2018 Alexandre Teyar
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -56,4 +61,4 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-   limitations under the License.
+limitations under the License.

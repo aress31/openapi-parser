@@ -16,223 +16,237 @@
 
 package swurg.ui;
 
-import com.google.gson.Gson;
+import burp.IBurpExtenderCallbacks;
+import burp.ITab;
+import io.swagger.models.*;
+import io.swagger.models.parameters.Parameter;
+import swurg.model.HttpRequest;
+import swurg.process.Loader;
+import swurg.utils.DataStructure;
+import swurg.utils.ExtensionHelper;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import java.io.BufferedReader; 
-import java.io.File; 
-import java.io.FileReader; 
+import java.io.File;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
-
-import swurg.model.HttpMethod;
-import swurg.model.HttpRequest;
-import swurg.model.Path;
-import swurg.model.RESTful;
-import swurg.model.Scheme;
-import swurg.process.Loader;
-import swurg.utils.DataStructure;
-import swurg.utils.Helper;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
 import java.util.List;
-import burp.IBurpExtenderCallbacks;
-import burp.ITab;
+import java.util.Map;
 
 public class Tab implements ITab {
-    private Helper helper = new Helper();
+    private final ContextMenu contextMenu;
+    private ExtensionHelper helpers;
+
     private PrintWriter stderr;
     private PrintWriter stdout;
 
-    private ContextMenu contextMenu;
-    private JLabel infoLabel;
-    private JPanel container;
-    private JTable table;
-    private JTextField fileTextField;
+    private JLabel jLabelInfo = new JLabel("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved");
+    private JPanel jPanel;
+    private JTable jTable;
+    private JTextField jTextField;
 
+    private List<HttpRequest> httpRequests = new ArrayList<>();
     private int rowIndex = 1;
 
-    private List<HttpRequest> httpRequests;
-
     public Tab(IBurpExtenderCallbacks callbacks) {
-        contextMenu = new ContextMenu(callbacks);
-        httpRequests = new ArrayList<HttpRequest>();
-        stderr = new PrintWriter(callbacks.getStderr(), true);
-        stdout = new PrintWriter(callbacks.getStdout(), true);
+        this.contextMenu = new ContextMenu(callbacks);
+        this.helpers = new ExtensionHelper(callbacks);
+        this.stderr = new PrintWriter(callbacks.getStderr(), true);
+        this.stdout = new PrintWriter(callbacks.getStdout(), true);
 
         // main container
-        container = new JPanel();
-        container.setLayout(new BorderLayout());
-        container.add(drawJFilePanel(), BorderLayout.NORTH);
-        container.add(drawJScrollTable());
-        container.add(drawJInfoPanel(), BorderLayout.SOUTH);
+        this.jPanel = new JPanel();
+        this.jPanel.setLayout(new BorderLayout());
+        this.jPanel.add(createJFilePanel(), BorderLayout.NORTH);
+        this.jPanel.add(createJScrollTable());
+        this.jPanel.add(createJInfoPanel(), BorderLayout.SOUTH);
 
-        stdout.println("Tab created");
+        this.stdout.println("`Swagger Parser` tab created");
     }
 
-    private JPanel drawJFilePanel() {
-        JPanel panel = new JPanel();
-        JLabel label = new JLabel("Parse file:");
-        fileTextField = new JTextField("", 48);
-        JButton button = new JButton("File");
+    private JPanel createJFilePanel() {
+        JPanel jPanel = new JPanel();
 
-        fileTextField.setEditable(false);
-        button.addActionListener(new ButtonListener());
+        this.jTextField = new JTextField(null, 48);
+        this.jTextField.setEditable(false);
 
-        panel.add(label);
-        panel.add(fileTextField);
-        panel.add(button);
+        JButton jButton = new JButton("File");
+        jButton.addActionListener(new ButtonListener());
 
-        return panel;
+        jPanel.add(new JLabel("Parse file:"));
+        jPanel.add(this.jTextField);
+        jPanel.add(jButton);
+
+        return jPanel;
     }
 
-    class ButtonListener implements ActionListener {
-        ButtonListener() {
-            super();
-        }
+    private void loadFile() {
+        JFileChooser jFileChooser = new JFileChooser();
 
-        public void actionPerformed (ActionEvent e) {
-            if (e.getSource() instanceof JButton) {
-                processFile();
-            }
-        }
-    }
-
-    private void processFile() {
-        stdout.println("processFile()");
-
-        JFileChooser fileChooser = new JFileChooser();
-        
         FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
-        fileChooser.addChoosableFileFilter(filterJson);
+        jFileChooser.addChoosableFileFilter(filterJson);
+        FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
+        jFileChooser.addChoosableFileFilter(filterYml);
 
-        /*FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
-        fileChooser.addChoosableFileFilter(filterYml);*/
-        
-        fileChooser.setFileFilter(filterJson);
+        jFileChooser.setFileFilter(filterYml);
+        jFileChooser.setFileFilter(filterJson);
 
-        int result = fileChooser.showOpenDialog(container);
+        if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
+            File file = jFileChooser.getSelectedFile();
 
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-
-            fileTextField.setText(file.getName());
-            infoLabel.setForeground(Color.BLACK);
-            infoLabel.setText(null);
+            this.jTextField.setText(file.getName());
+            this.jLabelInfo.setForeground(Color.BLACK);
+            this.jLabelInfo.setText(null);
 
             try {
-                
                 Loader loader = new Loader();
-                RESTful api = loader.process(file);
+                Swagger swagger = loader.process(file);
 
-                if (api.getHost() == null) {
-                    String host = JOptionPane.showInputDialog("Host is missing. Please enter one below.\nFormat: <host> or <host>:<port>");
-                    api.setHost(host);
+                // add regex validation
+                if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
+                    String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below.\nFormat: <host> or <host:port>");
+                    swagger.setHost(host);
                 }
 
-                String infoText = "Title: " + api.getInfo().getTitle() + " | " +
-                    "Version: " + api.getInfo().getVersion()  + " | " +
-                    "Swagger Version: " + api.getSwaggerVersion();
+                if (swagger.getSchemes() == null || (swagger.getSchemes() != null && swagger.getSchemes().isEmpty())) {
+                    String scheme = "";
 
-                infoLabel.setForeground(Color.BLACK);
-                infoLabel.setText(infoText);
+                    while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
+                        scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below.\nAllowed values: HTTP, HTTPS, WS, WSS.");
+                    }
+                    swagger.addScheme(Scheme.valueOf(scheme));
+                }
 
-                populateJTable(api);
+                String infoText = "Title: " + swagger.getInfo().getTitle() + " | " +
+                        "Version: " + swagger.getInfo().getVersion() + " | " +
+                        "Description: " + swagger.getInfo().getDescription();
+
+                this.jLabelInfo.setForeground(Color.BLACK);
+                this.jLabelInfo.setText(infoText);
+
+                createJTable(swagger);
             } catch (Exception ex) {
-                StringWriter stringWriter = new StringWriter();
-                ex.printStackTrace(new PrintWriter(stringWriter));
-                stderr.println(stringWriter.toString());
+                this.stderr.println(ex.toString());
 
-                infoLabel.setForeground(Color.RED);
-                infoLabel.setText("A fatal error occured, please check the logs for further information");
+                this.jLabelInfo.setForeground(Color.RED);
+                this.jLabelInfo.setText("A fatal error occurred, please check the logs for further information");
             }
-        } 
+        }
     }
 
     @SuppressWarnings("serial")
-    private JScrollPane drawJScrollTable() {
+    private JScrollPane createJScrollTable() {
         Object columns[] = {
-            "#",
-            "Method", 
-            "Host",
-            "Protocol",
-            "Base Path",
-            "Endpoint",
-            "Params"
+                "#",
+                "Method",
+                "Host",
+                "Protocol",
+                "Base Path",
+                "Endpoint",
+                "Param"
         };
         Object rows[][] = {};
-        table = new JTable(new DefaultTableModel(rows, columns) {
+        this.jTable = new JTable(new DefaultTableModel(rows, columns) {
             @Override
             public boolean isCellEditable(int rows, int columns) {
-               return false;
+                return false;
             }
         });
 
-        JScrollPane scrollPane = new JScrollPane(table);
-
-        table.setSelectionForeground(Color.BLACK);
-        table.addMouseListener(new MouseAdapter() {         
+        this.jTable.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseReleased(MouseEvent e) { 
-                int selectedRow = table.rowAtPoint(e.getPoint());
+            public void mouseReleased(MouseEvent e) {
+                int selectedRow = jTable.rowAtPoint(e.getPoint());
 
-                if (selectedRow >= 0 && selectedRow < table.getRowCount()) {
-                    if (!table.getSelectionModel().isSelectedIndex(selectedRow)) {
-                        table.setRowSelectionInterval(selectedRow, selectedRow);
+                if (selectedRow >= 0 && selectedRow < jTable.getRowCount()) {
+                    if (!jTable.getSelectionModel().isSelectedIndex(selectedRow)) {
+                        jTable.setRowSelectionInterval(selectedRow, selectedRow);
                     }
                 }
 
-                if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {  
+                if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
                     this.show(e);
                 }
             }
 
             @Override
-            public void mousePressed(MouseEvent e) { 
-                if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {  
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
                     this.show(e);
                 }
             }
 
             private void show(MouseEvent e) {
-                DataStructure data = new DataStructure(
-                    table,
-                    httpRequests,
-                    fileTextField,
-                    infoLabel
+                DataStructure dataStructure = new DataStructure(
+                        jTable,
+                        httpRequests,
+                        jTextField,
+                        jLabelInfo
                 );
-            
-                contextMenu.setDataStructure(data);
+
+                contextMenu.setDataStructure(dataStructure);
                 contextMenu.show(e.getComponent(), e.getX(), e.getY());
             }
         });
 
-        return scrollPane;
+        return new JScrollPane(this.jTable);
     }
 
-    public void resizeColumnWidth(JTable table) {
+    private void createJTable(Swagger swagger) {
+        DefaultTableModel model = (DefaultTableModel) this.jTable.getModel();
+        List<io.swagger.models.Scheme> schemes = swagger.getSchemes();
+
+        for (io.swagger.models.Scheme scheme : schemes) {
+            for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
+                for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap().entrySet()) {
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    for (Parameter parameter : operation.getValue().getParameters()) {
+                        stringBuilder.append(parameter.getName()).append(", ");
+                    }
+
+                    if (stringBuilder.length() > 0) {
+                        stringBuilder.setLength(stringBuilder.length() - 2);
+                    }
+
+                    model.addRow(
+                            new Object[]{
+                                    this.rowIndex,
+                                    operation.getKey().toString(),
+                                    swagger.getHost().split(":")[0],
+                                    scheme.toValue().toUpperCase(),
+                                    swagger.getBasePath(),
+                                    path.getKey(),
+                                    stringBuilder.toString()
+                            }
+                    );
+
+                    this.httpRequests.add(
+                            new HttpRequest(
+                                    swagger.getHost().split(":")[0],
+                                    this.helpers.getPort(swagger, scheme),
+                                    this.helpers.getUseHttps(scheme),
+                                    this.helpers.buildRequest(swagger, path, operation)
+                            )
+                    );
+
+                    resizeColumnWidth(jTable);
+                    this.rowIndex++;
+                }
+            }
+        }
+    }
+
+    private void resizeColumnWidth(JTable table) {
         final TableColumnModel columnModel = table.getColumnModel();
 
         for (int column = 0; column < table.getColumnCount(); column++) {
@@ -241,10 +255,10 @@ public class Tab implements ITab {
             for (int row = 0; row < table.getRowCount(); row++) {
                 TableCellRenderer renderer = table.getCellRenderer(row, column);
                 Component comp = table.prepareRenderer(renderer, row, column);
-                width = Math.max(comp.getPreferredSize().width +1 , width);
+                width = Math.max(comp.getPreferredSize().width + 1, width);
             }
 
-            if(width > 300) {
+            if (width > 300) {
                 width = 300;
             }
 
@@ -252,76 +266,32 @@ public class Tab implements ITab {
         }
     }
 
-    private void populateJTable(RESTful api) {
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        ArrayList<Scheme> schemes = helper.instanciateSchemes(api);
+    private JPanel createJInfoPanel() {
+        JPanel jPanelInfo = new JPanel();
+        jPanelInfo.add(this.jLabelInfo);
 
-        if (schemes.isEmpty()) {
-            infoLabel.setForeground(Color.RED);
-            infoLabel.setText("Invalid Swagger format detected, please ensure that the `schemes` is completed or the `host` has a port number");            
-        }
-
-        for (Scheme scheme: schemes) {
-            String basePath = api.getBasePath();
-            String host = helper.validateHostSyntax(api.getHost());
-
-            for (Map.Entry<String, Path> path: api.getPaths().entrySet()) {
-                String url = basePath + path.getKey();
-
-                Set<String> methodKeys = path.getValue().getHttpMethods().keySet();
-
-                for (String key : methodKeys) {
-
-                    stdout.println(key);
-                   // Map<String, HttpMethod> methodMap = path.getValue().getHttpMethods().get(key);
-
-                    // TODO interate over map!
-                }
-
-                
-                /*for (Map.Entry<String, HttpMethod> httpMethod: path.getValue().getHttpMethods().entrySet()) {
-	                // a path is a collection as of item as well
-	            	
-	            	String httpMethodType = httpMethod.getKey();
-	            
-	                model.addRow(new Object[] {
-	                        rowIndex,
-	                        httpMethodType,
-	                        host,
-	                        scheme.getProtocol(), 
-	                        basePath, 
-	                        path.getKey(),
-	                        helper.parseParams(httpMethod.getValue().getParameters())
-	                    }
-	                );
-	
-	                resizeColumnWidth(table);
-	
-	                helper.populateHttpRequests(httpRequests, httpMethodType, url, host, scheme.getPort(), scheme.getEncryption(), httpMethod.getValue().getParameters(), 
-	                    api.getDefinitions(), httpMethod.getValue().getConsumes(), httpMethod.getValue().getProduces());
-	
-	                rowIndex++;
-                }*/
-            }
-        }
-    }
-
-    private JPanel drawJInfoPanel() {
-        JPanel panel = new JPanel();
-        infoLabel = new JLabel("Copyright \u00a9 2016 Alexandre Teyar All Rights Reserved");
-
-        panel.add(infoLabel);
-
-        return panel;
+        return jPanelInfo;
     }
 
     @Override
     public Component getUiComponent() {
-        return container;
+        return this.jPanel;
     }
 
     @Override
     public String getTabCaption() {
         return "Swagger Parser";
+    }
+
+    class ButtonListener implements ActionListener {
+        ButtonListener() {
+            super();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() instanceof JButton) {
+                loadFile();
+            }
+        }
     }
 }

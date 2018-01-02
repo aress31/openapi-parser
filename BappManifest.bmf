@@ -2,11 +2,11 @@ Uuid: 6bf7574b632847faaaa4eb5e42f1757c
 ExtensionType: 1
 Name: Swagger Parser
 RepoName: swagger-parser
-ScreenVersion: 1.4
-SerialVersion: 6
+ScreenVersion: 2
+SerialVersion: 7
 MinPlatformVersion: 0
 ProOnly: False
 Author: Alexandre Teyar
-ShortDescription: Parse Swagger files.
+ShortDescription: Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
 EntryPoint: build/libs/swagger-parser-all.jar
 BuildCommand: gradle fatJar

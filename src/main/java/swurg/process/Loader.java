@@ -15,30 +15,22 @@
 */
 package swurg.process;
 
-import com.google.gson.Gson;
-import java.io.BufferedReader;
+import io.swagger.models.Swagger;
+import io.swagger.parser.SwaggerParser;
+
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import swurg.model.RESTful;
 
 public class Loader {
 
-    public RESTful process(File file) throws FileNotFoundException {
-                
+    public Swagger process(File file) {
         if (file == null) {
             throw new IllegalArgumentException("No file specified");
         }
-        
+
         if (!file.exists()) {
             throw new IllegalArgumentException("File doesn't exist!");
         }
 
-        Gson gson = new Gson();
-        
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-        RESTful result = gson.fromJson(bufferedReader, RESTful.class);
-
-        return result;
+        return new SwaggerParser().read(file.getAbsolutePath());
     }
 }

@@ -17,96 +17,87 @@
 package swurg.ui;
 
 import burp.IBurpExtenderCallbacks;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
-import javax.swing.table.DefaultTableModel;
 import swurg.model.HttpRequest;
 import swurg.utils.DataStructure;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+
 @SuppressWarnings("serial")
 public class ContextMenu extends JPopupMenu {
-    DataStructure data;
-    
-    JMenuItem clearAll;
-    JMenuItem intruder;
-    JMenuItem repeater;
-    JMenuItem scanner;
+    private DataStructure dataStructure;
 
-    public ContextMenu(IBurpExtenderCallbacks callbacks){
-        this.clearAll = new JMenuItem("Clear all");
-        this.clearAll.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {     
-                clear();
-            }
-        });
-        
-        this.intruder = new JMenuItem("Send to Intruder");
-        this.intruder.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int[] rowIndexes = data.getTable().getSelectedRows();
+    ContextMenu(IBurpExtenderCallbacks callbacks) {
+        JMenuItem scanner = new JMenuItem("Do an active scan");
+        scanner.addActionListener(e -> {
+            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
 
-                // Highlighted rows
-                for(int i = 0; i < rowIndexes.length; i++) {
-                    HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
+            for (int rowIndex : rowIndexes) {
+                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
 
-                    callbacks.sendToIntruder(httpRequest.getHost(), httpRequest.getPort(), httpRequest.getUseHttps(), httpRequest.getRequest());
-                }
+                callbacks.doActiveScan(
+                        httpRequest.getHost(),
+                        httpRequest.getPort(),
+                        httpRequest.getUseHttps(),
+                        httpRequest.getRequest()
+                );
             }
         });
 
-        this.repeater = new JMenuItem("Send to Repeater");
-        this.repeater.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int[] rowIndexes = data.getTable().getSelectedRows();
+        JMenuItem intruder = new JMenuItem("Send to Intruder");
+        intruder.addActionListener((ActionEvent e) -> {
+            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
 
-                // Highlighted rows 
-                for(int i = 0; i < rowIndexes.length; i++) {
+            for (int rowIndex : rowIndexes) {
+                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
 
-                    HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
-                    callbacks.sendToRepeater(httpRequest.getHost(), httpRequest.getPort(), httpRequest.getUseHttps(), 
-                        httpRequest.getRequest(), (String) data.getTable().getValueAt(rowIndexes[i], 5));
-                }
+                callbacks.sendToIntruder(
+                        httpRequest.getHost(),
+                        httpRequest.getPort(),
+                        httpRequest.getUseHttps(),
+                        httpRequest.getRequest()
+                );
             }
         });
 
-        this.scanner = new JMenuItem("Do an active scan");
-        this.scanner.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int[] rowIndexes = data.getTable().getSelectedRows();
+        JMenuItem repeater = new JMenuItem("Send to Repeater");
+        repeater.addActionListener(e -> {
+            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
 
-                // Highlighted rows
-                for(int i = 0; i < rowIndexes.length; i++) {
-                    HttpRequest httpRequest = data.getHttpRequests().get(rowIndexes[i]);
+            for (int rowIndex : rowIndexes) {
 
-                    callbacks.doActiveScan(httpRequest.getHost(), httpRequest.getPort(), httpRequest.getUseHttps(), httpRequest.getRequest());
-                }
+                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
+                callbacks.sendToRepeater(
+                        httpRequest.getHost(),
+                        httpRequest.getPort(),
+                        httpRequest.getUseHttps(),
+                        httpRequest.getRequest(),
+                        (String) dataStructure.getTable().getValueAt(rowIndex, 5)
+                );
             }
         });
+
+        JMenuItem clearAll = new JMenuItem("Clear all");
+        clearAll.addActionListener(e -> clear());
 
         add(scanner);
-        add(repeater);
         add(intruder);
+        add(repeater);
         add(new JSeparator());
         add(clearAll);
     }
 
     public void setDataStructure(DataStructure data) {
-        this.data = data;
+        this.dataStructure = data;
     }
 
     private void clear() {
-        data.setFileTextField("");
-        data.setInfoLabel("Copyright \u00a9 2016 Alexandre Teyar All Rights Reserved");
-        DefaultTableModel model = (DefaultTableModel) data.getTable().getModel();
+        dataStructure.setJTextFieldFile(null);
+        dataStructure.setJLabelInfo("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved");
+        DefaultTableModel model = (DefaultTableModel) dataStructure.getTable().getModel();
         model.setRowCount(0);
-        data.getHttpRequests().clear();
+        dataStructure.getHttpRequests().clear();
     }
 }
+
