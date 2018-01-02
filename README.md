@@ -10,7 +10,7 @@ The following screenshot shows the plugin interface:
 ![compilation](images/swurg.png)
 
 ## Project information
-The extension is still in development, feedbacks and comments are much appreciated.
+The extension is still in development, feedback and comments are much appreciated.
 
 # Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
