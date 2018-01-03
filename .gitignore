@@ -1,5 +1,4 @@
 build/
-swurg.jar
 *.swp
 .classpath
 .gradle/
