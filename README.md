@@ -12,7 +12,7 @@ The following screenshot shows the plugin interface:
 ## Project information
 The extension is still in development, feedback and comments are much appreciated.
 
-# Supported Features
+## Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
 * Responsive GUI.
 * Send requests to the following Burp Suite tabs:
