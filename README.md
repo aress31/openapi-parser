@@ -1,4 +1,4 @@
-![swurg](images/swurg_logo.png)
+![oai](images/oai.png)
 # swurg
 ## A Burp Suite extension for RESTful API testing.
 During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
