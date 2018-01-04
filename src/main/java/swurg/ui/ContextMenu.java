@@ -16,8 +16,8 @@
 
 package swurg.ui;
 
+import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
-import swurg.model.HttpRequest;
 import swurg.utils.DataStructure;
 
 import javax.swing.*;
@@ -29,50 +29,60 @@ public class ContextMenu extends JPopupMenu {
     private DataStructure dataStructure;
 
     ContextMenu(IBurpExtenderCallbacks callbacks) {
-        JMenuItem scanner = new JMenuItem("Do an active scan");
-        scanner.addActionListener(e -> {
+        JMenuItem add_to_site_map = new JMenuItem("Add to site map");
+        add_to_site_map.addActionListener(e -> {
             int[] rowIndexes = dataStructure.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
-                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
+                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
+                callbacks.addToSiteMap(httpRequestResponse);
+            }
+        });
+
+        JMenuItem do_an_active_scan = new JMenuItem("Do an active scan");
+        do_an_active_scan.addActionListener(e -> {
+            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+
+            for (int rowIndex : rowIndexes) {
+                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
 
                 callbacks.doActiveScan(
-                        httpRequest.getHost(),
-                        httpRequest.getPort(),
-                        httpRequest.getUseHttps(),
-                        httpRequest.getRequest()
+                        httpRequestResponse.getHttpService().getHost(),
+                        httpRequestResponse.getHttpService().getPort(),
+                        httpRequestResponse.isUseHttps(),
+                        httpRequestResponse.getRequest()
                 );
             }
         });
 
-        JMenuItem intruder = new JMenuItem("Send to Intruder");
-        intruder.addActionListener((ActionEvent e) -> {
+        JMenuItem send_to_intruder = new JMenuItem("Send to Intruder");
+        send_to_intruder.addActionListener((ActionEvent e) -> {
             int[] rowIndexes = dataStructure.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
-                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
+                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
 
                 callbacks.sendToIntruder(
-                        httpRequest.getHost(),
-                        httpRequest.getPort(),
-                        httpRequest.getUseHttps(),
-                        httpRequest.getRequest()
+                        httpRequestResponse.getHttpService().getHost(),
+                        httpRequestResponse.getHttpService().getPort(),
+                        httpRequestResponse.isUseHttps(),
+                        httpRequestResponse.getRequest()
                 );
             }
         });
 
-        JMenuItem repeater = new JMenuItem("Send to Repeater");
-        repeater.addActionListener(e -> {
+        JMenuItem send_to_repeater = new JMenuItem("Send to Repeater");
+        send_to_repeater.addActionListener(e -> {
             int[] rowIndexes = dataStructure.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
 
-                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
+                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
                 callbacks.sendToRepeater(
-                        httpRequest.getHost(),
-                        httpRequest.getPort(),
-                        httpRequest.getUseHttps(),
-                        httpRequest.getRequest(),
+                        httpRequestResponse.getHttpService().getHost(),
+                        httpRequestResponse.getHttpService().getPort(),
+                        httpRequestResponse.isUseHttps(),
+                        httpRequestResponse.getRequest(),
                         (String) dataStructure.getTable().getValueAt(rowIndex, 5)
                 );
             }
@@ -81,9 +91,10 @@ public class ContextMenu extends JPopupMenu {
         JMenuItem clearAll = new JMenuItem("Clear all");
         clearAll.addActionListener(e -> clear());
 
-        add(scanner);
-        add(intruder);
-        add(repeater);
+        add(add_to_site_map);
+        add(do_an_active_scan);
+        add(send_to_intruder);
+        add(send_to_repeater);
         add(new JSeparator());
         add(clearAll);
     }
@@ -97,7 +108,7 @@ public class ContextMenu extends JPopupMenu {
         dataStructure.setJLabelInfo("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved");
         DefaultTableModel model = (DefaultTableModel) dataStructure.getTable().getModel();
         model.setRowCount(0);
-        dataStructure.getHttpRequests().clear();
+        dataStructure.getHttpRequestResponses().clear();
     }
 }
 

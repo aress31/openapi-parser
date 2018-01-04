@@ -19,6 +19,7 @@ The extension is still in development, feedback and comments are much appreciate
     * Intruder.
     * Repeater.
     * Scanner.
+    * Site map.
 
 ## Installation
 ### Compilation 
