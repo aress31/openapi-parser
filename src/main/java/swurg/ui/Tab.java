@@ -23,7 +23,7 @@ import io.swagger.models.*;
 import io.swagger.models.parameters.Parameter;
 import swurg.process.Loader;
 import swurg.utils.DataStructure;
-import swurg.utils.ExtensionHelper;
+import swurg.utils.ExtensionHelpers;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -38,13 +38,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class Tab implements ITab {
     private final ContextMenu contextMenu;
-    private ExtensionHelper extensionHelper;
+    private ExtensionHelpers extensionHelpers;
 
     private PrintWriter stderr;
     private PrintWriter stdout;
@@ -59,7 +61,7 @@ public class Tab implements ITab {
 
     public Tab(IBurpExtenderCallbacks callbacks) {
         this.contextMenu = new ContextMenu(callbacks);
-        this.extensionHelper = new ExtensionHelper(callbacks);
+        this.extensionHelpers = new ExtensionHelpers(callbacks);
         this.stderr = new PrintWriter(callbacks.getStderr(), true);
         this.stdout = new PrintWriter(callbacks.getStdout(), true);
 
@@ -77,72 +79,84 @@ public class Tab implements ITab {
         JPanel jPanel = new JPanel();
 
         this.jTextField = new JTextField(null, 48);
-        this.jTextField.setEditable(false);
+        this.jTextField.setEditable(true);
 
-        JButton jButton = new JButton("File");
+        JButton jButton = new JButton("Browse/Load");
         jButton.addActionListener(new ButtonListener());
 
-        jPanel.add(new JLabel("Parse file:"));
+        jPanel.add(new JLabel("Parse file/URL:"));
         jPanel.add(this.jTextField);
         jPanel.add(jButton);
 
         return jPanel;
     }
 
-    private void loadFile() {
-        JFileChooser jFileChooser = new JFileChooser();
+    private void loadResource() {
+        String resource = jTextField.getText();
 
-        FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
-        jFileChooser.addChoosableFileFilter(filterJson);
-        FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
-        jFileChooser.addChoosableFileFilter(filterYml);
-
-        jFileChooser.setFileFilter(filterYml);
-        jFileChooser.setFileFilter(filterJson);
-
-        if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
-            File file = jFileChooser.getSelectedFile();
-
-            this.jTextField.setText(file.getName());
-            this.jLabelInfo.setForeground(Color.BLACK);
-            this.jLabelInfo.setText(null);
-
-            try {
-                Loader loader = new Loader();
-                Swagger swagger = loader.process(file);
-
-                // add regex validation
-                if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
-                    String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below" +
-                                                                      ".\nFormat: <host> or <host:port>");
-                    swagger.setHost(host);
-                }
-
-                if (swagger.getSchemes() == null || (swagger.getSchemes() != null && swagger.getSchemes().isEmpty())) {
-                    String scheme = "";
-
-                    while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
-                        scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below" +
-                                                                     ".\nAllowed values: HTTP, HTTPS, WS, WSS.");
-                    }
-                    swagger.addScheme(Scheme.valueOf(scheme));
-                }
-
-                String infoText = "Title: " + swagger.getInfo().getTitle() + " | " +
-                        "Version: " + swagger.getInfo().getVersion() + " | " +
-                        "Description: " + swagger.getInfo().getDescription();
-
-                this.jLabelInfo.setForeground(Color.BLACK);
-                this.jLabelInfo.setText(infoText);
-
-                createJTable(swagger);
-            } catch (Exception ex) {
-                this.stderr.println(ex.toString());
-
-                this.jLabelInfo.setForeground(Color.RED);
-                this.jLabelInfo.setText("A fatal error occurred, please check the logs for further information");
-            }
+        try {
+            new URL(resource);
+        } catch (MalformedURLException ex) {
+            resource = null;
+            jTextField.setText(null);
         }
+
+        if (resource == null) {
+
+            JFileChooser jFileChooser = new JFileChooser();
+
+            FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
+            jFileChooser.addChoosableFileFilter(filterJson);
+            FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
+            jFileChooser.addChoosableFileFilter(filterYml);
+
+            jFileChooser.setFileFilter(filterYml);
+            jFileChooser.setFileFilter(filterJson);
+
+            if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
+                File file = jFileChooser.getSelectedFile();
+                this.jTextField.setText(file.getName());
+                resource = file.getAbsolutePath();
+            } else return;
+        }
+
+        this.jLabelInfo.setForeground(Color.BLACK);
+        this.jLabelInfo.setText(null);
+
+        try {
+            Loader loader = new Loader();
+            Swagger swagger = loader.process(resource);
+
+            // add regex validation
+            if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
+                String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below.\nFormat: <host> or <host:port>");
+                swagger.setHost(host);
+            }
+
+            if (swagger.getSchemes() == null || (swagger.getSchemes() != null && swagger.getSchemes().isEmpty())) {
+                String scheme = "";
+
+                while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
+                    scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below.\nAllowed values: HTTP, HTTPS, WS, WSS.");
+                }
+                swagger.addScheme(Scheme.valueOf(scheme));
+            }
+
+            String infoText = "Title: " + swagger.getInfo().getTitle() + " | " +
+                    "Version: " + swagger.getInfo().getVersion() + " | " +
+                    "Description: " + swagger.getInfo().getDescription();
+
+            this.jLabelInfo.setForeground(Color.BLACK);
+            this.jLabelInfo.setText(infoText);
+
+            createJTable(swagger);
+        } catch (Exception ex) {
+            this.stderr.println(ex.toString());
+
+            this.jLabelInfo.setForeground(Color.RED);
+            this.jLabelInfo.setText("A fatal error occurred, please check the logs for further information");
+        }
+
     }
 
     @SuppressWarnings("serial")
@@ -234,13 +248,13 @@ public class Tab implements ITab {
 
                     this.httpRequestResponses.add(
                             new HttpRequestResponse(
-                                    this.extensionHelper.getBurpExtensionHelpers().buildHttpService(
+                                    this.extensionHelpers.getBurpExtensionHelpers().buildHttpService(
                                             swagger.getHost().split(":")[0],
-                                            this.extensionHelper.getPort(swagger, scheme),
-                                            this.extensionHelper.isUseHttps(scheme)
+                                            this.extensionHelpers.getPort(swagger, scheme),
+                                            this.extensionHelpers.isUseHttps(scheme)
                                     ),
-                                    this.extensionHelper.isUseHttps(scheme),
-                                    this.extensionHelper.buildRequest(swagger, path, operation)
+                                    this.extensionHelpers.isUseHttps(scheme),
+                                    this.extensionHelpers.buildRequest(swagger, path, operation)
                             )
                     );
 
@@ -295,7 +309,7 @@ public class Tab implements ITab {
 
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() instanceof JButton) {
-                loadFile();
+                loadResource();
             }
         }
     }
