@@ -16,14 +16,12 @@
 
 package swurg.ui;
 
-import burp.IBurpExtenderCallbacks;
-import burp.ITab;
+import burp.*;
 import io.swagger.models.*;
 import io.swagger.models.parameters.Parameter;
-import swurg.model.HttpRequest;
 import swurg.process.Loader;
 import swurg.utils.DataStructure;
-import swurg.utils.ExtensionHelper;
+import swurg.utils.ExtensionHelpers;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -44,7 +42,7 @@ import java.util.Map;
 
 public class Tab implements ITab {
     private final ContextMenu contextMenu;
-    private ExtensionHelper helpers;
+    private ExtensionHelpers extensionHelpers;
 
     private PrintWriter stderr;
     private PrintWriter stdout;
@@ -54,12 +52,12 @@ public class Tab implements ITab {
     private JTable jTable;
     private JTextField jTextField;
 
-    private List<HttpRequest> httpRequests = new ArrayList<>();
+    private List<HttpRequestResponse> httpRequestResponses = new ArrayList<>();
     private int rowIndex = 1;
 
     public Tab(IBurpExtenderCallbacks callbacks) {
         this.contextMenu = new ContextMenu(callbacks);
-        this.helpers = new ExtensionHelper(callbacks);
+        this.extensionHelpers = new ExtensionHelpers(callbacks);
         this.stderr = new PrintWriter(callbacks.getStderr(), true);
         this.stdout = new PrintWriter(callbacks.getStdout(), true);
 
@@ -188,7 +186,7 @@ public class Tab implements ITab {
             private void show(MouseEvent e) {
                 DataStructure dataStructure = new DataStructure(
                         jTable,
-                        httpRequests,
+                        httpRequestResponses,
                         jTextField,
                         jLabelInfo
                 );
@@ -230,12 +228,15 @@ public class Tab implements ITab {
                             }
                     );
 
-                    this.httpRequests.add(
-                            new HttpRequest(
-                                    swagger.getHost().split(":")[0],
-                                    this.helpers.getPort(swagger, scheme),
-                                    this.helpers.getUseHttps(scheme),
-                                    this.helpers.buildRequest(swagger, path, operation)
+                    this.httpRequestResponses.add(
+                            new HttpRequestResponse(
+                                    this.extensionHelpers.getBurpExtensionHelpers().buildHttpService(
+                                            swagger.getHost().split(":")[0],
+                                            this.extensionHelpers.getPort(swagger, scheme),
+                                            this.extensionHelpers.isUseHttps(scheme)
+                                    ),
+                                    this.extensionHelpers.isUseHttps(scheme),
+                                    this.extensionHelpers.buildRequest(swagger, path, operation)
                             )
                     );
 

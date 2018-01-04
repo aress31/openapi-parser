@@ -19,24 +19,21 @@ package swurg.utils;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import io.swagger.models.*;
+import io.swagger.models.parameters.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ExtensionHelper {
-    private IExtensionHelpers burpHelpers;
+public class ExtensionHelpers {
+    private IExtensionHelpers burpExtensionHelpers;
 
-    public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
-        this.burpHelpers = callbacks.getHelpers();
+    public ExtensionHelpers(IBurpExtenderCallbacks callbacks) {
+        this.burpExtensionHelpers = callbacks.getHelpers();
     }
 
-    public boolean getUseHttps(Scheme scheme) {
-        boolean useHttps;
-
-        useHttps = scheme.toValue().toUpperCase().equals("HTTPS") || scheme.toValue().toUpperCase().equals("WSS");
-
-        return useHttps;
+    public IExtensionHelpers getBurpExtensionHelpers() {
+        return burpExtensionHelpers;
     }
 
     public int getPort(Swagger swagger, Scheme scheme) {
@@ -56,19 +53,12 @@ public class ExtensionHelper {
         return port;
     }
 
-    public byte[] buildRequest(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
-        List<String> headers = this.buildHeaders(swagger, path, operation);
-        byte[] httpMessage = this.burpHelpers.buildHttpMessage(headers, null);
+    public boolean isUseHttps(Scheme scheme) {
+        boolean useHttps;
 
-        for (io.swagger.models.parameters.Parameter parameter : operation.getValue().getParameters()) {
-            if (parameter.getIn().equals("query")) {
-                httpMessage = this.burpHelpers.addParameter(httpMessage, burpHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 0));
-            } else if (parameter.getIn().equals("body")) {
-                httpMessage = this.burpHelpers.addParameter(httpMessage, burpHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 1));
-            }
-        }
+        useHttps = scheme.toValue().toUpperCase().equals("HTTPS") || scheme.toValue().toUpperCase().equals("WSS");
 
-        return httpMessage;
+        return useHttps;
     }
 
     private List<String> buildHeaders(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
@@ -90,5 +80,26 @@ public class ExtensionHelper {
         }
 
         return headers;
+    }
+
+    public byte[] buildRequest(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
+        List<String> headers = buildHeaders(swagger, path, operation);
+        byte[] httpMessage = burpExtensionHelpers.buildHttpMessage(headers, null);
+
+        for (Parameter parameter : operation.getValue().getParameters()) {
+            if (parameter.getIn().equals("query")) {
+                httpMessage = burpExtensionHelpers.addParameter(
+                        httpMessage,
+                        burpExtensionHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 0)
+                );
+            } else if (parameter.getIn().equals("body")) {
+                httpMessage = burpExtensionHelpers.addParameter(
+                        httpMessage,
+                        burpExtensionHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 1)
+                );
+            }
+        }
+
+        return httpMessage;
     }
 }

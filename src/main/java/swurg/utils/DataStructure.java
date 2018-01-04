@@ -16,7 +16,7 @@
 
 package swurg.utils;
 
-import swurg.model.HttpRequest;
+import burp.HttpRequestResponse;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,11 +27,11 @@ public class DataStructure {
     private JTextField jTextField;
     private JLabel jLabel;
 
-    private List<HttpRequest> httpRequests;
+    private List<HttpRequestResponse> httpRequestResponses;
 
-    public DataStructure(JTable jTable, List<HttpRequest> httpRequests, JTextField jTextField, JLabel jLabel) {
+    public DataStructure(JTable jTable, List<HttpRequestResponse> httpRequestResponses, JTextField jTextField, JLabel jLabel) {
         this.jTable = jTable;
-        this.httpRequests = httpRequests;
+        this.httpRequestResponses = httpRequestResponses;
         this.jTextField = jTextField;
         this.jLabel = jLabel;
     }
@@ -40,8 +40,8 @@ public class DataStructure {
         return this.jTable;
     }
 
-    public List<HttpRequest> getHttpRequests() {
-        return this.httpRequests;
+    public List<HttpRequestResponse> getHttpRequestResponses() {
+        return this.httpRequestResponses;
     }
 
     public void setJTextFieldFile(String text) {
