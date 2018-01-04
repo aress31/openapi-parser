@@ -29,7 +29,8 @@ public class DataStructure {
 
     private List<HttpRequestResponse> httpRequestResponses;
 
-    public DataStructure(JTable jTable, List<HttpRequestResponse> httpRequestResponses, JTextField jTextField, JLabel jLabel) {
+    public DataStructure(JTable jTable, List<HttpRequestResponse> httpRequestResponses, JTextField jTextField, JLabel
+            jLabel) {
         this.jTable = jTable;
         this.httpRequestResponses = httpRequestResponses;
         this.jTextField = jTextField;

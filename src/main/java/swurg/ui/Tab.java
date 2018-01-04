@@ -16,12 +16,14 @@
 
 package swurg.ui;
 
-import burp.*;
+import burp.HttpRequestResponse;
+import burp.IBurpExtenderCallbacks;
+import burp.ITab;
 import io.swagger.models.*;
 import io.swagger.models.parameters.Parameter;
 import swurg.process.Loader;
 import swurg.utils.DataStructure;
-import swurg.utils.ExtensionHelpers;
+import swurg.utils.ExtensionHelper;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -42,7 +44,7 @@ import java.util.Map;
 
 public class Tab implements ITab {
     private final ContextMenu contextMenu;
-    private ExtensionHelpers extensionHelpers;
+    private ExtensionHelper extensionHelper;
 
     private PrintWriter stderr;
     private PrintWriter stdout;
@@ -57,7 +59,7 @@ public class Tab implements ITab {
 
     public Tab(IBurpExtenderCallbacks callbacks) {
         this.contextMenu = new ContextMenu(callbacks);
-        this.extensionHelpers = new ExtensionHelpers(callbacks);
+        this.extensionHelper = new ExtensionHelper(callbacks);
         this.stderr = new PrintWriter(callbacks.getStderr(), true);
         this.stdout = new PrintWriter(callbacks.getStdout(), true);
 
@@ -111,7 +113,8 @@ public class Tab implements ITab {
 
                 // add regex validation
                 if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
-                    String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below.\nFormat: <host> or <host:port>");
+                    String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below" +
+                                                                      ".\nFormat: <host> or <host:port>");
                     swagger.setHost(host);
                 }
 
@@ -119,7 +122,8 @@ public class Tab implements ITab {
                     String scheme = "";
 
                     while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
-                        scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below.\nAllowed values: HTTP, HTTPS, WS, WSS.");
+                        scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below" +
+                                                                     ".\nAllowed values: HTTP, HTTPS, WS, WSS.");
                     }
                     swagger.addScheme(Scheme.valueOf(scheme));
                 }
@@ -230,13 +234,13 @@ public class Tab implements ITab {
 
                     this.httpRequestResponses.add(
                             new HttpRequestResponse(
-                                    this.extensionHelpers.getBurpExtensionHelpers().buildHttpService(
+                                    this.extensionHelper.getBurpExtensionHelpers().buildHttpService(
                                             swagger.getHost().split(":")[0],
-                                            this.extensionHelpers.getPort(swagger, scheme),
-                                            this.extensionHelpers.isUseHttps(scheme)
+                                            this.extensionHelper.getPort(swagger, scheme),
+                                            this.extensionHelper.isUseHttps(scheme)
                                     ),
-                                    this.extensionHelpers.isUseHttps(scheme),
-                                    this.extensionHelpers.buildRequest(swagger, path, operation)
+                                    this.extensionHelper.isUseHttps(scheme),
+                                    this.extensionHelper.buildRequest(swagger, path, operation)
                             )
                     );
 
