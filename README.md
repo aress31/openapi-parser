@@ -1,4 +1,4 @@
-![swurg](images/swurg_logo.png)
+![oai](images/oai.png)
 # swurg
 ## A Burp Suite extension for RESTful API testing.
 During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
@@ -12,7 +12,7 @@ The following screenshot shows the plugin interface:
 ## Project information
 The extension is still in development, feedback and comments are much appreciated.
 
-# Supported Features
+## Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
 * Responsive GUI.
 * Send requests to the following Burp Suite tabs:
