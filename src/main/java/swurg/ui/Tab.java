@@ -97,8 +97,12 @@ public class Tab implements ITab {
         try {
             new URL(resource);
         } catch (MalformedURLException ex) {
-            resource = null;
-            jTextField.setText(null);
+            File file = new File(resource);
+
+            if (!file.exists()) {        
+                resource = null;
+                jTextField.setText(null);
+            }
         }
 
         if (resource == null) {
@@ -114,8 +118,9 @@ public class Tab implements ITab {
 
             if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
                 File file = jFileChooser.getSelectedFile();
-                this.jTextField.setText(file.getName());
+                
                 resource = file.getAbsolutePath();
+                this.jTextField.setText(resource);
             } else { return; }
         }
 
