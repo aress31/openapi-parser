@@ -25,10 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ExtensionHelpers {
+public class ExtensionHelper {
     private IExtensionHelpers burpExtensionHelpers;
 
-    public ExtensionHelpers(IBurpExtenderCallbacks callbacks) {
+    public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
         this.burpExtensionHelpers = callbacks.getHelpers();
     }
 
@@ -61,7 +61,8 @@ public class ExtensionHelpers {
         return useHttps;
     }
 
-    private List<String> buildHeaders(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
+    private List<String> buildHeaders(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation>
+            operation) {
         List<String> headers = new ArrayList<>();
 
         headers.add(operation.getKey().toString() + " " + path.getKey() + " HTTP/1.1");
@@ -82,7 +83,8 @@ public class ExtensionHelpers {
         return headers;
     }
 
-    public byte[] buildRequest(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
+    public byte[] buildRequest(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation>
+            operation) {
         List<String> headers = buildHeaders(swagger, path, operation);
         byte[] httpMessage = burpExtensionHelpers.buildHttpMessage(headers, null);
 

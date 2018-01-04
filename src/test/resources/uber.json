@@ -347,8 +347,8 @@
         "history": {
           "type": "array",
           "items": {
-              "$ref": "#/definitions/Activity"
-           }
+            "$ref": "#/definitions/Activity"
+          }
         }
       }
     },
