@@ -20,18 +20,26 @@ import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class Loader {
 
-    public Swagger process(File file) {
-        if (file == null) {
-            throw new IllegalArgumentException("No file specified");
+    public Swagger process(String resource) {
+        if (resource == null) {
+            throw new IllegalArgumentException("No file or URL specified");
         }
+        
+	File file = new File(resource);
 
         if (!file.exists()) {
-            throw new IllegalArgumentException("File doesn't exist!");
+	    try {
+                    new URL(resource);
+                } catch (MalformedURLException e) {
+	            throw new IllegalArgumentException("File doesn't exist or invalid URL!");
+		}
         }
 
-        return new SwaggerParser().read(file.getAbsolutePath());
+        return new SwaggerParser().read(resource);
     }
 }
