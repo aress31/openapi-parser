@@ -102,7 +102,6 @@ public class Tab implements ITab {
         }
 
         if (resource == null) {
-
             JFileChooser jFileChooser = new JFileChooser();
 
             FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
@@ -117,7 +116,7 @@ public class Tab implements ITab {
                 File file = jFileChooser.getSelectedFile();
                 this.jTextField.setText(file.getName());
                 resource = file.getAbsolutePath();
-            } else return;
+            } else { return; }
         }
 
         this.jLabelInfo.setForeground(Color.BLACK);
@@ -129,7 +128,8 @@ public class Tab implements ITab {
 
             // add regex validation
             if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
-                String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below.\nFormat: <host> or <host:port>");
+                String host = JOptionPane.showInputDialog("`host` field is missing.\nPlease enter one below.\nFormat:" +
+                                                                  " <host> or <host:port>");
                 swagger.setHost(host);
             }
 
@@ -137,7 +137,8 @@ public class Tab implements ITab {
                 String scheme = "";
 
                 while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
-                    scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below.\nAllowed values: HTTP, HTTPS, WS, WSS.");
+                    scheme = JOptionPane.showInputDialog("`scheme` field is missing.\nPlease enter one below" +
+                                                                 ".\nAllowed values: HTTP, HTTPS, WS, WSS.");
                 }
                 swagger.addScheme(Scheme.valueOf(scheme));
             }

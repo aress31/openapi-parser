@@ -7,3 +7,4 @@ build/
 .settings/
 .vscode/
 bin/
+.idea/workspace.xml
