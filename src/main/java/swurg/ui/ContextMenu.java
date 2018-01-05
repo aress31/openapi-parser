@@ -18,73 +18,70 @@ package swurg.ui;
 
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
-import swurg.utils.DataStructure;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 @SuppressWarnings("serial")
-public class ContextMenu extends JPopupMenu {
-    private DataStructure dataStructure;
+class ContextMenu extends JPopupMenu {
+    private IBurpExtenderCallbacks callbacks;
+    private List<HttpRequestResponse> httpRequestResponses;
+    private Tab tab;
 
-    ContextMenu(IBurpExtenderCallbacks callbacks) {
+    ContextMenu(IBurpExtenderCallbacks callbacks, List<HttpRequestResponse> httpRequestResponses, Tab tab) {
+        this.callbacks = callbacks;
+        this.httpRequestResponses = httpRequestResponses;
+        this.tab = tab;
+
         JMenuItem add_to_site_map = new JMenuItem("Add to site map");
         add_to_site_map.addActionListener(e -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+            int[] rowIndexes = this.tab.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
-                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
-                callbacks.addToSiteMap(httpRequestResponse);
+                HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(rowIndex);
+                this.callbacks.addToSiteMap(httpRequestResponse);
             }
         });
 
         JMenuItem do_an_active_scan = new JMenuItem("Do an active scan");
         do_an_active_scan.addActionListener(e -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+            int[] rowIndexes = tab.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
-                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
+                HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(rowIndex);
 
-                callbacks.doActiveScan(
-                        httpRequestResponse.getHttpService().getHost(),
-                        httpRequestResponse.getHttpService().getPort(),
-                        httpRequestResponse.isUseHttps(),
-                        httpRequestResponse.getRequest()
-                );
+                this.callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(), httpRequestResponse
+                        .getHttpService().getPort(), httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest
+                        ());
             }
         });
 
         JMenuItem send_to_intruder = new JMenuItem("Send to Intruder");
         send_to_intruder.addActionListener((ActionEvent e) -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+            int[] rowIndexes = this.tab.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
-                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
+                HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(rowIndex);
 
-                callbacks.sendToIntruder(
-                        httpRequestResponse.getHttpService().getHost(),
-                        httpRequestResponse.getHttpService().getPort(),
-                        httpRequestResponse.isUseHttps(),
-                        httpRequestResponse.getRequest()
-                );
+                this.callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(), httpRequestResponse
+                        .getHttpService().getPort(), httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest
+                        ());
             }
         });
 
         JMenuItem send_to_repeater = new JMenuItem("Send to Repeater");
         send_to_repeater.addActionListener(e -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+            int[] rowIndexes = this.tab.getTable().getSelectedRows();
 
             for (int rowIndex : rowIndexes) {
 
-                HttpRequestResponse httpRequestResponse = dataStructure.getHttpRequestResponses().get(rowIndex);
-                callbacks.sendToRepeater(
-                        httpRequestResponse.getHttpService().getHost(),
-                        httpRequestResponse.getHttpService().getPort(),
-                        httpRequestResponse.isUseHttps(),
-                        httpRequestResponse.getRequest(),
-                        (String) dataStructure.getTable().getValueAt(rowIndex, 5)
-                );
+                HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(rowIndex);
+                this.callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(), httpRequestResponse
+                        .getHttpService().getPort(), httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest
+                        (), (String) this.tab.getTable().getValueAt(rowIndex, 5));
             }
         });
 
@@ -99,16 +96,11 @@ public class ContextMenu extends JPopupMenu {
         add(clearAll);
     }
 
-    public void setDataStructure(DataStructure data) {
-        this.dataStructure = data;
-    }
-
     private void clear() {
-        dataStructure.setJTextFieldFile(null);
-        dataStructure.setJLabelInfo("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved");
-        DefaultTableModel model = (DefaultTableModel) dataStructure.getTable().getModel();
-        model.setRowCount(0);
-        dataStructure.getHttpRequestResponses().clear();
+        DefaultTableModel defaultTableModel = (DefaultTableModel) this.tab.getTable().getModel();
+        defaultTableModel.setRowCount(0);
+        this.httpRequestResponses.clear();
+        tab.displayStatus("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved", Color.BLACK);
     }
 }
 

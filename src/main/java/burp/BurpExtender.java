@@ -19,10 +19,13 @@ package burp;
 import swurg.ui.Tab;
 
 public class BurpExtender implements IBurpExtender {
-
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+        Tab tab = new Tab(callbacks);
+
+        ContextMenuFactory contextMenuFactory = new ContextMenuFactory(callbacks, tab);
         callbacks.setExtensionName("Swagger Parser");
-        callbacks.addSuiteTab(new Tab(callbacks));
+        callbacks.addSuiteTab(tab);
+        callbacks.registerContextMenuFactory(contextMenuFactory);
     }
 }
