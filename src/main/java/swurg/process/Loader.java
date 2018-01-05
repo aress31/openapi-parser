@@ -24,7 +24,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class Loader {
-
     public Swagger process(String resource) {
         if (resource == null) {
             throw new IllegalArgumentException("No file or URL specified");
