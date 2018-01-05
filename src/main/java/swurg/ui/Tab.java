@@ -51,7 +51,9 @@ public class Tab implements ITab {
     private PrintWriter stderr;
     private PrintWriter stdout;
 
-    private JLabel jLabelInfo = new JLabel("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved");
+    private String copyrightNotice = "Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved";
+
+    private JLabel jLabelInfo = new JLabel(copyrightNotice);
     private JPanel jPanel;
     private JTable jTable;
     private JTextField jTextField;
@@ -91,37 +93,57 @@ public class Tab implements ITab {
         return jPanel;
     }
 
+    private String browseForFile() {
+        JFileChooser jFileChooser = new JFileChooser();
+        String filepath;
+
+        FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
+        jFileChooser.addChoosableFileFilter(filterJson);
+        FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
+        jFileChooser.addChoosableFileFilter(filterYml);
+
+        jFileChooser.setFileFilter(filterYml);
+        jFileChooser.setFileFilter(filterJson);
+
+        if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
+            File file = jFileChooser.getSelectedFile();
+                
+            filepath = file.getAbsolutePath();
+            this.jTextField.setText(filepath);
+        } else { filepath = null;}
+
+        return filepath;
+    }
+
     private void loadResource() {
         String resource = jTextField.getText();
 
-        try {
-            new URL(resource);
-        } catch (MalformedURLException ex) {
-            File file = new File(resource);
-
-            if (!file.exists()) {        
-                resource = null;
-                jTextField.setText(null);
+        if (resource.isEmpty()) {
+            resource = browseForFile();
+            if (resource == null) {
+                if (this.jLabelInfo.getForeground() == Color.RED) {
+                    this.jLabelInfo.setForeground(Color.BLACK);
+                    this.jLabelInfo.setText(this.copyrightNotice);
+                }
+                return;
             }
-        }
+        } else {
+            try {
+                new URL(resource);
+            } catch (MalformedURLException ex) {
+                File file = new File(resource);
 
-        if (resource == null) {
-            JFileChooser jFileChooser = new JFileChooser();
+                if (!file.exists()) {        
+                    resource = null;
 
-            FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
-            jFileChooser.addChoosableFileFilter(filterJson);
-            FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml");
-            jFileChooser.addChoosableFileFilter(filterYml);
+                    this.jLabelInfo.setForeground(Color.RED);
+                    this.jLabelInfo.setText("File does not exist! Enter the full path to the file, or a valid URL.");
+                    this.jTextField.requestFocus();
+                    this.jTextField.selectAll();
 
-            jFileChooser.setFileFilter(filterYml);
-            jFileChooser.setFileFilter(filterJson);
-
-            if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
-                File file = jFileChooser.getSelectedFile();
-                
-                resource = file.getAbsolutePath();
-                this.jTextField.setText(resource);
-            } else { return; }
+                    return;
+                }
+            }
         }
 
         this.jLabelInfo.setForeground(Color.BLACK);
