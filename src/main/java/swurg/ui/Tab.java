@@ -106,8 +106,7 @@ public class Tab implements ITab {
         jFileChooser.setFileFilter(filterJson);
 
         if (jFileChooser.showOpenDialog(jPanel) == JFileChooser.APPROVE_OPTION) {
-            File file = jFileChooser.getSelectedFile();
-                
+            File file = jFileChooser.getSelectedFile();              
             filepath = file.getAbsolutePath();
             this.jTextField.setText(filepath);
         }
@@ -134,12 +133,10 @@ public class Tab implements ITab {
                 File file = new File(resource);
 
                 if (!file.exists()) {        
-
                     this.jLabelInfo.setForeground(Color.RED);
                     this.jLabelInfo.setText("File does not exist! Enter the full path to the file, or a valid URL.");
                     this.jTextField.requestFocus();
                     this.jTextField.selectAll();
-
                     return;
                 }
             }
