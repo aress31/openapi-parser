@@ -24,5 +24,6 @@ public class BurpExtender implements IBurpExtender {
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
         callbacks.setExtensionName("Swagger Parser");
         callbacks.addSuiteTab(new Tab(callbacks));
+        callbacks.registerContextMenuFactory(new ContextMenuFactory());
     }
 }
