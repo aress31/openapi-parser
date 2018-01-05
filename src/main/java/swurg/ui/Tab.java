@@ -93,7 +93,7 @@ public class Tab implements ITab {
         return jPanel;
     }
 
-    private String browseForFile() {
+    private String openFileExplorer() {
         JFileChooser jFileChooser = new JFileChooser();
         String filepath;
 
@@ -119,7 +119,7 @@ public class Tab implements ITab {
         String resource = jTextField.getText();
 
         if (resource.isEmpty()) {
-            resource = browseForFile();
+            resource = openFileExplorer();
             if (resource == null) {
                 if (this.jLabelInfo.getForeground() == Color.RED) {
                     this.jLabelInfo.setForeground(Color.BLACK);
@@ -134,7 +134,6 @@ public class Tab implements ITab {
                 File file = new File(resource);
 
                 if (!file.exists()) {        
-                    resource = null;
 
                     this.jLabelInfo.setForeground(Color.RED);
                     this.jLabelInfo.setText("File does not exist! Enter the full path to the file, or a valid URL.");
