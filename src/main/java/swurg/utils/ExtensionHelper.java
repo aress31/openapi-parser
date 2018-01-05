@@ -45,7 +45,6 @@ public class ExtensionHelper {
             if (scheme.toValue().toUpperCase().equals("HTTPS")) {
                 port = 443;
             } else {
-                // default value to return
                 port = 80;
             }
         }
@@ -90,15 +89,11 @@ public class ExtensionHelper {
 
         for (Parameter parameter : operation.getValue().getParameters()) {
             if (parameter.getIn().equals("query")) {
-                httpMessage = burpExtensionHelpers.addParameter(
-                        httpMessage,
-                        burpExtensionHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 0)
-                );
+                httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers.buildParameter
+                        (parameter.getName(), "fuzzMe", (byte) 0));
             } else if (parameter.getIn().equals("body")) {
-                httpMessage = burpExtensionHelpers.addParameter(
-                        httpMessage,
-                        burpExtensionHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 1)
-                );
+                httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers.buildParameter
+                        (parameter.getName(), "fuzzMe", (byte) 1));
             }
         }
 
