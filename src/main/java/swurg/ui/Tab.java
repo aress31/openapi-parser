@@ -95,7 +95,7 @@ public class Tab implements ITab {
 
     private String openFileExplorer() {
         JFileChooser jFileChooser = new JFileChooser();
-        String filepath;
+        String filepath = null;
 
         FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
         jFileChooser.addChoosableFileFilter(filterJson);
@@ -110,7 +110,7 @@ public class Tab implements ITab {
                 
             filepath = file.getAbsolutePath();
             this.jTextField.setText(filepath);
-        } else { filepath = null;}
+        }
 
         return filepath;
     }
