@@ -33,7 +33,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -58,10 +57,8 @@ import swurg.utils.ExtensionHelper;
 public class Tab implements ITab {
 
   private final ContextMenu contextMenu;
+  private IBurpExtenderCallbacks callbacks;
   private ExtensionHelper extensionHelper;
-
-  private PrintWriter stderr;
-  private PrintWriter stdout;
 
   private JPanel rootPanel;
   private JPanel filePanel;
@@ -72,11 +69,10 @@ public class Tab implements ITab {
   private List<HttpRequestResponse> httpRequestResponses;
 
   public Tab(IBurpExtenderCallbacks callbacks) {
+    this.callbacks = callbacks;
     this.contextMenu = new ContextMenu(callbacks, this);
     this.extensionHelper = new ExtensionHelper(callbacks);
     this.httpRequestResponses = new ArrayList<>();
-    this.stderr = new PrintWriter(callbacks.getStderr(), true);
-    this.stdout = new PrintWriter(callbacks.getStdout(), true);
 
     // file panel
     this.filePanel = new JPanel();
@@ -149,8 +145,6 @@ public class Tab implements ITab {
     this.rootPanel.add(this.filePanel, BorderLayout.NORTH);
     this.rootPanel.add(new JScrollPane(this.table));
     this.rootPanel.add(this.statusPanel, BorderLayout.SOUTH);
-
-    this.stdout.println("`Swagger Parser` tab created");
   }
 
   private String openFileExplorer() {
@@ -252,7 +246,7 @@ public class Tab implements ITab {
     } catch (Exception ex) {
       displayStatus("A fatal error occurred, please check the logs for further information",
           Color.RED);
-      this.stderr.println(ex.toString());
+      this.callbacks.printError(ex.toString());
     }
   }
 
