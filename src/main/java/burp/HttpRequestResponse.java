@@ -17,67 +17,70 @@
 package burp;
 
 public class HttpRequestResponse implements IHttpRequestResponse {
-    private IHttpService httpService;
-    private boolean useHttps;
-    private byte[] request;
 
-    public HttpRequestResponse(IHttpService httpService, boolean useHttps, byte[] request) {
-        this.httpService = httpService;
-        this.useHttps = useHttps;
-        this.request = request;
-    }
+  private IHttpService httpService;
+  private boolean useHttps;
+  private byte[] request;
 
-    public boolean isUseHttps() {
-        return useHttps;
-    }
+  public HttpRequestResponse(
+      IHttpService httpService, boolean useHttps, byte[] request
+  ) {
+    this.httpService = httpService;
+    this.useHttps = useHttps;
+    this.request = request;
+  }
 
-    @Override
-    public byte[] getRequest() {
-        return this.request;
-    }
+  public boolean isUseHttps() {
+    return useHttps;
+  }
 
-    @Override
-    public void setRequest(byte[] message) {
+  @Override
+  public byte[] getRequest() {
+    return this.request;
+  }
 
-    }
+  @Override
+  public void setRequest(byte[] message) {
 
-    @Override
-    public byte[] getResponse() {
-        return new byte[0];
-    }
+  }
 
-    @Override
-    public void setResponse(byte[] message) {
+  @Override
+  public byte[] getResponse() {
+    return new byte[0];
+  }
 
-    }
+  @Override
+  public void setResponse(byte[] message) {
 
-    @Override
-    public String getComment() {
-        return null;
-    }
+  }
 
-    @Override
-    public void setComment(String comment) {
+  @Override
+  public String getComment() {
+    return null;
+  }
 
-    }
+  @Override
+  public void setComment(String comment) {
 
-    @Override
-    public String getHighlight() {
-        return null;
-    }
+  }
 
-    @Override
-    public void setHighlight(String color) {
+  @Override
+  public String getHighlight() {
+    return null;
+  }
 
-    }
+  @Override
+  public void setHighlight(String color) {
 
-    @Override
-    public IHttpService getHttpService() {
-        return this.httpService;
-    }
+  }
 
-    @Override
-    public void setHttpService(IHttpService httpService) {
+  @Override
+  public IHttpService getHttpService() {
+    return this.httpService;
+  }
 
-    }
+  @Override
+  public void setHttpService(IHttpService httpService) {
+
+  }
 }
