@@ -34,7 +34,7 @@ public class Loader {
     if (!file.exists()) {
       try {
         new URL(resource);
-      } catch (MalformedURLException ex) {
+      } catch (MalformedURLException e) {
         throw new IllegalArgumentException("File doesn't exist or invalid URL!");
       }
     }

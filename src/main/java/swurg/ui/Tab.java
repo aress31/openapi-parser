@@ -194,7 +194,7 @@ public class Tab implements ITab {
 
       try {
         new URL(resource);
-      } catch (MalformedURLException ex) {
+      } catch (MalformedURLException e) {
         File file = new File(resource);
 
         if (!file.exists()) {
@@ -243,10 +243,10 @@ public class Tab implements ITab {
       displayStatus(swaggerInfo, Color.BLACK);
 
       populateTable(swagger);
-    } catch (Exception ex) {
+    } catch (Exception e) {
       displayStatus("A fatal error occurred, please check the logs for further information",
           Color.RED);
-      this.callbacks.printError(ex.toString());
+      this.callbacks.printError(e.toString());
     }
   }
 
