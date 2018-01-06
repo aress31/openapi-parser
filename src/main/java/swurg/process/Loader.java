@@ -18,27 +18,27 @@ package swurg.process;
 
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class Loader {
-    public Swagger process(String resource) {
-        if (resource == null) {
-            throw new IllegalArgumentException("No file or URL specified");
-        }
 
-        File file = new File(resource);
-
-        if (!file.exists()) {
-            try {
-                new URL(resource);
-            } catch (MalformedURLException ex) {
-                throw new IllegalArgumentException("File doesn't exist or invalid URL!");
-            }
-        }
-
-        return new SwaggerParser().read(resource);
+  public Swagger process(String resource) {
+    if (resource == null) {
+      throw new IllegalArgumentException("No file or URL specified");
     }
+
+    File file = new File(resource);
+
+    if (!file.exists()) {
+      try {
+        new URL(resource);
+      } catch (MalformedURLException ex) {
+        throw new IllegalArgumentException("File doesn't exist or invalid URL!");
+      }
+    }
+
+    return new SwaggerParser().read(resource);
+  }
 }
