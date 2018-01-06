@@ -57,7 +57,6 @@ import swurg.utils.ExtensionHelper;
 public class Tab implements ITab {
 
   private final ContextMenu contextMenu;
-  private IBurpExtenderCallbacks callbacks;
   private ExtensionHelper extensionHelper;
 
   private JPanel rootPanel;
@@ -65,11 +64,10 @@ public class Tab implements ITab {
   private JTable table;
   private JPanel statusPanel;
 
-  private String copyrightNotice = "Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved";
   private List<HttpRequestResponse> httpRequestResponses;
+  private String copyrightNotice = "Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved";
 
   public Tab(IBurpExtenderCallbacks callbacks) {
-    this.callbacks = callbacks;
     this.contextMenu = new ContextMenu(callbacks, this);
     this.extensionHelper = new ExtensionHelper(callbacks);
     this.httpRequestResponses = new ArrayList<>();
@@ -198,10 +196,9 @@ public class Tab implements ITab {
         File file = new File(resource);
 
         if (!file.exists()) {
+          highlightFileTextField();
           displayStatus("File does not exist! Enter the full path to the file, or a valid URL.",
               Color.RED);
-          textField.requestFocus();
-          textField.selectAll();
           resource = null;
         }
       }
@@ -212,7 +209,7 @@ public class Tab implements ITab {
 
   public void loadSwagger(Swagger swagger) {
     try {
-      // add regex validation
+      // add regex validation for host/ip
       if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
         String host = JOptionPane.showInputDialog(
             "`host` field is missing.\nPlease enter one below" + "" + "" + ".\nFormat:"
@@ -244,9 +241,8 @@ public class Tab implements ITab {
 
       populateTable(swagger);
     } catch (Exception e) {
-      displayStatus("A fatal error occurred, please check the logs for further information",
+      displayStatus("Could not load the OpenAPI specification",
           Color.RED);
-      this.callbacks.printError(e.toString());
     }
   }
 
@@ -254,6 +250,16 @@ public class Tab implements ITab {
     return this.table;
   }
 
+  public void highlightFileTextField() {
+    for (Component component : this.filePanel.getComponents()) {
+      if (component instanceof JTextField) {
+        component.requestFocus();
+        ((JTextField) component).selectAll();
+      }
+    }
+  }
+
+  // make the status fit the container - pack/resize
   public void displayStatus(
       String status, Color color
   ) {
@@ -323,7 +329,7 @@ public class Tab implements ITab {
     TableColumnModel columnModel = table.getColumnModel();
 
     for (int column = 0; column < table.getColumnCount(); column++) {
-      int width = 16; // Min width
+      int width = 16; // min width
 
       for (int row = 0; row < table.getRowCount(); row++) {
         TableCellRenderer renderer = table.getCellRenderer(row, column);

@@ -23,12 +23,11 @@ public class BurpExtender implements IBurpExtender {
   @Override
   public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
     Tab tab = new Tab(callbacks);
-
     ContextMenuFactory contextMenuFactory = new ContextMenuFactory(callbacks, tab);
     callbacks.setExtensionName("Swagger Parser");
     callbacks.addSuiteTab(tab);
-    callbacks.printOutput("`Swagger Parser` tab created");
+    callbacks.printOutput("'Swagger Parser' tab created");
     callbacks.registerContextMenuFactory(contextMenuFactory);
-    callbacks.printOutput("Context menu modified");
+    callbacks.printOutput("'Send to Swagger Parser' added to the context menu");
   }
 }

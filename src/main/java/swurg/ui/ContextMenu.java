@@ -39,16 +39,16 @@ class ContextMenu extends JPopupMenu {
 
     JMenuItem add_to_site_map = new JMenuItem("Add to site map");
     add_to_site_map.addActionListener(e -> {
-      for (int index : tab.getTable().getSelectedRows()) {
-        HttpRequestResponse httpRequestResponse = httpRequestResponses.get(index);
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.addToSiteMap(httpRequestResponse);
       }
     });
 
     JMenuItem do_an_active_scan = new JMenuItem("Do an active scan");
     do_an_active_scan.addActionListener(e -> {
-      for (int index : tab.getTable().getSelectedRows()) {
-        HttpRequestResponse httpRequestResponse = httpRequestResponses.get(index);
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
             httpRequestResponse.getRequest()
@@ -58,8 +58,8 @@ class ContextMenu extends JPopupMenu {
 
     JMenuItem send_to_intruder = new JMenuItem("Send to Intruder");
     send_to_intruder.addActionListener((ActionEvent e) -> {
-      for (int index : tab.getTable().getSelectedRows()) {
-        HttpRequestResponse httpRequestResponse = httpRequestResponses.get(index);
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(),
             httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest()
@@ -69,12 +69,12 @@ class ContextMenu extends JPopupMenu {
 
     JMenuItem send_to_repeater = new JMenuItem("Send to Repeater");
     send_to_repeater.addActionListener(e -> {
-      for (int index : tab.getTable().getSelectedRows()) {
-        HttpRequestResponse httpRequestResponse = httpRequestResponses.get(index);
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(),
             httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest(),
-            (String) tab.getTable().getValueAt(index, 5)
+            (String) this.tab.getTable().getValueAt(index, 5)
         );
       }
     });
@@ -95,10 +95,10 @@ class ContextMenu extends JPopupMenu {
   }
 
   private void clear() {
-    ((DefaultTableModel) this.tab.getTable().getModel()).setRowCount(0);
     this.httpRequestResponses.clear();
-    tab.displayStatus("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved",
+    this.tab.highlightFileTextField();
+    ((DefaultTableModel) this.tab.getTable().getModel()).setRowCount(0);
+    this.tab.displayStatus("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved",
         Color.BLACK);
   }
 }
-
