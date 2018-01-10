@@ -18,77 +18,96 @@ package swurg.utils;
 
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
-import io.swagger.models.*;
-
+import io.swagger.models.HttpMethod;
+import io.swagger.models.Operation;
+import io.swagger.models.Path;
+import io.swagger.models.Scheme;
+import io.swagger.models.Swagger;
+import io.swagger.models.parameters.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class ExtensionHelper {
-    private IExtensionHelpers burpHelpers;
 
-    public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
-        this.burpHelpers = callbacks.getHelpers();
+  private IExtensionHelpers burpExtensionHelpers;
+
+  public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
+    this.burpExtensionHelpers = callbacks.getHelpers();
+  }
+
+  public IExtensionHelpers getBurpExtensionHelpers() {
+    return burpExtensionHelpers;
+  }
+
+  public int getPort(
+      Swagger swagger, Scheme scheme
+  ) {
+    int port;
+
+    if (swagger.getHost().split(":").length > 1) {
+      port = Integer.valueOf(swagger.getHost().split(":")[1]);
+    } else {
+      if (scheme.toValue().toUpperCase().equals("HTTPS")) {
+        port = 443;
+      } else {
+        port = 80;
+      }
     }
 
-    public boolean getUseHttps(Scheme scheme) {
-        boolean useHttps;
+    return port;
+  }
 
-        useHttps = scheme.toValue().toUpperCase().equals("HTTPS") || scheme.toValue().toUpperCase().equals("WSS");
+  public boolean isUseHttps(Scheme scheme) {
+    boolean useHttps;
 
-        return useHttps;
+    useHttps = scheme.toValue().toUpperCase().equals("HTTPS") || scheme.toValue().toUpperCase()
+        .equals("WSS");
+
+    return useHttps;
+  }
+
+  private List<String> buildHeaders(
+      Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
+  ) {
+    List<String> headers = new ArrayList<>();
+
+    headers.add(operation.getKey().toString() + " " + path.getKey() + " HTTP/1.1");
+    headers.add("Host: " + swagger.getHost().split(":")[0]);
+
+    if (operation.getValue().getProduces() != null && !operation.getValue().getProduces()
+        .isEmpty()) {
+      headers.add("Accept: " + String.join(",", operation.getValue().getProduces()));
+    } else if (swagger.getProduces() != null && !swagger.getProduces().isEmpty()) {
+      headers.add("Accept: " + String.join(",", swagger.getProduces()));
     }
 
-    public int getPort(Swagger swagger, Scheme scheme) {
-        int port;
-
-        if (swagger.getHost().split(":").length > 1) {
-            port = Integer.valueOf(swagger.getHost().split(":")[1]);
-        } else {
-            if (scheme.toValue().toUpperCase().equals("HTTPS")) {
-                port = 443;
-            } else {
-                // default value to return
-                port = 80;
-            }
-        }
-
-        return port;
+    if (operation.getValue().getConsumes() != null && !operation.getValue().getConsumes()
+        .isEmpty()) {
+      headers.add("Content-Type: " + String.join(",", operation.getValue().getConsumes()));
+    } else if (swagger.getConsumes() != null && !swagger.getConsumes().isEmpty()) {
+      headers.add("Content-Type: " + String.join(",", swagger.getConsumes()));
     }
 
-    public byte[] buildRequest(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
-        List<String> headers = this.buildHeaders(swagger, path, operation);
-        byte[] httpMessage = this.burpHelpers.buildHttpMessage(headers, null);
+    return headers;
+  }
 
-        for (io.swagger.models.parameters.Parameter parameter : operation.getValue().getParameters()) {
-            if (parameter.getIn().equals("query")) {
-                httpMessage = this.burpHelpers.addParameter(httpMessage, burpHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 0));
-            } else if (parameter.getIn().equals("body")) {
-                httpMessage = this.burpHelpers.addParameter(httpMessage, burpHelpers.buildParameter(parameter.getName(), "fuzzMe", (byte) 1));
-            }
-        }
+  public byte[] buildRequest(
+      Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
+  ) {
+    List<String> headers = buildHeaders(swagger, path, operation);
+    byte[] httpMessage = burpExtensionHelpers.buildHttpMessage(headers, null);
 
-        return httpMessage;
+    for (Parameter parameter : operation.getValue().getParameters()) {
+      if (parameter.getIn().equals("query")) {
+        httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers
+            .buildParameter(parameter.getName(), "fuzzMe", (byte) 0));
+      } else if (parameter.getIn().equals("body")) {
+        httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers
+            .buildParameter(parameter.getName(), "fuzzMe", (byte) 1));
+      }
     }
 
-    private List<String> buildHeaders(Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation) {
-        List<String> headers = new ArrayList<>();
-
-        headers.add(operation.getKey().toString() + " " + path.getKey() + " HTTP/1.1");
-        headers.add("Host: " + swagger.getHost().split(":")[0]);
-
-        if (operation.getValue().getProduces() != null && !operation.getValue().getProduces().isEmpty()) {
-            headers.add("Accept: " + String.join(",", operation.getValue().getProduces()));
-        } else if (swagger.getProduces() != null && !swagger.getProduces().isEmpty()) {
-            headers.add("Accept: " + String.join(",", swagger.getProduces()));
-        }
-
-        if (operation.getValue().getConsumes() != null && !operation.getValue().getConsumes().isEmpty()) {
-            headers.add("Content-Type: " + String.join(",", operation.getValue().getConsumes()));
-        } else if (swagger.getConsumes() != null && !swagger.getConsumes().isEmpty()) {
-            headers.add("Content-Type: " + String.join(",", swagger.getConsumes()));
-        }
-
-        return headers;
-    }
+    return httpMessage;
+  }
 }

@@ -16,88 +16,89 @@
 
 package swurg.ui;
 
+import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
-import swurg.model.HttpRequest;
-import swurg.utils.DataStructure;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.util.List;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+import javax.swing.table.DefaultTableModel;
 
 @SuppressWarnings("serial")
-public class ContextMenu extends JPopupMenu {
-    private DataStructure dataStructure;
+class ContextMenu extends JPopupMenu {
 
-    ContextMenu(IBurpExtenderCallbacks callbacks) {
-        JMenuItem scanner = new JMenuItem("Do an active scan");
-        scanner.addActionListener(e -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+  private List<HttpRequestResponse> httpRequestResponses;
+  private Tab tab;
 
-            for (int rowIndex : rowIndexes) {
-                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
+  ContextMenu(
+      IBurpExtenderCallbacks callbacks, Tab tab
+  ) {
+    this.tab = tab;
 
-                callbacks.doActiveScan(
-                        httpRequest.getHost(),
-                        httpRequest.getPort(),
-                        httpRequest.getUseHttps(),
-                        httpRequest.getRequest()
-                );
-            }
-        });
+    JMenuItem add_to_site_map = new JMenuItem("Add to site map");
+    add_to_site_map.addActionListener(e -> {
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+        callbacks.addToSiteMap(httpRequestResponse);
+      }
+    });
 
-        JMenuItem intruder = new JMenuItem("Send to Intruder");
-        intruder.addActionListener((ActionEvent e) -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+    JMenuItem do_an_active_scan = new JMenuItem("Do an active scan");
+    do_an_active_scan.addActionListener(e -> {
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+        callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
+            httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
+            httpRequestResponse.getRequest()
+        );
+      }
+    });
 
-            for (int rowIndex : rowIndexes) {
-                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
+    JMenuItem send_to_intruder = new JMenuItem("Send to Intruder");
+    send_to_intruder.addActionListener((ActionEvent e) -> {
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+        callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
+            httpRequestResponse.getHttpService().getPort(),
+            httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest()
+        );
+      }
+    });
 
-                callbacks.sendToIntruder(
-                        httpRequest.getHost(),
-                        httpRequest.getPort(),
-                        httpRequest.getUseHttps(),
-                        httpRequest.getRequest()
-                );
-            }
-        });
+    JMenuItem send_to_repeater = new JMenuItem("Send to Repeater");
+    send_to_repeater.addActionListener(e -> {
+      for (int index : this.tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+        callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
+            httpRequestResponse.getHttpService().getPort(),
+            httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest(),
+            (String) this.tab.getTable().getValueAt(index, 5)
+        );
+      }
+    });
 
-        JMenuItem repeater = new JMenuItem("Send to Repeater");
-        repeater.addActionListener(e -> {
-            int[] rowIndexes = dataStructure.getTable().getSelectedRows();
+    JMenuItem clearAll = new JMenuItem("Clear all");
+    clearAll.addActionListener(e -> clear());
 
-            for (int rowIndex : rowIndexes) {
+    add(add_to_site_map);
+    add(do_an_active_scan);
+    add(send_to_intruder);
+    add(send_to_repeater);
+    add(new JSeparator());
+    add(clearAll);
+  }
 
-                HttpRequest httpRequest = dataStructure.getHttpRequests().get(rowIndex);
-                callbacks.sendToRepeater(
-                        httpRequest.getHost(),
-                        httpRequest.getPort(),
-                        httpRequest.getUseHttps(),
-                        httpRequest.getRequest(),
-                        (String) dataStructure.getTable().getValueAt(rowIndex, 5)
-                );
-            }
-        });
+  public void setHttpRequestResponses(List<HttpRequestResponse> httpRequestResponses) {
+    this.httpRequestResponses = httpRequestResponses;
+  }
 
-        JMenuItem clearAll = new JMenuItem("Clear all");
-        clearAll.addActionListener(e -> clear());
-
-        add(scanner);
-        add(intruder);
-        add(repeater);
-        add(new JSeparator());
-        add(clearAll);
-    }
-
-    public void setDataStructure(DataStructure data) {
-        this.dataStructure = data;
-    }
-
-    private void clear() {
-        dataStructure.setJTextFieldFile(null);
-        dataStructure.setJLabelInfo("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved");
-        DefaultTableModel model = (DefaultTableModel) dataStructure.getTable().getModel();
-        model.setRowCount(0);
-        dataStructure.getHttpRequests().clear();
-    }
+  private void clear() {
+    this.httpRequestResponses.clear();
+    this.tab.highlightFileTextField();
+    ((DefaultTableModel) this.tab.getTable().getModel()).setRowCount(0);
+    this.tab.displayStatus("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved",
+        Color.BLACK);
+  }
 }
-

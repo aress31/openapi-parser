@@ -21,52 +21,51 @@ import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Swagger;
 import io.swagger.models.parameters.Parameter;
+import java.io.File;
+import java.util.Map;
 import junit.framework.TestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.Map;
-
 public class LoaderTest extends TestCase {
 
-    private Logger logger = LoggerFactory.getLogger("LoaderTest");
+  private Logger logger = LoggerFactory.getLogger("LoaderTest");
 
-    public void testProcess() {
-        Loader loader = new Loader();
-        Swagger swagger = loader.process(new File("src/test/resources/petstore.json"));
+  public void testProcess() {
+    Loader loader = new Loader();
+    Swagger swagger = loader.process(new File("src/test/resources/petstore.json"));
 
-        assertNotNull("Processed object is null", swagger);
+    assertNotNull("Processed object is null", swagger);
 
-        logger.info("--- Swagger ---");
-        logger.info("Info: " + swagger.getInfo());
-        logger.info("Host: " + swagger.getHost());
-        logger.info("Base path: " + swagger.getBasePath());
-        logger.info("Schemes: " + swagger.getSchemes());
-        logger.info("Consumes: " + swagger.getConsumes());
-        logger.info("Produces: " + swagger.getProduces());
-        logger.info("Paths: " + swagger.getPaths());
-        logger.info("Parameters: " + swagger.getParameters());
+    logger.info("--- Swagger ---");
+    logger.info("Info: " + swagger.getInfo());
+    logger.info("Host: " + swagger.getHost());
+    logger.info("Base path: " + swagger.getBasePath());
+    logger.info("Schemes: " + swagger.getSchemes());
+    logger.info("Consumes: " + swagger.getConsumes());
+    logger.info("Produces: " + swagger.getProduces());
+    logger.info("Paths: " + swagger.getPaths());
+    logger.info("Parameters: " + swagger.getParameters());
 
-        for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
-            logger.info("--- Endpoint ---");
-            logger.info("Path: " + path.getKey());
+    for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
+      logger.info("--- Endpoint ---");
+      logger.info("Path: " + path.getKey());
 
-            for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap().entrySet()) {
-                logger.info("HTTP Method: " + operation.getKey().toString());
-                logger.info("Schemes: " + operation.getValue().getSchemes());
-                logger.info("Consumes: " + operation.getValue().getConsumes());
-                logger.info("Produces: " + operation.getValue().getProduces());
-                logger.info("Parameters: " + operation.getValue().getParameters());
+      for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap()
+          .entrySet()) {
+        logger.info("HTTP Method: " + operation.getKey().toString());
+        logger.info("Schemes: " + operation.getValue().getSchemes());
+        logger.info("Consumes: " + operation.getValue().getConsumes());
+        logger.info("Produces: " + operation.getValue().getProduces());
+        logger.info("Parameters: " + operation.getValue().getParameters());
 
-
-                logger.info("--- Parameter ---");
-                for (Parameter parameter : operation.getValue().getParameters()) {
-                    logger.info("Name: " + parameter.getName());
-                    logger.info("Type: " + parameter.getIn());
-                    logger.info("Pattern: " + parameter.getPattern());
-                }
-            }
+        logger.info("--- Parameter ---");
+        for (Parameter parameter : operation.getValue().getParameters()) {
+          logger.info("Name: " + parameter.getName());
+          logger.info("Type: " + parameter.getIn());
+          logger.info("Pattern: " + parameter.getPattern());
         }
+      }
     }
+  }
 }
