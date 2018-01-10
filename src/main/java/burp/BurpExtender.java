@@ -20,9 +20,14 @@ import swurg.ui.Tab;
 
 public class BurpExtender implements IBurpExtender {
 
-    @Override
-    public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-        callbacks.setExtensionName("Swagger Parser");
-        callbacks.addSuiteTab(new Tab(callbacks));
-    }
+  @Override
+  public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
+    Tab tab = new Tab(callbacks);
+    ContextMenuFactory contextMenuFactory = new ContextMenuFactory(callbacks, tab);
+    callbacks.setExtensionName("Swagger Parser");
+    callbacks.addSuiteTab(tab);
+    callbacks.printOutput("'Swagger Parser' tab created");
+    callbacks.registerContextMenuFactory(contextMenuFactory);
+    callbacks.printOutput("'Send to Swagger Parser' added to the context menu");
+  }
 }
