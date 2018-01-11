@@ -29,12 +29,12 @@ The extension is still in development, feedback and comments are much appreciate
 #### Windows & Linux
 1. Install gradle (<https://gradle.org/>)
 2. Download the repository.
-```
+```shell
 $ git clone https://github.com/AresS31/swurg
 $ cd .\swurg\
 ```
 3. Create the swurg jarfile:
-```
+```shell
 $ gradle fatJar
 ```
 
