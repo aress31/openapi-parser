@@ -1,6 +1,6 @@
 ![oai](images/oai.png)
 # swurg
-[![Language](https://img.shields.io/badge/Lang-Java-blue.svg)](https://www.python.org)
+[![Language](https://img.shields.io/badge/Lang-Java-blue.svg)](https://www.java.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## A Burp Suite extension for RESTful API testing.
