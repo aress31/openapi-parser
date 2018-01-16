@@ -1,5 +1,8 @@
 ![oai](images/oai.png)
 # swurg
+[![Language](https://img.shields.io/badge/Lang-Java-blue.svg)](https://www.java.com)
+[![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](https://opensource.org/licenses/Apache-2.0)
+
 ## A Burp Suite extension for RESTful API testing.
 During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
 
@@ -26,12 +29,12 @@ The extension is still in development, feedback and comments are much appreciate
 #### Windows & Linux
 1. Install gradle (<https://gradle.org/>)
 2. Download the repository.
-```
+```shell
 $ git clone https://github.com/AresS31/swurg
 $ cd .\swurg\
 ```
 3. Create the swurg jarfile:
-```
+```shell
 $ gradle fatJar
 ```
 
