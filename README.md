@@ -1,5 +1,6 @@
 ![oai](images/oai.png)
 # swurg
+[![BApp Store](https://img.shields.io/badge/BApp-Published-orange.svg)](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c)
 [![Language](https://img.shields.io/badge/Lang-Java-blue.svg)](https://www.java.com)
 [![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](https://opensource.org/licenses/Apache-2.0)
 
