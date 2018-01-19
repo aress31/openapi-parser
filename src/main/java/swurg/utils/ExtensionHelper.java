@@ -72,7 +72,8 @@ public class ExtensionHelper {
   ) {
     List<String> headers = new ArrayList<>();
 
-    headers.add(operation.getKey().toString() + " " + path.getKey() + " HTTP/1.1");
+    headers.add(
+        operation.getKey().toString() + " " + swagger.getBasePath() + path.getKey() + " HTTP/1.1");
     headers.add("Host: " + swagger.getHost().split(":")[0]);
 
     if (operation.getValue().getProduces() != null && !operation.getValue().getProduces()
@@ -96,14 +97,14 @@ public class ExtensionHelper {
       Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
   ) {
     List<String> headers = buildHeaders(swagger, path, operation);
-    byte[] httpMessage = burpExtensionHelpers.buildHttpMessage(headers, null);
+    byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
 
     for (Parameter parameter : operation.getValue().getParameters()) {
       if (parameter.getIn().equals("query")) {
-        httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers
+        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
             .buildParameter(parameter.getName(), "fuzzMe", (byte) 0));
       } else if (parameter.getIn().equals("body")) {
-        httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers
+        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
             .buildParameter(parameter.getName(), "fuzzMe", (byte) 1));
       }
     }
