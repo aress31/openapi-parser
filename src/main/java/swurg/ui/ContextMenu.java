@@ -16,6 +16,8 @@
 
 package swurg.ui;
 
+import static burp.BurpExtender.COPYRIGHT;
+
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import java.awt.Color;
@@ -90,7 +92,7 @@ class ContextMenu extends JPopupMenu {
     add(clearAll);
   }
 
-  public void setHttpRequestResponses(List<HttpRequestResponse> httpRequestResponses) {
+  void setHttpRequestResponses(List<HttpRequestResponse> httpRequestResponses) {
     this.httpRequestResponses = httpRequestResponses;
   }
 
@@ -98,7 +100,6 @@ class ContextMenu extends JPopupMenu {
     this.httpRequestResponses.clear();
     this.tab.highlightFileTextField();
     ((DefaultTableModel) this.tab.getTable().getModel()).setRowCount(0);
-    this.tab.displayStatus("Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved",
-        Color.BLACK);
+    this.tab.displayStatus(COPYRIGHT, Color.BLACK);
   }
 }

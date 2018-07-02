@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/swurg.iml" filepath="$PROJECT_DIR$/.idea/modules/swurg.iml" />
       <module fileurl="file://$PROJECT_DIR$/swurg.iml" filepath="$PROJECT_DIR$/swurg.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/swurg_main.iml" filepath="$PROJECT_DIR$/.idea/modules/swurg_main.iml" group="swurg" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/swurg_test.iml" filepath="$PROJECT_DIR$/.idea/modules/swurg_test.iml" group="swurg" />

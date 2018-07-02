@@ -16,6 +16,9 @@
 
 package swurg.ui;
 
+import static burp.BurpExtender.COPYRIGHT;
+import static burp.BurpExtender.EXTENSION;
+
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import burp.ITab;
@@ -28,6 +31,9 @@ import io.swagger.models.parameters.Parameter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -60,26 +66,37 @@ public class Tab implements ITab {
   private ExtensionHelper extensionHelper;
 
   private JPanel rootPanel;
-  private JPanel filePanel;
+  private JPanel swaggerPanel;
   private JTable table;
   private JPanel statusPanel;
 
   private List<HttpRequestResponse> httpRequestResponses;
-  private String copyrightNotice = "Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved";
 
   public Tab(IBurpExtenderCallbacks callbacks) {
     this.contextMenu = new ContextMenu(callbacks, this);
     this.extensionHelper = new ExtensionHelper(callbacks);
     this.httpRequestResponses = new ArrayList<>();
 
+    initUI();
+  }
+
+  private void initUI() {
+    this.rootPanel = new JPanel();
+    this.rootPanel.setLayout(new BorderLayout());
+
     // file panel
-    this.filePanel = new JPanel();
-    this.filePanel.setName("filePanel");
-    this.filePanel.add(new JLabel("Parse file/URL:"));
-    this.filePanel.add(new JTextField(null, 48));
+    this.swaggerPanel = new JPanel();
+    this.swaggerPanel.setLayout(new GridBagLayout());
+    this.swaggerPanel.setPreferredSize(new Dimension(
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
+            .getWidth(),
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
+            .getHeight() / 10));
+    this.swaggerPanel.add(new JLabel("Parse file/URL:"));
+    this.swaggerPanel.add(new JTextField(null, 48));
     JButton button = new JButton("Browse/Load");
     button.addActionListener(new ButtonListener());
-    this.filePanel.add(button);
+    this.swaggerPanel.add(button);
 
     // scroll table
     Object columns[] = {
@@ -133,14 +150,10 @@ public class Tab implements ITab {
 
     // status panel
     this.statusPanel = new JPanel();
-    this.statusPanel.setName("statusPanel");
-    this.statusPanel.add(new JLabel(this.copyrightNotice));
+    this.statusPanel.add(new JLabel(COPYRIGHT));
 
     // parent container
-    this.rootPanel = new JPanel();
-    this.rootPanel.setName("rootPanel");
-    this.rootPanel.setLayout(new BorderLayout());
-    this.rootPanel.add(this.filePanel, BorderLayout.NORTH);
+    this.rootPanel.add(this.swaggerPanel, BorderLayout.NORTH);
     this.rootPanel.add(new JScrollPane(this.table));
     this.rootPanel.add(this.statusPanel, BorderLayout.SOUTH);
   }
@@ -161,7 +174,7 @@ public class Tab implements ITab {
     if (jFileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
       File file = jFileChooser.getSelectedFile();
       resource = file.getAbsolutePath();
-      for (Component component : this.filePanel.getComponents()) {
+      for (Component component : this.swaggerPanel.getComponents()) {
         if (component instanceof JTextField) {
           ((JTextField) component).setText(resource);
         }
@@ -175,7 +188,7 @@ public class Tab implements ITab {
     JTextField textField = null;
     String resource;
 
-    for (Component component : this.filePanel.getComponents()) {
+    for (Component component : this.swaggerPanel.getComponents()) {
       if (component instanceof JTextField) {
         textField = (JTextField) component;
       }
@@ -185,7 +198,7 @@ public class Tab implements ITab {
       resource = openFileExplorer();
 
       if (resource == null) {
-        displayStatus(this.copyrightNotice, Color.BLACK);
+        displayStatus(COPYRIGHT, Color.BLACK);
       }
     } else {
       resource = textField.getText();
@@ -246,12 +259,12 @@ public class Tab implements ITab {
     }
   }
 
-  public JTable getTable() {
+  JTable getTable() {
     return this.table;
   }
 
-  public void highlightFileTextField() {
-    for (Component component : this.filePanel.getComponents()) {
+  void highlightFileTextField() {
+    for (Component component : this.swaggerPanel.getComponents()) {
       if (component instanceof JTextField) {
         component.requestFocus();
         ((JTextField) component).selectAll();
@@ -260,7 +273,7 @@ public class Tab implements ITab {
   }
 
   // make the status fit the container - pack/resize
-  public void displayStatus(
+  void displayStatus(
       String status, Color color
   ) {
     for (Component component : this.statusPanel.getComponents()) {
@@ -273,7 +286,7 @@ public class Tab implements ITab {
 
   private void populateTable(Swagger swagger) {
     DefaultTableModel defaultTableModel = (DefaultTableModel) this.table.getModel();
-    List<io.swagger.models.Scheme> schemes = swagger.getSchemes();
+    List<Scheme> schemes = swagger.getSchemes();
 
     for (Scheme scheme : schemes) {
       for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
@@ -352,7 +365,7 @@ public class Tab implements ITab {
 
   @Override
   public String getTabCaption() {
-    return "Swagger Parser";
+    return EXTENSION;
   }
 
   class ButtonListener implements ActionListener {

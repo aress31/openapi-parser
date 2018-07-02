@@ -23,6 +23,7 @@ import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
+import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.Parameter;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,12 +101,16 @@ public class ExtensionHelper {
     byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
 
     for (Parameter parameter : operation.getValue().getParameters()) {
+      AbstractSerializableParameter abstractSerializableParameter = (AbstractSerializableParameter) parameter;
+
       if (parameter.getIn().equals("query")) {
         httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-            .buildParameter(parameter.getName(), "fuzzMe", (byte) 0));
+            .buildParameter(parameter.getName(), abstractSerializableParameter.getType(),
+                (byte) 0));
       } else if (parameter.getIn().equals("body")) {
         httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-            .buildParameter(parameter.getName(), "fuzzMe", (byte) 1));
+            .buildParameter(parameter.getName(), abstractSerializableParameter.getType(),
+                (byte) 1));
       }
     }
 
