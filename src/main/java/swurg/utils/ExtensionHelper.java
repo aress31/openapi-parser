@@ -23,6 +23,7 @@ import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
+import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.Parameter;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +73,8 @@ public class ExtensionHelper {
   ) {
     List<String> headers = new ArrayList<>();
 
-    headers.add(operation.getKey().toString() + " " + path.getKey() + " HTTP/1.1");
+    headers.add(
+        operation.getKey().toString() + " " + swagger.getBasePath() + path.getKey() + " HTTP/1.1");
     headers.add("Host: " + swagger.getHost().split(":")[0]);
 
     if (operation.getValue().getProduces() != null && !operation.getValue().getProduces()
@@ -96,15 +98,19 @@ public class ExtensionHelper {
       Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
   ) {
     List<String> headers = buildHeaders(swagger, path, operation);
-    byte[] httpMessage = burpExtensionHelpers.buildHttpMessage(headers, null);
+    byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
 
     for (Parameter parameter : operation.getValue().getParameters()) {
+      AbstractSerializableParameter abstractSerializableParameter = (AbstractSerializableParameter) parameter;
+
       if (parameter.getIn().equals("query")) {
-        httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers
-            .buildParameter(parameter.getName(), "fuzzMe", (byte) 0));
+        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
+            .buildParameter(parameter.getName(), abstractSerializableParameter.getType(),
+                (byte) 0));
       } else if (parameter.getIn().equals("body")) {
-        httpMessage = burpExtensionHelpers.addParameter(httpMessage, burpExtensionHelpers
-            .buildParameter(parameter.getName(), "fuzzMe", (byte) 1));
+        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
+            .buildParameter(parameter.getName(), abstractSerializableParameter.getType(),
+                (byte) 1));
       }
     }
 
