@@ -29,7 +29,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
       for (IHttpRequestResponse selectedMessage : invocation.getSelectedMessages()) {
         IRequestInfo requestInfo = this.callbacks.getHelpers().analyzeRequest(selectedMessage);
         Swagger swagger = new Loader().process(requestInfo.getUrl().toString());
-        tab.loadSwagger(swagger);
+        this.tab.loadSwagger(swagger);
       }
     });
 
