@@ -101,16 +101,21 @@ public class ExtensionHelper {
     byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
 
     for (Parameter parameter : operation.getValue().getParameters()) {
-      AbstractSerializableParameter abstractSerializableParameter = (AbstractSerializableParameter) parameter;
+      String type;
+
+      if(parameter instanceof AbstractSerializableParameter) {
+        AbstractSerializableParameter abstractSerializableParameter = (AbstractSerializableParameter) parameter;
+        type = abstractSerializableParameter.getType();
+      } else {
+        type = "not-accessible";
+      }
 
       if (parameter.getIn().equals("query")) {
         httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-            .buildParameter(parameter.getName(), abstractSerializableParameter.getType(),
-                (byte) 0));
+            .buildParameter(parameter.getName(), type, (byte) 0));
       } else if (parameter.getIn().equals("body")) {
         httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-            .buildParameter(parameter.getName(), abstractSerializableParameter.getType(),
-                (byte) 1));
+            .buildParameter(parameter.getName(), type, (byte) 1));
       }
     }
 

@@ -254,7 +254,7 @@ public class Tab implements ITab {
 
       populateTable(swagger);
     } catch (Exception e) {
-      displayStatus("Could not load the OpenAPI specification",
+      displayStatus(String.format("Could not load the OpenAPI specification: %s", e),
           Color.RED);
     }
   }
