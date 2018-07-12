@@ -1,5 +1,7 @@
 package burp;
 
+import static burp.BurpExtender.EXTENSION;
+
 import io.swagger.models.Swagger;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +24,12 @@ public class ContextMenuFactory implements IContextMenuFactory {
   @Override
   public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
     List<JMenuItem> jMenuItems = new ArrayList<>();
-    JMenuItem send_to_swagger_parser = new JMenuItem("Send to Swagger Parser");
+    JMenuItem send_to_swagger_parser = new JMenuItem(String.format("Send to %s", EXTENSION));
     send_to_swagger_parser.addActionListener(e -> {
       for (IHttpRequestResponse selectedMessage : invocation.getSelectedMessages()) {
         IRequestInfo requestInfo = this.callbacks.getHelpers().analyzeRequest(selectedMessage);
         Swagger swagger = new Loader().process(requestInfo.getUrl().toString());
-        tab.loadSwagger(swagger);
+        this.tab.loadSwagger(swagger);
       }
     });
 
