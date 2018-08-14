@@ -20,12 +20,9 @@ During penetration testing of RESTful APIs, it can be time consuming to chain th
 
 ## Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
+* Parse OpenAPI specifications from URLs and files - *they can directly be sent to the extension from the site map using the 'Send to Swagger Parser' option in the context menu*.
+* Send requests to the Intruder, Reapeater, Scanner and Site map.
 * Responsive GUI.
-* Send requests to the following Burp Suite tabs:
-    * Intruder
-    * Repeater
-    * Scanner
-    * Site map
 
 ## Installation
 ### Compilation 
