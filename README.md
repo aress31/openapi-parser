@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/logo.png" height="200" />
+  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/logo.png" height="200">
   <p align="center">
       <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
       <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
@@ -16,7 +16,7 @@ During penetration testing of RESTful APIs, it can be time consuming to chain th
 
 **Swurg** is a RESTful parser enabling security professionals to use the Burp Suite as only tool for testing RESTful APIs testing. The following screenshot shows the plugin interface:
 
-![compilation](images/swurg.png)
+<img alt="ui" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/ui.png" height="150" />
 
 ## Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
