@@ -1,41 +1,43 @@
-![oai](images/oai.png)
-# swurg
-[![BApp Store](https://img.shields.io/badge/BApp-Published-orange.svg)](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c)
-[![Language](https://img.shields.io/badge/Lang-Java-blue.svg)](https://www.java.com)
-[![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](https://opensource.org/licenses/Apache-2.0)
+<p align="center">
+  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/logo.png" height="200" />
+  <p align="center">
+      <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
+      <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
+      <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
+      <img alt="version" src="https://img.shields.io/badge/Version-2.2-green.svg">
+      <img alt="bitcoin" src="https://img.shields.io/badge/Bitcoin-15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p-yellow.svg">
+      <img alt="bitcoin cash" src="https://img.shields.io/badge/Bitcoin%20Cash-qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3-yellow.svg">
+      <img alt="ether" src="https://img.shields.io/badge/Ether-0x70bC178EC44500C17B554E62BC31EA2B6251f64B-yellow.svg">
+  </p>
+</p>
 
-## A Burp Suite extension for RESTful API testing.
+## Swurg is a Burp Suite extension for RESTful API testing.
 During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
 
-Therefore, after posting a request for improvement on the PortSwigger support forum, see [Swagger Parser and Wsdler improvement](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement "Swagger Parser and Wsdler improvement"), in July 2015, I decided to take the lead and implement a solution myself.
-
-The following screenshot shows the plugin interface:
+**Swurg** is a RESTful parser enabling security professionals to use the Burp Suite as only tool for testing RESTful APIs testing. The following screenshot shows the plugin interface:
 
 ![compilation](images/swurg.png)
-
-## Project information
-The extension is still in development, feedback and comments are much appreciated.
 
 ## Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
 * Responsive GUI.
 * Send requests to the following Burp Suite tabs:
-    * Intruder.
-    * Repeater.
-    * Scanner.
-    * Site map.
+    * Intruder
+    * Repeater
+    * Scanner
+    * Site map
 
 ## Installation
 ### Compilation 
 #### Windows & Linux
 1. Install gradle (<https://gradle.org/>)
 2. Download the repository.
-```shell
+```console
 $ git clone https://github.com/AresS31/swurg
 $ cd .\swurg\
 ```
 3. Create the swurg jarfile:
-```shell
+```console
 $ gradle fatJar
 ```
 
@@ -43,8 +45,8 @@ $ gradle fatJar
 In the Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Possible Improvements
-- [ ] Add new features.
-- [ ] Source code optimisation.
+- [ ] Add new features
+- [ ] Source code optimisation
 
 ## Dependencies
 ### Third-party libraries
@@ -52,6 +54,17 @@ In the Burp Suite, under the `Extender/Options` tab, click on the `Add` button a
 The *Swagger Parser* library is required and imported in this project. 
 
 <https://mvnrepository.com/artifact/io.swagger/swagger-parser/1.0.33>
+
+## Project information
+In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the lead and implement a solution myself.
+
+The extension is still in development, feedback and comments are much appreciated.
+
+## Donation
+If you want to support my work doing a donation, it will be very much appreciated:
+* Bitcoin       : **15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p**
+* Bitcoin Cash  : **qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3**
+* Ether         : **0x70bC178EC44500C17B554E62BC31EA2B6251f64B**
 
 ## License
 Copyright (C) 2016 - 2018 Alexandre Teyar
