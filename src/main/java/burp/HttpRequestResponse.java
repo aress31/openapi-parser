@@ -41,7 +41,6 @@ public class HttpRequestResponse implements IHttpRequestResponse {
 
   @Override
   public void setRequest(byte[] message) {
-
   }
 
   @Override
@@ -51,7 +50,6 @@ public class HttpRequestResponse implements IHttpRequestResponse {
 
   @Override
   public void setResponse(byte[] message) {
-
   }
 
   @Override
@@ -61,7 +59,6 @@ public class HttpRequestResponse implements IHttpRequestResponse {
 
   @Override
   public void setComment(String comment) {
-
   }
 
   @Override
@@ -71,7 +68,6 @@ public class HttpRequestResponse implements IHttpRequestResponse {
 
   @Override
   public void setHighlight(String color) {
-
   }
 
   @Override
@@ -81,6 +77,5 @@ public class HttpRequestResponse implements IHttpRequestResponse {
 
   @Override
   public void setHttpService(IHttpService httpService) {
-
   }
 }

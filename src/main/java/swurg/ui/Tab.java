@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    statusLabel (C) 2016 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,24 +39,18 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
 import swurg.process.Loader;
 import swurg.utils.ExtensionHelper;
 
@@ -66,9 +60,10 @@ public class Tab implements ITab {
   private ExtensionHelper extensionHelper;
 
   private JPanel rootPanel;
-  private JPanel swaggerPanel;
   private JTable table;
-  private JPanel statusPanel;
+
+  private JLabel statusLabel = new JLabel(COPYRIGHT);
+  private JTextField resourceTextField = new JTextField(null, 48);
 
   private List<HttpRequestResponse> httpRequestResponses;
 
@@ -85,18 +80,18 @@ public class Tab implements ITab {
     this.rootPanel.setLayout(new BorderLayout());
 
     // file panel
-    this.swaggerPanel = new JPanel();
-    this.swaggerPanel.setLayout(new GridBagLayout());
-    this.swaggerPanel.setPreferredSize(new Dimension(
+    JPanel swaggerPanel = new JPanel();
+    swaggerPanel.setLayout(new GridBagLayout());
+    swaggerPanel.setPreferredSize(new Dimension(
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
             .getWidth(),
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
             .getHeight() / 10));
-    this.swaggerPanel.add(new JLabel("Parse file/URL:"));
-    this.swaggerPanel.add(new JTextField(null, 48));
+    swaggerPanel.add(new JLabel("Parse file/URL:"));
+    swaggerPanel.add(this.resourceTextField);
     JButton button = new JButton("Browse/Load");
     button.addActionListener(new ButtonListener());
-    this.swaggerPanel.add(button);
+    swaggerPanel.add(button);
 
     // scroll table
     Object columns[] = {
@@ -149,142 +144,51 @@ public class Tab implements ITab {
     });
 
     // status panel
-    this.statusPanel = new JPanel();
-    this.statusPanel.add(new JLabel(COPYRIGHT));
+    JPanel statusPanel = new JPanel();
+    statusPanel.add(this.statusLabel);
 
     // parent container
-    this.rootPanel.add(this.swaggerPanel, BorderLayout.NORTH);
+    this.rootPanel.add(swaggerPanel, BorderLayout.NORTH);
     this.rootPanel.add(new JScrollPane(this.table));
-    this.rootPanel.add(this.statusPanel, BorderLayout.SOUTH);
-  }
-
-  private String openFileExplorer() {
-    JFileChooser jFileChooser = new JFileChooser();
-    String resource = null;
-
-    FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
-    jFileChooser.addChoosableFileFilter(filterJson);
-    FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml",
-        "yml");
-    jFileChooser.addChoosableFileFilter(filterYml);
-
-    jFileChooser.setFileFilter(filterYml);
-    jFileChooser.setFileFilter(filterJson);
-
-    if (jFileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
-      File file = jFileChooser.getSelectedFile();
-      resource = file.getAbsolutePath();
-      for (Component component : this.swaggerPanel.getComponents()) {
-        if (component instanceof JTextField) {
-          ((JTextField) component).setText(resource);
-        }
-      }
-    }
-
-    return resource;
+    this.rootPanel.add(statusPanel, BorderLayout.SOUTH);
   }
 
   private String getResource() {
-    JTextField textField = null;
-    String resource;
+    String resource = null;
 
-    for (Component component : this.swaggerPanel.getComponents()) {
-      if (component instanceof JTextField) {
-        textField = (JTextField) component;
-      }
-    }
+    if (this.resourceTextField.getText().isEmpty()) {
+      JFileChooser fileChooser = new JFileChooser();
+      fileChooser.addChoosableFileFilter(
+          new FileNameExtensionFilter("Swagger JSON File (*.json)", "json"));
+      fileChooser.addChoosableFileFilter(
+          new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml",
+              "yml"));
 
-    if (textField == null || textField.getText().isEmpty()) {
-      resource = openFileExplorer();
-
-      if (resource == null) {
-        displayStatus(COPYRIGHT, Color.BLACK);
+      if (fileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
+        File file = fileChooser.getSelectedFile();
+        resource = file.getAbsolutePath();
+        resourceTextField.setText(resource);
       }
     } else {
-      resource = textField.getText();
-
-      try {
-        new URL(resource);
-      } catch (MalformedURLException e) {
-        File file = new File(resource);
-
-        if (!file.exists()) {
-          highlightFileTextField();
-          displayStatus("File does not exist! Enter the full path to the file, or a valid URL.",
-              Color.RED);
-          resource = null;
-        }
-      }
+      resource = this.resourceTextField.getText();
     }
 
     return resource;
-  }
-
-  public void loadSwagger(Swagger swagger) {
-    try {
-      // add regex validation for host/ip
-      if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
-        String host = JOptionPane.showInputDialog(
-            "`host` field is missing.\nPlease enter one below" + "" + "" + ".\nFormat:"
-                + " <host> or " +
-                "<host:port>");
-        swagger.setHost(host);
-      }
-
-      if (swagger.getSchemes() == null || (swagger.getSchemes() != null && swagger.getSchemes()
-          .isEmpty())) {
-        String scheme = "";
-
-        while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
-          scheme = JOptionPane.showInputDialog(
-              "`scheme` field is missing.\nPlease enter one below" + ""
-                  + ".\nAllowed values: HTTP, " +
-                  "HTTPS, WS, WSS.");
-        }
-        swagger.addScheme(Scheme.valueOf(scheme));
-      }
-
-      String swaggerInfo =
-          "Title: " + swagger.getInfo().getTitle() + " | " + "Version: " + swagger.getInfo()
-              .getVersion
-                  () +
-              " | " + "Description: " + swagger
-              .getInfo().getDescription();
-      displayStatus(swaggerInfo, Color.BLACK);
-
-      populateTable(swagger);
-    } catch (Exception e) {
-      displayStatus(String.format("Could not load the OpenAPI specification: %s", e),
-          Color.RED);
-    }
   }
 
   JTable getTable() {
     return this.table;
   }
 
-  void highlightFileTextField() {
-    for (Component component : this.swaggerPanel.getComponents()) {
-      if (component instanceof JTextField) {
-        component.requestFocus();
-        ((JTextField) component).selectAll();
-      }
-    }
-  }
-
   // make the status fit the container - pack/resize
-  void displayStatus(
+  public void printStatus(
       String status, Color color
   ) {
-    for (Component component : this.statusPanel.getComponents()) {
-      if (component instanceof JLabel) {
-        ((JLabel) component).setText(status);
-        component.setForeground(color);
-      }
-    }
+    this.statusLabel.setText(status);
+    this.statusLabel.setForeground(color);
   }
 
-  private void populateTable(Swagger swagger) {
+  public void populateTable(Swagger swagger) {
     DefaultTableModel defaultTableModel = (DefaultTableModel) this.table.getModel();
     List<Scheme> schemes = swagger.getSchemes();
 
@@ -331,30 +235,8 @@ public class Tab implements ITab {
                           operation
                       )
               ));
-
-          resizeTable(table);
         }
       }
-    }
-  }
-
-  private void resizeTable(JTable table) {
-    TableColumnModel columnModel = table.getColumnModel();
-
-    for (int column = 0; column < table.getColumnCount(); column++) {
-      int width = 16; // min width
-
-      for (int row = 0; row < table.getRowCount(); row++) {
-        TableCellRenderer renderer = table.getCellRenderer(row, column);
-        Component comp = table.prepareRenderer(renderer, row, column);
-        width = Math.max(comp.getPreferredSize().width + 1, width);
-      }
-
-      if (width > 300) {
-        width = 300;
-      }
-
-      columnModel.getColumn(column).setPreferredWidth(width);
     }
   }
 
@@ -377,8 +259,22 @@ public class Tab implements ITab {
     public void actionPerformed(ActionEvent e) {
       if (e.getSource() instanceof JButton) {
         String resource = getResource();
-        Swagger swagger = new Loader().process(resource);
-        loadSwagger(swagger);
+
+        try {
+          Swagger swagger = new Loader().process(resource);
+          populateTable(swagger);
+          printStatus(COPYRIGHT, Color.BLACK);
+        } catch (IllegalArgumentException e1) {
+          printStatus(String.format("%s is not a file or is an invalid URL", resource),
+              Color.RED);
+          resourceTextField.requestFocus();
+        } catch (NullPointerException e1) {
+          printStatus(String
+                  .format("The OpenAPI specification in %s is ill formed and cannot be parsed",
+                      resource),
+              Color.RED);
+          resourceTextField.requestFocus();
+        }
       }
     }
   }

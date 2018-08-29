@@ -38,7 +38,7 @@ public class ExtensionHelper {
   }
 
   public IExtensionHelpers getBurpExtensionHelpers() {
-    return burpExtensionHelpers;
+    return this.burpExtensionHelpers;
   }
 
   public int getPort(
