@@ -16,13 +16,8 @@
 
 package swurg.process;
 
-import io.swagger.models.HttpMethod;
-import io.swagger.models.Operation;
-import io.swagger.models.Path;
 import io.swagger.models.Swagger;
-import io.swagger.models.parameters.Parameter;
 import java.awt.Color;
-import java.util.Map;
 import junit.framework.TestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

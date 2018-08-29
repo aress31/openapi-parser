@@ -206,16 +206,6 @@ public class Tab implements ITab {
             stringBuilder.setLength(stringBuilder.length() - 2);
           }
 
-          defaultTableModel.addRow(new Object[]{
-              defaultTableModel.getRowCount() + 1,
-              operation.getKey().toString(),
-              swagger.getHost().split(":")[0],
-              scheme.toValue().toUpperCase(),
-              swagger.getBasePath(),
-              path.getKey(),
-              stringBuilder.toString()
-          });
-
           this.httpRequestResponses.add(
               new HttpRequestResponse(
                   this.extensionHelper.getBurpExtensionHelpers().buildHttpService(
@@ -235,6 +225,16 @@ public class Tab implements ITab {
                           operation
                       )
               ));
+
+          defaultTableModel.addRow(new Object[]{
+              defaultTableModel.getRowCount(),
+              operation.getKey().toString(),
+              swagger.getHost().split(":")[0],
+              scheme.toValue().toUpperCase(),
+              swagger.getBasePath(),
+              path.getKey(),
+              stringBuilder.toString()
+          });
         }
       }
     }
