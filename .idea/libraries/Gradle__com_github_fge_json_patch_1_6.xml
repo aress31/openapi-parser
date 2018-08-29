@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.fge:json-patch:1.6">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.fge/json-patch/1.6/8c7a8da998228261d5eec90c5aeb382d1ff723c/json-patch-1.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.fge/json-patch/1.6/7111c784c4972d5587979e66b21310cdd9ed1ef6/json-patch-1.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -103,7 +103,7 @@ public class ExtensionHelper {
     for (Parameter parameter : operation.getValue().getParameters()) {
       String type;
 
-      if(parameter instanceof AbstractSerializableParameter) {
+      if (parameter instanceof AbstractSerializableParameter) {
         AbstractSerializableParameter abstractSerializableParameter = (AbstractSerializableParameter) parameter;
         type = abstractSerializableParameter.getType();
       } else {
