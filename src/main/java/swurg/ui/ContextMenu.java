@@ -71,7 +71,8 @@ class ContextMenu extends JPopupMenu {
         callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(),
             httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest(),
-            (String) tab.getTable().getValueAt(index, 5)
+            String.format("%s %s%s", tab.getTable().getValueAt(index, 1),
+                tab.getTable().getValueAt(index, 4), tab.getTable().getValueAt(index, 5))
         );
       }
     });

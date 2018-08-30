@@ -9,6 +9,8 @@ dependencies {
     compile group: 'io.swagger.parser.v3', name: 'swagger-parser', version: '2.0.2'
     // https://mvnrepository.com/artifact/net.portswigger.extender/burp-extender-api
     compile group: 'net.portswigger.burp.extender', name: 'burp-extender-api', version: '1.7.22'
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.2'
 
     // https://mvnrepository.com/artifact/junit/junit
     testCompile 'junit:junit:4.12'

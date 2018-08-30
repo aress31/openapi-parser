@@ -12,6 +12,7 @@
     <orderEntry type="module" module-name="swurg_main" />
     <orderEntry type="library" name="Gradle: io.swagger.parser.v3:swagger-parser:2.0.2" level="project" />
     <orderEntry type="library" name="Gradle: net.portswigger.burp.extender:burp-extender-api:1.7.22" level="project" />
+    <orderEntry type="library" name="Gradle: org.apache.commons:commons-collections4:4.2" level="project" />
     <orderEntry type="library" name="Gradle: junit:junit:4.12" level="project" />
     <orderEntry type="library" name="Gradle: org.slf4j:slf4j-simple:1.6.1" level="project" />
     <orderEntry type="library" name="Gradle: io.swagger.parser.v3:swagger-parser-v2-converter:2.0.2" level="project" />

@@ -106,7 +106,7 @@ public class Tab implements ITab {
     gridBagConstraints.insets = new Insets(0, 0, 4, 0);
     gridBagConstraints.gridy = 1;
     JPanel filerPanel = new JPanel();
-    filerPanel.add(new JLabel("Filter (accept regular expressions):"));
+    filerPanel.add(new JLabel("Filter (accepts regular expressions):"));
     this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
       private void process() {
         String regex = filterTextField.getText();

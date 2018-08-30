@@ -10,6 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Gradle: io.swagger.parser.v3:swagger-parser:2.0.2" level="project" />
     <orderEntry type="library" name="Gradle: net.portswigger.burp.extender:burp-extender-api:1.7.22" level="project" />
+    <orderEntry type="library" name="Gradle: org.apache.commons:commons-collections4:4.2" level="project" />
     <orderEntry type="library" name="Gradle: io.swagger.parser.v3:swagger-parser-v2-converter:2.0.2" level="project" />
     <orderEntry type="library" name="Gradle: io.swagger.parser.v3:swagger-parser-v3:2.0.2" level="project" />
     <orderEntry type="library" name="Gradle: io.swagger:swagger-compat-spec-parser:1.0.37" level="project" />

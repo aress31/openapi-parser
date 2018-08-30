@@ -28,6 +28,7 @@ import io.swagger.models.parameters.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.collections4.CollectionUtils;
 
 public class ExtensionHelper {
 
@@ -77,17 +78,15 @@ public class ExtensionHelper {
         operation.getKey().toString() + " " + swagger.getBasePath() + path.getKey() + " HTTP/1.1");
     headers.add("Host: " + swagger.getHost().split(":")[0]);
 
-    if (operation.getValue().getProduces() != null && !operation.getValue().getProduces()
-        .isEmpty()) {
+    if (CollectionUtils.isNotEmpty(operation.getValue().getProduces())) {
       headers.add("Accept: " + String.join(",", operation.getValue().getProduces()));
-    } else if (swagger.getProduces() != null && !swagger.getProduces().isEmpty()) {
+    } else if (CollectionUtils.isNotEmpty(swagger.getProduces())) {
       headers.add("Accept: " + String.join(",", swagger.getProduces()));
     }
 
-    if (operation.getValue().getConsumes() != null && !operation.getValue().getConsumes()
-        .isEmpty()) {
+    if (CollectionUtils.isNotEmpty(operation.getValue().getConsumes())) {
       headers.add("Content-Type: " + String.join(",", operation.getValue().getConsumes()));
-    } else if (swagger.getConsumes() != null && !swagger.getConsumes().isEmpty()) {
+    } else if (CollectionUtils.isNotEmpty(swagger.getConsumes())) {
       headers.add("Content-Type: " + String.join(",", swagger.getConsumes()));
     }
 
@@ -110,12 +109,15 @@ public class ExtensionHelper {
         type = "not-accessible";
       }
 
-      if (parameter.getIn().equals("query")) {
-        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-            .buildParameter(parameter.getName(), type, (byte) 0));
-      } else if (parameter.getIn().equals("body")) {
-        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-            .buildParameter(parameter.getName(), type, (byte) 1));
+      switch (parameter.getIn()) {
+        case "body":
+          httpMessage = this.burpExtensionHelpers
+              .addParameter(httpMessage, this.burpExtensionHelpers
+                  .buildParameter(parameter.getName(), type, (byte) 1));
+        case "query":
+          httpMessage = this.burpExtensionHelpers
+              .addParameter(httpMessage, this.burpExtensionHelpers
+                  .buildParameter(parameter.getName(), type, (byte) 0));
       }
     }
 
