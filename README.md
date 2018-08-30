@@ -12,15 +12,15 @@
 </p>
 
 ## Swurg is a Burp Suite extension for RESTful API testing.
-During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
+During penetration testing of RESTful APIs, it can be time consuming to chain Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the descriptions provided by APIs for use with Burp Suite's scanning capabilities. 
 
-**Swurg** is a RESTful API parser allowing security professionals to use the Burp Suite as the only tool for testing RESTful APIs engagements. The following screenshot shows the plugin interface:
+**Swurg** is a RESTful API parser allowing security professionals to use Burp Suite as a standalone tool for testing RESTful APIs. The following screenshot shows the plugin interface:
 
 <img alt="ui" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/ui.png" width="400" />
 
 ## Supported Features
 * Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
-* Parse OpenAPI specifications from URLs and files - *they can directly be sent to the extension from the site map using the 'Send to Swagger Parser' option in the context menu*.
+* Parse OpenAPI specifications from URLs and files - *they can be sent to the extension directly from the site map using the 'Send to Swagger Parser' option in the context menu*.
 * Send requests to the Intruder, Reapeater, Scanner and Site map.
 * Responsive GUI.
 
@@ -39,7 +39,7 @@ $ gradle fatJar
 ```
 
 ### Burp Suite settings
-In the Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
+In Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Possible Improvements
 - [ ] Add new features
