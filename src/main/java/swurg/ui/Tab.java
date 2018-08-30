@@ -22,6 +22,7 @@ import static burp.BurpExtender.EXTENSION;
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import burp.ITab;
+import com.google.common.base.Strings;
 import io.swagger.models.HttpMethod;
 import io.swagger.models.Operation;
 import io.swagger.models.Path;
@@ -31,9 +32,9 @@ import io.swagger.models.parameters.Parameter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -49,8 +50,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import swurg.process.Loader;
 import swurg.utils.ExtensionHelper;
 
@@ -61,9 +67,11 @@ public class Tab implements ITab {
 
   private JPanel rootPanel;
   private JTable table;
+  private TableRowSorter<TableModel> tableRowSorter;
 
   private JLabel statusLabel = new JLabel(COPYRIGHT);
-  private JTextField resourceTextField = new JTextField(null, 48);
+  private JTextField resourceTextField = new JTextField(null, 64);
+  private JTextField filterTextField = new JTextField(null, 36);
 
   private List<HttpRequestResponse> httpRequestResponses;
 
@@ -76,22 +84,55 @@ public class Tab implements ITab {
   }
 
   private void initUI() {
-    this.rootPanel = new JPanel();
-    this.rootPanel.setLayout(new BorderLayout());
+    this.rootPanel = new JPanel(new BorderLayout());
 
     // file panel
-    JPanel swaggerPanel = new JPanel();
-    swaggerPanel.setLayout(new GridBagLayout());
-    swaggerPanel.setPreferredSize(new Dimension(
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
-            .getWidth(),
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
-            .getHeight() / 10));
-    swaggerPanel.add(new JLabel("Parse file/URL:"));
-    swaggerPanel.add(this.resourceTextField);
-    JButton button = new JButton("Browse/Load");
-    button.addActionListener(new ButtonListener());
-    swaggerPanel.add(button);
+    JPanel topPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gridBagConstraints = new GridBagConstraints();
+
+    gridBagConstraints.anchor = GridBagConstraints.CENTER;
+    gridBagConstraints.insets = new Insets(8, 0, 0, 0);
+    gridBagConstraints.weightx = 1.0;
+    JPanel resourcePanel = new JPanel();
+    resourcePanel.add(new JLabel("Parse file/URL:"));
+    resourcePanel.add(this.resourceTextField);
+    JButton resourceButton = new JButton("Browse/Load");
+    resourceButton.addActionListener(new LoadButtonListener());
+    resourcePanel.add(resourceButton);
+    topPanel.add(resourcePanel, gridBagConstraints);
+
+    gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+    gridBagConstraints.insets = new Insets(0, 0, 4, 0);
+    gridBagConstraints.gridy = 1;
+    JPanel filerPanel = new JPanel();
+    filerPanel.add(new JLabel("Filter (accept regular expressions):"));
+    this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
+      private void process() {
+        String regex = filterTextField.getText();
+
+        if (Strings.isNullOrEmpty(regex)) {
+          tableRowSorter.setRowFilter(null);
+        } else {
+          tableRowSorter.setRowFilter(RowFilter.regexFilter(regex));
+        }
+      }
+
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        process();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        process();
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+      }
+    });
+    filerPanel.add(this.filterTextField);
+    topPanel.add(filerPanel, gridBagConstraints);
 
     // scroll table
     Object columns[] = {
@@ -145,15 +186,20 @@ public class Tab implements ITab {
 
     // enable column sorting
     this.table.setAutoCreateRowSorter(true);
+    // enable table filtering
+    this.tableRowSorter = new TableRowSorter<>(
+        this.table.getModel()
+    );
+    this.table.setRowSorter(tableRowSorter);
 
     // status panel
-    JPanel statusPanel = new JPanel();
-    statusPanel.add(this.statusLabel);
+    JPanel bottomPanel = new JPanel();
+    bottomPanel.add(this.statusLabel);
 
     // parent container
-    this.rootPanel.add(swaggerPanel, BorderLayout.NORTH);
+    this.rootPanel.add(topPanel, BorderLayout.NORTH);
     this.rootPanel.add(new JScrollPane(this.table));
-    this.rootPanel.add(statusPanel, BorderLayout.SOUTH);
+    this.rootPanel.add(bottomPanel, BorderLayout.SOUTH);
   }
 
   private String getResource() {
@@ -252,9 +298,9 @@ public class Tab implements ITab {
     return EXTENSION;
   }
 
-  class ButtonListener implements ActionListener {
+  class LoadButtonListener implements ActionListener {
 
-    ButtonListener() {
+    LoadButtonListener() {
       super();
     }
 

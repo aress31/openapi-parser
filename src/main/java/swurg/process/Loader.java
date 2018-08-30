@@ -16,6 +16,7 @@
 
 package swurg.process;
 
+import com.google.common.base.Strings;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import java.io.File;
@@ -26,7 +27,7 @@ import java.net.URL;
 public class Loader {
 
   public Swagger process(String resource) {
-    if (resource == null) {
+    if (Strings.isNullOrEmpty(resource)) {
       throw new IllegalArgumentException("No file or URL specified");
     }
 
