@@ -5,8 +5,8 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/io.swagger/swagger-parser
-    compile group: 'io.swagger', name: 'swagger-parser', version: '1.0.33'
+    // https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser
+    compile group: 'io.swagger.parser.v3', name: 'swagger-parser', version: '2.0.2'
     // https://mvnrepository.com/artifact/net.portswigger.extender/burp-extender-api
     compile group: 'net.portswigger.burp.extender', name: 'burp-extender-api', version: '1.7.22'
 

@@ -36,14 +36,8 @@ public class ContextMenuFactory implements IContextMenuFactory {
           Swagger swagger = new Loader().process(resource);
           this.tab.populateTable(swagger);
           this.tab.printStatus(COPYRIGHT, Color.BLACK);
-        } catch (IllegalArgumentException e1) {
-          this.tab.printStatus(String.format("%s is not a file or is an invalid URL", resource),
-              Color.RED);
-        } catch (NullPointerException e1) {
-          this.tab.printStatus(String
-                  .format("The OpenAPI specification in %s is ill formed and cannot be parsed",
-                      resource),
-              Color.RED);
+        } catch (IllegalArgumentException | NullPointerException e1) {
+          this.tab.printStatus(e1.getMessage(), Color.RED);
         }
       }
     });

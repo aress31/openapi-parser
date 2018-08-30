@@ -263,15 +263,8 @@ public class Tab implements ITab {
           Swagger swagger = new Loader().process(resource);
           populateTable(swagger);
           printStatus(COPYRIGHT, Color.BLACK);
-        } catch (IllegalArgumentException e1) {
-          printStatus(String.format("%s is not a file or is an invalid URL", resource),
-              Color.RED);
-          resourceTextField.requestFocus();
-        } catch (NullPointerException e1) {
-          printStatus(String
-                  .format("The OpenAPI specification in %s is ill formed and cannot be parsed",
-                      resource),
-              Color.RED);
+        } catch (IllegalArgumentException | NullPointerException e1) {
+          printStatus(e1.getMessage(), Color.RED);
           resourceTextField.requestFocus();
         }
       }

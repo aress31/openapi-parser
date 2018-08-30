@@ -27,7 +27,7 @@ public class Loader {
 
   public Swagger process(String resource) {
     if (resource == null) {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("No file or URL specified");
     }
 
     if (new File(resource).exists()) {
@@ -36,14 +36,17 @@ public class Loader {
       try {
         new URL(resource).toURI();
       } catch (MalformedURLException | URISyntaxException e) {
-        throw new IllegalArgumentException(e);
+        throw new IllegalArgumentException(
+            String.format("%s does not exist or is an invalid URL", resource));
       }
     }
 
     Swagger swagger = new SwaggerParser().read(resource);
 
     if (swagger == null) {
-      throw new NullPointerException();
+      throw new NullPointerException(String
+          .format("The OpenAPI specification contained in %s is ill formed and cannot be parsed",
+              resource));
     } else {
       return swagger;
     }

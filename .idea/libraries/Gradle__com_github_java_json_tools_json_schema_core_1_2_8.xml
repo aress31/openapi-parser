@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.java-json-tools:json-schema-core:1.2.8">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.java-json-tools/json-schema-core/1.2.8/5164416f08168ced34e02d870cb958db42b61b5f/json-schema-core-1.2.8.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.java-json-tools/json-schema-core/1.2.8/cc3b86de5ab1bfadc3f4fae8d792cb581dcf6345/json-schema-core-1.2.8-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
