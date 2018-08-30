@@ -16,8 +16,13 @@
 
 package swurg.process;
 
+import io.swagger.models.HttpMethod;
+import io.swagger.models.Operation;
+import io.swagger.models.Path;
 import io.swagger.models.Swagger;
+import io.swagger.models.parameters.Parameter;
 import java.awt.Color;
+import java.util.Map;
 import junit.framework.TestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,50 +32,51 @@ public class LoaderTest extends TestCase {
   private Logger logger = LoggerFactory.getLogger("LoaderTest");
 
   public void testProcess() {
-    String resource = "src/test/resources/Coinfirm-swagger_AML_1.0.9_swagger.jsons";
+    String resource = "src/test/resources/petstore.json";
 
     try {
       Swagger swagger = new Loader().process(resource);
+
+      assertNotNull("Processed object (swagger) is null", swagger);
+
+      logger.info("--- Swagger ---");
+      logger.info("Info: " + swagger.getInfo());
+      logger.info("Host: " + swagger.getHost());
+      logger.info("Base path: " + swagger.getBasePath());
+      logger.info("Schemes: " + swagger.getSchemes());
+      logger.info("Consumes: " + swagger.getConsumes());
+      logger.info("Produces: " + swagger.getProduces());
+      logger.info("Paths: " + swagger.getPaths());
+      logger.info("Parameters: " + swagger.getParameters());
+
+      for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
+        logger.info("--- Endpoint ---");
+        logger.info("Path: " + path.getKey());
+
+        for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap()
+            .entrySet()) {
+          logger.info("HTTP Method: " + operation.getKey().toString());
+          logger.info("Schemes: " + operation.getValue().getSchemes());
+          logger.info("Consumes: " + operation.getValue().getConsumes());
+          logger.info("Produces: " + operation.getValue().getProduces());
+          logger.info("Parameters: " + operation.getValue().getParameters());
+
+          logger.info("--- Parameter ---");
+          for (Parameter parameter : operation.getValue().getParameters()) {
+            logger.info("Name: " + parameter.getName());
+            logger.info("Type: " + parameter.getIn());
+            logger.info("Pattern: " + parameter.getPattern());
+          }
+        }
+      }
     } catch (IllegalArgumentException e) {
-      logger.error(String.format("%s is not a file and is an invalid URL %s", resource,
-          e.getClass().getCanonicalName()),
+      logger.error(String.format("%s is not a file or is an invalid URL", resource),
           Color.RED);
     } catch (NullPointerException e) {
       logger.error(String
-              .format("The OpenAPI specification in %s is ill formed and cannot be parsed %s",
-                  resource, e.getClass().getCanonicalName()),
+              .format("The OpenAPI specification in %s is ill formed and cannot be parsed",
+                  resource),
           Color.RED);
     }
   }
 }
-
-//    assertNotNull("Processed object is null", swagger);
-//
-//    logger.info("--- Swagger ---");
-//    logger.info("Info: " + swagger.getInfo());
-//    logger.info("Host: " + swagger.getHost());
-//    logger.info("Base path: " + swagger.getBasePath());
-//    logger.info("Schemes: " + swagger.getSchemes());
-//    logger.info("Consumes: " + swagger.getConsumes());
-//    logger.info("Produces: " + swagger.getProduces());
-//    logger.info("Paths: " + swagger.getPaths());
-//    logger.info("Parameters: " + swagger.getParameters());
-//
-//    for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
-//      logger.info("--- Endpoint ---");
-//      logger.info("Path: " + path.getKey());
-//
-//      for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap()
-//          .entrySet()) {
-//        logger.info("HTTP Method: " + operation.getKey().toString());
-//        logger.info("Schemes: " + operation.getValue().getSchemes());
-//        logger.info("Consumes: " + operation.getValue().getConsumes());
-//        logger.info("Produces: " + operation.getValue().getProduces());
-//        logger.info("Parameters: " + operation.getValue().getParameters());
-//
-//        logger.info("--- Parameter ---");
-//        for (Parameter parameter : operation.getValue().getParameters()) {
-//          logger.info("Name: " + parameter.getName());
-//          logger.info("Type: " + parameter.getIn());
-//          logger.info("Pattern: " + parameter.getPattern());
-//        }

@@ -16,12 +16,9 @@
 
 package swurg.ui;
 
-import static burp.BurpExtender.COPYRIGHT;
-
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import com.google.common.primitives.Ints;
-import java.awt.Color;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JMenuItem;
@@ -90,9 +87,9 @@ class ContextMenu extends JPopupMenu {
         this.httpRequestResponses.remove(index);
         ((DefaultTableModel) tab.getTable().getModel()).removeRow(index);
       }
-      
+
       // updating the rows' index
-      for (int row = 0; row < tab.getTable().getRowCount(); row++){
+      for (int row = 0; row < tab.getTable().getRowCount(); row++) {
         tab.getTable().getModel().setValueAt(Integer.toString(row), row, 0);
       }
     });
@@ -101,7 +98,6 @@ class ContextMenu extends JPopupMenu {
     clearAll.addActionListener(e -> {
       this.httpRequestResponses.clear();
       ((DefaultTableModel) tab.getTable().getModel()).setRowCount(0);
-      tab.printStatus(COPYRIGHT, Color.BLACK);
     });
 
     add(addToSiteMap);

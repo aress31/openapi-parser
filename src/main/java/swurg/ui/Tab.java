@@ -180,7 +180,6 @@ public class Tab implements ITab {
     return this.table;
   }
 
-  // make the status fit the container - pack/resize
   public void printStatus(
       String status, Color color
   ) {
