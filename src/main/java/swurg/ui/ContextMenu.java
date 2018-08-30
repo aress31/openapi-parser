@@ -42,8 +42,8 @@ class ContextMenu extends JPopupMenu {
       }
     });
 
-    JMenuItem doActiveScan = new JMenuItem("Do an active scan");
-    doActiveScan.addActionListener(e -> {
+    JMenuItem scan = new JMenuItem("Scan");
+    scan.addActionListener(e -> {
       for (int index : tab.getTable().getSelectedRows()) {
         HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
@@ -76,7 +76,15 @@ class ContextMenu extends JPopupMenu {
       }
     });
 
-    JMenuItem clear = new JMenuItem("Clear");
+    JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
+    sendToComparer.addActionListener(e -> {
+      for (int index : tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+        callbacks.sendToComparer(httpRequestResponse.getRequest());
+      }
+    });
+
+    JMenuItem clear = new JMenuItem("Clear item(s)");
     clear.addActionListener(e -> {
       // we go through the indices in decreasing order so we do not need to worry about shifting them
       List<Integer> indexes = Ints.asList(tab.getTable().getSelectedRows());
@@ -101,12 +109,13 @@ class ContextMenu extends JPopupMenu {
     });
 
     add(addToSiteMap);
-    add(doActiveScan);
+    add(new JSeparator());
+    add(scan);
     add(sendToIntruder);
     add(sendToRepeater);
+    add(sendToComparer);
     add(new JSeparator());
     add(clear);
-    add(new JSeparator());
     add(clearAll);
   }
 
