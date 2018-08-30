@@ -12,15 +12,15 @@
 </p>
 
 ## Swurg is a Burp Suite extension for RESTful API testing.
-During penetration testing of RESTful APIs, it can be time consuming to chain the Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the desriptions provided by APIs for use with the Burp Suite scanning capabilities. 
+During penetration testing of RESTful APIs, it can be time consuming to chain Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the descriptions provided by APIs for use with the Burp Suite scanning capabilities. 
 
-**Swurg** is a RESTful API parser allowing security professionals to use the Burp Suite as the only tool for testing RESTful APIs engagements. The following screenshot shows the plugin interface:
+**Swurg** is a RESTful API parser allowing security professionals to use the Burp Suite as a standalone tool for testing RESTful APIs during engagements. The following screenshot shows the plugin interface:
 
 <img alt="ui" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/ui.png" width="400" />
 
 ## Supported Features
 * Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications. Supports both JSON and YAML formats.
-* OpenAPI documents can be parsed either from a supplied file or URL. The extenstion can fetch OpenAPI documents directly from a URLs using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
+* OpenAPI documents can be parsed either from a supplied file or URL. The extension can fetch OpenAPI documents directly from a URL using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
 * Requests can be sent to the `Comparer, Intruder, Reapeater, Scanner and Site map` Burp tools.
 
 ## Installation
@@ -38,7 +38,7 @@ $ gradle fatJar
 ```
 
 ### Burp Suite settings
-In the Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
+In Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Possible Improvements
 - [ ] Implement a function to validate the mandatory OpenAPI fields needed for the extension to work.
