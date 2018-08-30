@@ -87,8 +87,13 @@ class ContextMenu extends JPopupMenu {
 
       for (int index : indexes) {
         // set the entry to 'null' rather than removing them to avoid any potential issue with the list order
-        this.httpRequestResponses.set(index, null);
+        this.httpRequestResponses.remove(index);
         ((DefaultTableModel) tab.getTable().getModel()).removeRow(index);
+      }
+      
+      // updating the rows' index
+      for (int row = 0; row < tab.getTable().getRowCount(); row++){
+        tab.getTable().getModel().setValueAt(Integer.toString(row), row, 0);
       }
     });
 
