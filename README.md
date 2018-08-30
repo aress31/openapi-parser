@@ -19,10 +19,9 @@ During penetration testing of RESTful APIs, it can be time consuming to chain th
 <img alt="ui" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/ui.png" width="400" />
 
 ## Supported Features
-* Parse OpenAPI specifications, previously known as Swagger specifications, supporting JSON and YAML formats.
-* Parse OpenAPI specifications from URLs and files - *they can directly be sent to the extension from the site map using the 'Send to Swagger Parser' option in the context menu*.
-* Send requests to the Intruder, Reapeater, Scanner and Site map.
-* Responsive GUI.
+* Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications. Supports both JSON and YAML formats.
+* OpenAPI documents can be parsed either from a supplied file or URL. The extenstion can fetch OpenAPI documents directly from a URLs using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
+* Requests can be sent to the `Comparer, Intruder, Reapeater, Scanner and Site map` Burp tools.
 
 ## Installation
 ### Compilation 
@@ -42,8 +41,10 @@ $ gradle fatJar
 In the Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Possible Improvements
-- [ ] Add new features
-- [ ] Source code optimisation
+- [ ] Implement a function to validate the mandatory OpenAPI fields needed for the extension to work.
+- [ ] Implement support for authenticated API testing (user-supplied API-keys).
+- [ ] Increase the extension verbosity (via the bottom panel).
+- [ ] Perform further source code optimisation.
 
 ## Dependencies
 ### Third-party libraries
@@ -58,7 +59,7 @@ In July 2016, after posting a request for improvement on the [PortSwigger suppor
 The extension is still in development, feedback and comments are much appreciated.
 
 ## Donation
-If you want to support my work doing a donation, it will be very much appreciated:
+Donations in any amount will be much appreciated and will keep motivated to constantly improve this extension:
 * Bitcoin       : **15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p**
 * Bitcoin Cash  : **qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3**
 * Ether         : **0x70bC178EC44500C17B554E62BC31EA2B6251f64B**

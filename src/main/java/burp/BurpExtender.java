@@ -30,6 +30,7 @@ public class BurpExtender implements IBurpExtender {
 
     callbacks.setExtensionName(EXTENSION);
     callbacks.addSuiteTab(tab);
+    callbacks.customizeUiComponent(tab.getUiComponent());
     callbacks.printOutput(String.format("%s initialised", EXTENSION));
 
     callbacks.registerContextMenuFactory(contextMenuFactory);

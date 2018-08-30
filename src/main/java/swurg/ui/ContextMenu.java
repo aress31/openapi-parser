@@ -42,8 +42,8 @@ class ContextMenu extends JPopupMenu {
       }
     });
 
-    JMenuItem scan = new JMenuItem("Scan");
-    scan.addActionListener(e -> {
+    JMenuItem activeScan = new JMenuItem("Do an active scan");
+    activeScan.addActionListener(e -> {
       for (int index : tab.getTable().getSelectedRows()) {
         HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
@@ -111,7 +111,7 @@ class ContextMenu extends JPopupMenu {
 
     add(addToSiteMap);
     add(new JSeparator());
-    add(scan);
+    add(activeScan);
     add(sendToIntruder);
     add(sendToRepeater);
     add(sendToComparer);
