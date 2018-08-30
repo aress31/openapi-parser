@@ -143,6 +143,9 @@ public class Tab implements ITab {
       }
     });
 
+    // enable column sorting
+    this.table.setAutoCreateRowSorter(true);
+
     // status panel
     JPanel statusPanel = new JPanel();
     statusPanel.add(this.statusLabel);
