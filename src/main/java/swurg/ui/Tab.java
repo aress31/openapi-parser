@@ -95,6 +95,7 @@ public class Tab implements ITab {
     gridBagConstraints.weightx = 1.0;
     JPanel resourcePanel = new JPanel();
     resourcePanel.add(new JLabel("Parse file/URL:"));
+    this.resourceTextField.setHorizontalAlignment(JTextField.CENTER);
     resourcePanel.add(this.resourceTextField);
     JButton resourceButton = new JButton("Browse/Load");
     resourceButton.addActionListener(new LoadButtonListener());
@@ -146,6 +147,15 @@ public class Tab implements ITab {
     };
     Object rows[][] = {};
     this.table = new JTable(new DefaultTableModel(rows, columns) {
+      @Override
+      public Class<?> getColumnClass(int column) {
+        if (column == 0) {
+          return Integer.class;
+        }
+
+        return super.getColumnClass(column);
+      }
+
       @Override
       public boolean isCellEditable(
           int rows, int columns
