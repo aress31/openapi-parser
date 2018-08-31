@@ -54,9 +54,7 @@ In Burp Suite, under the `Extender/Options` tab, click on the `Add` button and l
 ## Dependencies
 ### Third-party libraries
 #### Swagger Parser:
-The *Swagger Parser* library is required and automatically imported in this project.
-
-<https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser>
+The [Swagger Parser](https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser) library is required and automatically imported in this project.
 
 ## Project information
 In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the initiative and to implement a solution myself.
