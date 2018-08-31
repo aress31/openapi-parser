@@ -21,7 +21,7 @@ import swurg.ui.Tab;
 public class BurpExtender implements IBurpExtender {
 
   public static String COPYRIGHT = "Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved";
-  public static String EXTENSION = "Swagger Parser";
+  public static String EXTENSION = "OpenAPI Parser";
 
   @Override
   public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
