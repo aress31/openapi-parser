@@ -1,10 +1,10 @@
 <p align="center">
-  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/logo2.png" height="200">
+  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/dev/images/logo3.png" height="200">
   <p align="center">
       <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
       <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
       <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
-      <img alt="version" src="https://img.shields.io/badge/Version-2.2-green.svg">
+      <img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
       <img alt="bitcoin" src="https://img.shields.io/badge/Bitcoin-15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p-yellow.svg">
       <img alt="bitcoin cash" src="https://img.shields.io/badge/Bitcoin%20Cash-qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3-yellow.svg">
       <img alt="ether" src="https://img.shields.io/badge/Ether-0x70bC178EC44500C17B554E62BC31EA2B6251f64B-yellow.svg">
@@ -12,16 +12,20 @@
 </p>
 
 ## Swurg is a Burp Suite extension for RESTful API testing.
-During penetration testing of RESTful APIs, it can be time consuming to chain Burp Suite with other tools such as `SOAP-UI`. However, this is often necessary to parse the descriptions provided by APIs for use with the Burp Suite scanning capabilities. 
+> The OpenAPI Specification (OAS) defines a standard, programming language-agnostic interface description for REST APIs, which allows both humans and computers to discover and understand the capabilities of a service without requiring access to source code, additional documentation, or inspection of network traffic. When properly defined via OpenAPI, a consumer can understand and interact with the remote service with a minimal amount of implementation logic. Similar to what interface descriptions have done for lower-level programming, the OpenAPI Specification removes guesswork in calling a service. 
+> 
+> Use cases for machine-readable API definition documents include, but are not limited to: interactive documentation; code generation for documentation, clients, and servers; and automation of test cases. OpenAPI documents describe an API's services and are represented in either YAML or JSON formats. These documents may either be produced and served statically or be generated dynamically from an application.
+> 
+> \- [OpenAPI Initiative](https://github.com/OAI/OpenAPI-Specification)
 
-**Swurg** is a RESTful API parser allowing security professionals to use the Burp Suite as a standalone tool for testing RESTful APIs during engagements. The following screenshot shows the plugin interface:
+Performing penetration testing of RESTful APIs can be a tedious task due to Burp Suite (industry standard) lacking native OpenAPI parsing capabilities. Therefore, a workaround for many security professionals is to use third-party tools (e.g. `SOAP-UI`) or to implement custom scripts (sometimes on on a per engagement basis) to handle the parsing of OpenAPI documents and chain them to Burp Suite use its first class scanning capabilities.
 
-<img alt="ui" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/ui.png" width="400" />
+Swurg is an OpenAPI parser that aims to streamline this entire process by allowing security professionals to use Burp Suite as a standalone tool for the security assessment of RESTful APIs.
 
 ## Supported Features
-* Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications. Supports both JSON and YAML formats.
+* Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications (OAS). Supports both JSON and YAML formats.
 * OpenAPI documents can be parsed either from a supplied file or URL. The extension can fetch OpenAPI documents directly from a URL using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
-* Requests can be sent to the `Comparer, Intruder, Reapeater, Scanner and Site map` Burp tools.
+* Requests can be sent to the `Comparer, Intruder, Repeater, Scanner and Site map` Burp tools.
 
 ## Installation
 ### Compilation 
@@ -41,25 +45,24 @@ $ gradle fatJar
 In Burp Suite, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jarfile. 
 
 ## Possible Improvements
-- [ ] Implement a function to validate the mandatory OpenAPI fields needed for the extension to work.
-- [ ] Implement support for authenticated API testing (user-supplied API-keys).
+- [ ] Beautify the graphical user interface.
+- [ ] Further optimise the source code.
+- [ ] Implement support for authenticated testing (via user-supplied API-keys).
 - [ ] Increase the extension verbosity (via the bottom panel).
-- [ ] Perform further source code optimisation.
+- [ ] Validate the presence of all mandatory OpenAPI fields that are needed for the extension to work.
 
 ## Dependencies
 ### Third-party libraries
 #### Swagger Parser:
-The *Swagger Parser* library is required and imported in this project. 
-
-<https://mvnrepository.com/artifact/io.swagger/swagger-parser/1.0.33>
+The [Swagger Parser](https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser) library is required and automatically imported in this project.
 
 ## Project information
-In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the lead and implement a solution myself.
+In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the initiative and to implement a solution myself.
 
-The extension is still in development, feedback and comments are much appreciated.
+The extension is still in development, feedback, comments and contributions are therefore much appreciated.
 
 ## Donation
-Donations in any amount will be much appreciated and will keep motivated to constantly improve this extension:
+Feel free to donate any amount to keep me motivated to improve this extension and contribute to my work in general:
 * Bitcoin       : **15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p**
 * Bitcoin Cash  : **qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3**
 * Ether         : **0x70bC178EC44500C17B554E62BC31EA2B6251f64B**
