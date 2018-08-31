@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/master/images/logo3.png" height="200">
+  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/dev/images/logo3.png" height="200">
   <p align="center">
       <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
       <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
