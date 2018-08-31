@@ -7,6 +7,6 @@ SerialVersion: 12
 MinPlatformVersion: 0
 ProOnly: False
 Author: Alexandre Teyar
-ShortDescription: OpenAPI parser fully compliant with OpenAPI 2.0/3.0 Specifications. Supports both JSON and YAML formats.
+ShortDescription: OpenAPI parser fully compliant with OpenAPI 2.0/3.0 Specifications (OAS). Supports both JSON and YAML formats.
 EntryPoint: build/libs/swagger-parser-all.jar
 BuildCommand: gradle fatJar
