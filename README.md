@@ -18,7 +18,7 @@
 > 
 > \- [OpenAPI Initiative](https://github.com/OAI/OpenAPI-Specification)
 
-Performing penetration testing of RESTful APIs can be a tedious task due to Burp Suite (industry standard) lacking native OpenAPI parsing capabilities. Therefore, a workaround for many security professionals is to use third-party tools (e.g. `SOAP-UI`) or to implement custom scripts (sometimes on on a per engagement basis) to handle the parsing of OpenAPI documents and chain them to Burp Suite use its first class scanning capabilities.
+Performing penetration testing of RESTful APIs can be a tedious task due to Burp Suite (industry standard) lacking native OpenAPI parsing capabilities. Therefore, a workaround for many security professionals is to use third-party tools (e.g. `SOAP-UI`) or to implement custom scripts (sometimes on a per engagement basis) to handle the parsing of OpenAPI documents and chain them to Burp Suite to use its first class scanning capabilities.
 
 Swurg is an OpenAPI parser that aims to streamline this entire process by allowing security professionals to use Burp Suite as a standalone tool for the security assessment of RESTful APIs.
 
