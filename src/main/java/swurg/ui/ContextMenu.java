@@ -16,12 +16,10 @@
 
 package swurg.ui;
 
-import static burp.BurpExtender.COPYRIGHT;
-
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
+import com.google.common.primitives.Ints;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -32,24 +30,21 @@ import javax.swing.table.DefaultTableModel;
 class ContextMenu extends JPopupMenu {
 
   private List<HttpRequestResponse> httpRequestResponses;
-  private Tab tab;
 
   ContextMenu(
       IBurpExtenderCallbacks callbacks, Tab tab
   ) {
-    this.tab = tab;
-
-    JMenuItem add_to_site_map = new JMenuItem("Add to site map");
-    add_to_site_map.addActionListener(e -> {
-      for (int index : this.tab.getTable().getSelectedRows()) {
+    JMenuItem addToSiteMap = new JMenuItem("Add to site map");
+    addToSiteMap.addActionListener(e -> {
+      for (int index : tab.getTable().getSelectedRows()) {
         HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.addToSiteMap(httpRequestResponse);
       }
     });
 
-    JMenuItem do_an_active_scan = new JMenuItem("Do an active scan");
-    do_an_active_scan.addActionListener(e -> {
-      for (int index : this.tab.getTable().getSelectedRows()) {
+    JMenuItem activeScan = new JMenuItem("Do an active scan");
+    activeScan.addActionListener(e -> {
+      for (int index : tab.getTable().getSelectedRows()) {
         HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
@@ -58,9 +53,9 @@ class ContextMenu extends JPopupMenu {
       }
     });
 
-    JMenuItem send_to_intruder = new JMenuItem("Send to Intruder");
-    send_to_intruder.addActionListener((ActionEvent e) -> {
-      for (int index : this.tab.getTable().getSelectedRows()) {
+    JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
+    sendToIntruder.addActionListener(e -> {
+      for (int index : tab.getTable().getSelectedRows()) {
         HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(),
@@ -69,37 +64,63 @@ class ContextMenu extends JPopupMenu {
       }
     });
 
-    JMenuItem send_to_repeater = new JMenuItem("Send to Repeater");
-    send_to_repeater.addActionListener(e -> {
-      for (int index : this.tab.getTable().getSelectedRows()) {
+    JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
+    sendToRepeater.addActionListener(e -> {
+      for (int index : tab.getTable().getSelectedRows()) {
         HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
         callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
             httpRequestResponse.getHttpService().getPort(),
             httpRequestResponse.isUseHttps(), httpRequestResponse.getRequest(),
-            (String) this.tab.getTable().getValueAt(index, 5)
+            String.format("%s %s%s", tab.getTable().getValueAt(index, 1),
+                tab.getTable().getValueAt(index, 4), tab.getTable().getValueAt(index, 5))
         );
       }
     });
 
-    JMenuItem clearAll = new JMenuItem("Clear all");
-    clearAll.addActionListener(e -> clear());
+    JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
+    sendToComparer.addActionListener(e -> {
+      for (int index : tab.getTable().getSelectedRows()) {
+        HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+        callbacks.sendToComparer(httpRequestResponse.getRequest());
+      }
+    });
 
-    add(add_to_site_map);
-    add(do_an_active_scan);
-    add(send_to_intruder);
-    add(send_to_repeater);
+    JMenuItem clear = new JMenuItem("Clear item(s)");
+    clear.addActionListener(e -> {
+      // we go through the indices in decreasing order so we do not need to worry about shifting them
+      List<Integer> indexes = Ints.asList(tab.getTable().getSelectedRows());
+      indexes.sort(Collections.reverseOrder());
+
+      for (int index : indexes) {
+        // set the entry to 'null' rather than removing them to avoid any potential issue with the list order
+        this.httpRequestResponses.remove(index);
+        ((DefaultTableModel) tab.getTable().getModel()).removeRow(index);
+      }
+
+      // updating the rows' index
+      for (int row = 0; row < tab.getTable().getRowCount(); row++) {
+        tab.getTable().getModel().setValueAt(Integer.toString(row), row, 0);
+      }
+    });
+
+    JMenuItem clearAll = new JMenuItem("Clear all");
+    clearAll.addActionListener(e -> {
+      this.httpRequestResponses.clear();
+      ((DefaultTableModel) tab.getTable().getModel()).setRowCount(0);
+    });
+
+    add(addToSiteMap);
     add(new JSeparator());
+    add(activeScan);
+    add(sendToIntruder);
+    add(sendToRepeater);
+    add(sendToComparer);
+    add(new JSeparator());
+    add(clear);
     add(clearAll);
   }
 
   void setHttpRequestResponses(List<HttpRequestResponse> httpRequestResponses) {
     this.httpRequestResponses = httpRequestResponses;
-  }
-
-  private void clear() {
-    this.httpRequestResponses.clear();
-    this.tab.highlightFileTextField();
-    ((DefaultTableModel) this.tab.getTable().getModel()).setRowCount(0);
-    this.tab.displayStatus(COPYRIGHT, Color.BLACK);
   }
 }

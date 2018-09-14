@@ -16,29 +16,40 @@
 
 package swurg.process;
 
+import com.google.common.base.Strings;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class Loader {
 
   public Swagger process(String resource) {
-    if (resource == null) {
+    if (Strings.isNullOrEmpty(resource)) {
       throw new IllegalArgumentException("No file or URL specified");
     }
 
-    File file = new File(resource);
-
-    if (!file.exists()) {
+    if (new File(resource).exists()) {
+      assert true;
+    } else {
       try {
-        new URL(resource);
-      } catch (MalformedURLException e) {
-        throw new IllegalArgumentException("File doesn't exist or invalid URL!");
+        new URL(resource).toURI();
+      } catch (MalformedURLException | URISyntaxException e) {
+        throw new IllegalArgumentException(
+            String.format("%s does not exist or is an invalid URL", resource));
       }
     }
 
-    return new SwaggerParser().read(resource);
+    Swagger swagger = new SwaggerParser().read(resource);
+
+    if (swagger == null) {
+      throw new NullPointerException(String
+          .format("The OpenAPI specification contained in %s is ill formed and cannot be parsed",
+              resource));
+    } else {
+      return swagger;
+    }
   }
 }

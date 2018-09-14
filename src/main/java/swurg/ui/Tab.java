@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    statusLabel (C) 2016 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static burp.BurpExtender.EXTENSION;
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import burp.ITab;
+import com.google.common.base.Strings;
 import io.swagger.models.HttpMethod;
 import io.swagger.models.Operation;
 import io.swagger.models.Path;
@@ -31,32 +32,31 @@ import io.swagger.models.parameters.Parameter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import swurg.process.Loader;
 import swurg.utils.ExtensionHelper;
 
@@ -66,9 +66,12 @@ public class Tab implements ITab {
   private ExtensionHelper extensionHelper;
 
   private JPanel rootPanel;
-  private JPanel swaggerPanel;
   private JTable table;
-  private JPanel statusPanel;
+  private TableRowSorter<TableModel> tableRowSorter;
+
+  private JLabel statusLabel = new JLabel(COPYRIGHT);
+  private JTextField resourceTextField = new JTextField(null, 64);
+  private JTextField filterTextField = new JTextField(null, 36);
 
   private List<HttpRequestResponse> httpRequestResponses;
 
@@ -81,22 +84,56 @@ public class Tab implements ITab {
   }
 
   private void initUI() {
-    this.rootPanel = new JPanel();
-    this.rootPanel.setLayout(new BorderLayout());
+    this.rootPanel = new JPanel(new BorderLayout());
 
     // file panel
-    this.swaggerPanel = new JPanel();
-    this.swaggerPanel.setLayout(new GridBagLayout());
-    this.swaggerPanel.setPreferredSize(new Dimension(
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
-            .getWidth(),
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode()
-            .getHeight() / 10));
-    this.swaggerPanel.add(new JLabel("Parse file/URL:"));
-    this.swaggerPanel.add(new JTextField(null, 48));
-    JButton button = new JButton("Browse/Load");
-    button.addActionListener(new ButtonListener());
-    this.swaggerPanel.add(button);
+    JPanel topPanel = new JPanel(new GridBagLayout());
+    GridBagConstraints gridBagConstraints = new GridBagConstraints();
+
+    gridBagConstraints.anchor = GridBagConstraints.CENTER;
+    gridBagConstraints.insets = new Insets(8, 0, 0, 0);
+    gridBagConstraints.weightx = 1.0;
+    JPanel resourcePanel = new JPanel();
+    resourcePanel.add(new JLabel("Parse file/URL:"));
+    this.resourceTextField.setHorizontalAlignment(JTextField.CENTER);
+    resourcePanel.add(this.resourceTextField);
+    JButton resourceButton = new JButton("Browse/Load");
+    resourceButton.addActionListener(new LoadButtonListener());
+    resourcePanel.add(resourceButton);
+    topPanel.add(resourcePanel, gridBagConstraints);
+
+    gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+    gridBagConstraints.insets = new Insets(0, 0, 4, 0);
+    gridBagConstraints.gridy = 1;
+    JPanel filerPanel = new JPanel();
+    filerPanel.add(new JLabel("Filter (accepts regular expressions):"));
+    this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
+      private void process() {
+        String regex = filterTextField.getText();
+
+        if (Strings.isNullOrEmpty(regex)) {
+          tableRowSorter.setRowFilter(null);
+        } else {
+          tableRowSorter.setRowFilter(RowFilter.regexFilter(regex));
+        }
+      }
+
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        process();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        process();
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+      }
+    });
+    filerPanel.add(this.filterTextField);
+    topPanel.add(filerPanel, gridBagConstraints);
 
     // scroll table
     Object columns[] = {
@@ -110,6 +147,15 @@ public class Tab implements ITab {
     };
     Object rows[][] = {};
     this.table = new JTable(new DefaultTableModel(rows, columns) {
+      @Override
+      public Class<?> getColumnClass(int column) {
+        if (column == 0) {
+          return Integer.class;
+        }
+
+        return super.getColumnClass(column);
+      }
+
       @Override
       public boolean isCellEditable(
           int rows, int columns
@@ -148,143 +194,59 @@ public class Tab implements ITab {
       }
     });
 
+    // enable column sorting
+    this.table.setAutoCreateRowSorter(true);
+    // enable table filtering
+    this.tableRowSorter = new TableRowSorter<>(
+        this.table.getModel()
+    );
+    this.table.setRowSorter(tableRowSorter);
+
     // status panel
-    this.statusPanel = new JPanel();
-    this.statusPanel.add(new JLabel(COPYRIGHT));
+    JPanel bottomPanel = new JPanel();
+    bottomPanel.add(this.statusLabel);
 
     // parent container
-    this.rootPanel.add(this.swaggerPanel, BorderLayout.NORTH);
+    this.rootPanel.add(topPanel, BorderLayout.NORTH);
     this.rootPanel.add(new JScrollPane(this.table));
-    this.rootPanel.add(this.statusPanel, BorderLayout.SOUTH);
-  }
-
-  private String openFileExplorer() {
-    JFileChooser jFileChooser = new JFileChooser();
-    String resource = null;
-
-    FileFilter filterJson = new FileNameExtensionFilter("Swagger JSON File (*.json)", "json");
-    jFileChooser.addChoosableFileFilter(filterJson);
-    FileFilter filterYml = new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml",
-        "yml");
-    jFileChooser.addChoosableFileFilter(filterYml);
-
-    jFileChooser.setFileFilter(filterYml);
-    jFileChooser.setFileFilter(filterJson);
-
-    if (jFileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
-      File file = jFileChooser.getSelectedFile();
-      resource = file.getAbsolutePath();
-      for (Component component : this.swaggerPanel.getComponents()) {
-        if (component instanceof JTextField) {
-          ((JTextField) component).setText(resource);
-        }
-      }
-    }
-
-    return resource;
+    this.rootPanel.add(bottomPanel, BorderLayout.SOUTH);
   }
 
   private String getResource() {
-    JTextField textField = null;
-    String resource;
+    String resource = null;
 
-    for (Component component : this.swaggerPanel.getComponents()) {
-      if (component instanceof JTextField) {
-        textField = (JTextField) component;
-      }
-    }
+    if (this.resourceTextField.getText().isEmpty()) {
+      JFileChooser fileChooser = new JFileChooser();
+      fileChooser.addChoosableFileFilter(
+          new FileNameExtensionFilter("Swagger JSON File (*.json)", "json"));
+      fileChooser.addChoosableFileFilter(
+          new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml",
+              "yml"));
 
-    if (textField == null || textField.getText().isEmpty()) {
-      resource = openFileExplorer();
-
-      if (resource == null) {
-        displayStatus(COPYRIGHT, Color.BLACK);
+      if (fileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
+        File file = fileChooser.getSelectedFile();
+        resource = file.getAbsolutePath();
+        resourceTextField.setText(resource);
       }
     } else {
-      resource = textField.getText();
-
-      try {
-        new URL(resource);
-      } catch (MalformedURLException e) {
-        File file = new File(resource);
-
-        if (!file.exists()) {
-          highlightFileTextField();
-          displayStatus("File does not exist! Enter the full path to the file, or a valid URL.",
-              Color.RED);
-          resource = null;
-        }
-      }
+      resource = this.resourceTextField.getText();
     }
 
     return resource;
-  }
-
-  public void loadSwagger(Swagger swagger) {
-    try {
-      // add regex validation for host/ip
-      if (swagger.getHost() == null || (swagger.getHost() != null && swagger.getHost().isEmpty())) {
-        String host = JOptionPane.showInputDialog(
-            "`host` field is missing.\nPlease enter one below" + "" + "" + ".\nFormat:"
-                + " <host> or " +
-                "<host:port>");
-        swagger.setHost(host);
-      }
-
-      if (swagger.getSchemes() == null || (swagger.getSchemes() != null && swagger.getSchemes()
-          .isEmpty())) {
-        String scheme = "";
-
-        while (!scheme.matches("HTTP|HTTPS|WS|WSS")) {
-          scheme = JOptionPane.showInputDialog(
-              "`scheme` field is missing.\nPlease enter one below" + ""
-                  + ".\nAllowed values: HTTP, " +
-                  "HTTPS, WS, WSS.");
-        }
-        swagger.addScheme(Scheme.valueOf(scheme));
-      }
-
-      String swaggerInfo =
-          "Title: " + swagger.getInfo().getTitle() + " | " + "Version: " + swagger.getInfo()
-              .getVersion
-                  () +
-              " | " + "Description: " + swagger
-              .getInfo().getDescription();
-      displayStatus(swaggerInfo, Color.BLACK);
-
-      populateTable(swagger);
-    } catch (Exception e) {
-      displayStatus(String.format("Could not load the OpenAPI specification: %s", e),
-          Color.RED);
-    }
   }
 
   JTable getTable() {
     return this.table;
   }
 
-  void highlightFileTextField() {
-    for (Component component : this.swaggerPanel.getComponents()) {
-      if (component instanceof JTextField) {
-        component.requestFocus();
-        ((JTextField) component).selectAll();
-      }
-    }
-  }
-
-  // make the status fit the container - pack/resize
-  void displayStatus(
+  public void printStatus(
       String status, Color color
   ) {
-    for (Component component : this.statusPanel.getComponents()) {
-      if (component instanceof JLabel) {
-        ((JLabel) component).setText(status);
-        component.setForeground(color);
-      }
-    }
+    this.statusLabel.setText(status);
+    this.statusLabel.setForeground(color);
   }
 
-  private void populateTable(Swagger swagger) {
+  public void populateTable(Swagger swagger) {
     DefaultTableModel defaultTableModel = (DefaultTableModel) this.table.getModel();
     List<Scheme> schemes = swagger.getSchemes();
 
@@ -301,16 +263,6 @@ public class Tab implements ITab {
           if (stringBuilder.length() > 0) {
             stringBuilder.setLength(stringBuilder.length() - 2);
           }
-
-          defaultTableModel.addRow(new Object[]{
-              defaultTableModel.getRowCount() + 1,
-              operation.getKey().toString(),
-              swagger.getHost().split(":")[0],
-              scheme.toValue().toUpperCase(),
-              swagger.getBasePath(),
-              path.getKey(),
-              stringBuilder.toString()
-          });
 
           this.httpRequestResponses.add(
               new HttpRequestResponse(
@@ -332,29 +284,17 @@ public class Tab implements ITab {
                       )
               ));
 
-          resizeTable(table);
+          defaultTableModel.addRow(new Object[]{
+              defaultTableModel.getRowCount(),
+              operation.getKey().toString(),
+              swagger.getHost().split(":")[0],
+              scheme.toValue().toUpperCase(),
+              swagger.getBasePath(),
+              path.getKey(),
+              stringBuilder.toString()
+          });
         }
       }
-    }
-  }
-
-  private void resizeTable(JTable table) {
-    TableColumnModel columnModel = table.getColumnModel();
-
-    for (int column = 0; column < table.getColumnCount(); column++) {
-      int width = 16; // min width
-
-      for (int row = 0; row < table.getRowCount(); row++) {
-        TableCellRenderer renderer = table.getCellRenderer(row, column);
-        Component comp = table.prepareRenderer(renderer, row, column);
-        width = Math.max(comp.getPreferredSize().width + 1, width);
-      }
-
-      if (width > 300) {
-        width = 300;
-      }
-
-      columnModel.getColumn(column).setPreferredWidth(width);
     }
   }
 
@@ -368,17 +308,24 @@ public class Tab implements ITab {
     return EXTENSION;
   }
 
-  class ButtonListener implements ActionListener {
+  class LoadButtonListener implements ActionListener {
 
-    ButtonListener() {
+    LoadButtonListener() {
       super();
     }
 
     public void actionPerformed(ActionEvent e) {
       if (e.getSource() instanceof JButton) {
         String resource = getResource();
-        Swagger swagger = new Loader().process(resource);
-        loadSwagger(swagger);
+
+        try {
+          Swagger swagger = new Loader().process(resource);
+          populateTable(swagger);
+          printStatus(COPYRIGHT, Color.BLACK);
+        } catch (IllegalArgumentException | NullPointerException e1) {
+          printStatus(e1.getMessage(), Color.RED);
+          resourceTextField.requestFocus();
+        }
       }
     }
   }
