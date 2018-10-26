@@ -98,7 +98,7 @@ class ContextMenu extends JPopupMenu {
     clear.addActionListener(e -> {
       // iterating the indices in decreasing order to not mess up the table shifting
       IntStream.of(tab.getTable().getSelectedRows()).boxed()
-          .map(i -> tab.getTable().convertRowIndexToModel(i)).sorted(Collections.reverseOrder())
+          .map(row -> tab.getTable().convertRowIndexToModel(row)).sorted(Collections.reverseOrder())
           .forEach(
               row -> {
                 int index = (int) tab.getTable()
