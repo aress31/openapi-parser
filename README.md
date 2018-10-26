@@ -11,16 +11,16 @@
   </p>
 </p>
 
-## Swurg is a Burp Suite extension for RESTful API testing.
+## Swurg is a Burp Suite extension designed for OpenAPI testing.
 > The OpenAPI Specification (OAS) defines a standard, programming language-agnostic interface description for REST APIs, which allows both humans and computers to discover and understand the capabilities of a service without requiring access to source code, additional documentation, or inspection of network traffic. When properly defined via OpenAPI, a consumer can understand and interact with the remote service with a minimal amount of implementation logic. Similar to what interface descriptions have done for lower-level programming, the OpenAPI Specification removes guesswork in calling a service. 
 > 
 > Use cases for machine-readable API definition documents include, but are not limited to: interactive documentation; code generation for documentation, clients, and servers; and automation of test cases. OpenAPI documents describe an API's services and are represented in either YAML or JSON formats. These documents may either be produced and served statically or be generated dynamically from an application.
 > 
 > \- [OpenAPI Initiative](https://github.com/OAI/OpenAPI-Specification)
 
-Performing penetration testing of RESTful APIs can be a tedious task due to Burp Suite (industry standard) lacking native OpenAPI parsing capabilities. Therefore, a workaround for many security professionals is to use third-party tools (e.g. `SOAP-UI`) or to implement custom scripts (sometimes on a per engagement basis) to handle the parsing of OpenAPI documents and chain them to Burp Suite to use its first class scanning capabilities.
+Performing security assessment of OpenAPI-based APIs can be a tedious task due to Burp Suite (industry standard) lacking native OpenAPI parsing capabilities. A solution to this situation, is to use third-party tools (e.g. `SOAP-UI`) or to implement custom scripts (often on a per engagement basis) to handle the parsing of OpenAPI documents and integrate/chain the results to Burp Suite to use its first class scanning capabilities.
 
-Swurg is an OpenAPI parser that aims to streamline this entire process by allowing security professionals to use Burp Suite as a standalone tool for the security assessment of RESTful APIs.
+Swurg is an OpenAPI parser that aims to streamline this entire process by allowing security professionals to use Burp Suite as a standalone tool for security assessment of OpenAPI-based APIs.
 
 ## Supported Features
 * Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications (OAS). Supports both JSON and YAML formats.
