@@ -46,10 +46,11 @@ In Burp Suite, under the `Extender/Options` tab, click on the `Add` button and l
 
 ## Possible Improvements
 - [ ] Beautify the graphical user interface.
-- [ ] Further optimise the source code.
+- [ ] Enable cells editing to change API calls directly from the GUI.
+- [x] Further optimise the source code.
 - [ ] Implement support for authenticated testing (via user-supplied API-keys).
+- [ ] Improve the Param column by adding the type of parameters (e.g. inquery, inbody, etc.).
 - [ ] Increase the extension verbosity (via the bottom panel).
-- [ ] Validate the presence of all mandatory OpenAPI fields that are needed for the extension to work.
 
 ## Dependencies
 ### Third-party libraries
@@ -61,11 +62,10 @@ In July 2016, after posting a request for improvement on the [PortSwigger suppor
 
 The extension is still in development, feedback, comments and contributions are therefore much appreciated.
 
-## Donation
-Feel free to donate any amount to keep me motivated to improve this extension and contribute to my work in general:
-* Bitcoin       : **15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p**
-* Bitcoin Cash  : **qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3**
-* Ether         : **0x70bC178EC44500C17B554E62BC31EA2B6251f64B**
+## One-time donation
+* Donate via Bitcoin      : **15aFaQaW9cxa4tRocax349JJ7RKyj7YV1p**
+* Donate via Bitcoin Cash : **qqez5ed5wjpwq9znyuhd2hdg86nquqpjcgkm3t8mg3**
+* Donate via Ether        : **0x70bC178EC44500C17B554E62BC31EA2B6251f64B**
 
 ## License
 Copyright (C) 2016 - 2018 Alexandre Teyar
