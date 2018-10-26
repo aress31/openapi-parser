@@ -23,6 +23,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 
 public class Loader {
 
@@ -45,11 +47,36 @@ public class Loader {
     Swagger swagger = new SwaggerParser().read(resource);
 
     if (swagger == null) {
-      throw new NullPointerException(String
-          .format("The OpenAPI specification contained in %s is ill formed and cannot be parsed",
+      throw new NullPointerException(
+          String.format(
+              "The OpenAPI specification contained in %s is ill formed and cannot be parsed",
               resource));
     } else {
+      validateSpecification(swagger, resource);
       return swagger;
+    }
+  }
+
+  private void validateSpecification(Swagger swagger, String resource) {
+    if (Strings.isNullOrEmpty(swagger.getHost())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "The OpenAPI specification contained in %s is missing the mandatory field: 'host'",
+              resource));
+    }
+
+    if (CollectionUtils.isEmpty(swagger.getSchemes())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "The OpenAPI specification contained in %s is missing the mandatory field: 'schemes'",
+              resource));
+    }
+
+    if (MapUtils.isEmpty(swagger.getPaths())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "The OpenAPI specification contained in %s is missing the mandatory field: 'paths'",
+              resource));
     }
   }
 }
