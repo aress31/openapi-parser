@@ -322,7 +322,7 @@ public class Tab implements ITab {
           Swagger swagger = new Loader().process(resource);
           populateTable(swagger);
           printStatus(COPYRIGHT, Color.BLACK);
-        } catch (IllegalArgumentException | NullPointerException e1) {
+        } catch (Exception e1) {
           printStatus(e1.getMessage(), Color.RED);
           resourceTextField.requestFocus();
         }
