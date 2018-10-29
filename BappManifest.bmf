@@ -2,8 +2,8 @@ Uuid: 6bf7574b632847faaaa4eb5e42f1757c
 ExtensionType: 1
 Name: OpenAPI Parser
 RepoName: openapi-parser
-ScreenVersion: 2.3
-SerialVersion: 13
+ScreenVersion: 2.4
+SerialVersion: 14
 MinPlatformVersion: 0
 ProOnly: False
 Author: Alexandre Teyar
