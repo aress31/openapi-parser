@@ -42,9 +42,7 @@ public class ExtensionHelper {
     return this.burpExtensionHelpers;
   }
 
-  public int getPort(
-      Swagger swagger, Scheme scheme
-  ) {
+  public int getPort(Swagger swagger, Scheme scheme) {
     int port;
 
     if (swagger.getHost().split(":").length > 1) {
@@ -63,19 +61,19 @@ public class ExtensionHelper {
   public boolean isUseHttps(Scheme scheme) {
     boolean useHttps;
 
-    useHttps = scheme.toValue().toUpperCase().equals("HTTPS") || scheme.toValue().toUpperCase()
-        .equals("WSS");
+    useHttps = scheme.toValue().toUpperCase().equals("HTTPS") || scheme.toValue().toUpperCase().equals("WSS");
 
     return useHttps;
   }
 
-  private List<String> buildHeaders(
-      Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
-  ) {
+  private List<String> buildHeaders(Swagger swagger, Map.Entry<String, Path> path,
+      Map.Entry<HttpMethod, Operation> operation) {
     List<String> headers = new ArrayList<>();
-
-    headers.add(
-        operation.getKey().toString() + " " + swagger.getBasePath() + path.getKey() + " HTTP/1.1");
+    String basePath = "";
+    if (swagger.getBasePath() != null) {
+      basePath = swagger.getBasePath();
+    }
+    headers.add(operation.getKey().toString() + " " + basePath + path.getKey() + " HTTP/1.1");
     headers.add("Host: " + swagger.getHost().split(":")[0]);
 
     if (CollectionUtils.isNotEmpty(operation.getValue().getProduces())) {
@@ -93,9 +91,8 @@ public class ExtensionHelper {
     return headers;
   }
 
-  public byte[] buildRequest(
-      Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
-  ) {
+  public byte[] buildRequest(Swagger swagger, Map.Entry<String, Path> path,
+      Map.Entry<HttpMethod, Operation> operation) {
     List<String> headers = buildHeaders(swagger, path, operation);
     byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
 
@@ -110,14 +107,12 @@ public class ExtensionHelper {
       }
 
       switch (parameter.getIn()) {
-        case "body":
-          httpMessage = this.burpExtensionHelpers
-              .addParameter(httpMessage, this.burpExtensionHelpers
-                  .buildParameter(parameter.getName(), type, (byte) 1));
-        case "query":
-          httpMessage = this.burpExtensionHelpers
-              .addParameter(httpMessage, this.burpExtensionHelpers
-                  .buildParameter(parameter.getName(), type, (byte) 0));
+      case "body":
+        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
+            this.burpExtensionHelpers.buildParameter(parameter.getName(), type, (byte) 1));
+      case "query":
+        httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
+            this.burpExtensionHelpers.buildParameter(parameter.getName(), type, (byte) 0));
       }
     }
 

@@ -42,7 +42,11 @@ public class LoaderTest extends TestCase {
       logger.info("--- Swagger ---");
       logger.info("Info: " + swagger.getInfo());
       logger.info("Host: " + swagger.getHost());
-      logger.info("Base path: " + swagger.getBasePath());
+      String basePath = "";
+      if (swagger.getBasePath() != null) {
+        basePath = swagger.getBasePath();
+      }
+      logger.info("Base path: " + basePath);
       logger.info("Schemes: " + swagger.getSchemes());
       logger.info("Consumes: " + swagger.getConsumes());
       logger.info("Produces: " + swagger.getProduces());
@@ -53,8 +57,7 @@ public class LoaderTest extends TestCase {
         logger.info("--- Endpoint ---");
         logger.info("Path: " + path.getKey());
 
-        for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap()
-            .entrySet()) {
+        for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap().entrySet()) {
           logger.info("HTTP Method: " + operation.getKey().toString());
           logger.info("Schemes: " + operation.getValue().getSchemes());
           logger.info("Consumes: " + operation.getValue().getConsumes());
@@ -70,12 +73,9 @@ public class LoaderTest extends TestCase {
         }
       }
     } catch (IllegalArgumentException e) {
-      logger.error(String.format("%s is not a file or is an invalid URL", resource),
-          Color.RED);
+      logger.error(String.format("%s is not a file or is an invalid URL", resource), Color.RED);
     } catch (NullPointerException e) {
-      logger.error(String
-              .format("The OpenAPI specification in %s is ill formed and cannot be parsed",
-                  resource),
+      logger.error(String.format("The OpenAPI specification in %s is ill formed and cannot be parsed", resource),
           Color.RED);
     }
   }
