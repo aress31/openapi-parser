@@ -84,13 +84,17 @@ public class ExtensionHelper {
     return useHttps;
   }
 
+  private static String nullEmptyString(String input) {
+    return input == null ? "" : input;
+  }
+
   private List<String> buildHeaders(
       Swagger swagger, Map.Entry<String, Path> path, Map.Entry<HttpMethod, Operation> operation
   ) {
     List<String> headers = new ArrayList<>();
 
     headers.add(
-        operation.getKey().toString() + " " + swagger.getBasePath() + path.getKey() + " HTTP/1.1");
+        operation.getKey().toString() + " " + nullEmptyString(swagger.getBasePath()) + path.getKey() + " HTTP/1.1");
     headers.add("Host: " + swagger.getHost().split(":")[0]);
 
     if (CollectionUtils.isNotEmpty(operation.getValue().getProduces())) {
