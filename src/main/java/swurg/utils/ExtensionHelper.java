@@ -16,8 +16,14 @@
 
 package swurg.utils;
 
+import swurg.utils.ExampleGenerator;
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
+import burp.IParameter;
+import io.swagger.models.ArrayModel;
+import io.swagger.models.HttpMethod;
+import io.swagger.models.Model;
+import io.swagger.models.RefModel;
 import io.swagger.models.HttpMethod;
 import io.swagger.models.Operation;
 import io.swagger.models.Path;
@@ -25,7 +31,13 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.Parameter;
+import io.swagger.models.parameters.BodyParameter;
+import io.swagger.models.parameters.QueryParameter;
+import io.swagger.models.properties.Property;
+import io.swagger.models.properties.RefProperty;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,9 +45,12 @@ import org.apache.commons.collections4.CollectionUtils;
 public class ExtensionHelper {
 
   private IExtensionHelpers burpExtensionHelpers;
+  private PrintStream stdOut, stdErr;
 
   public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
     this.burpExtensionHelpers = callbacks.getHelpers();
+    this.stdOut = new PrintStream(callbacks.getStdout());
+    this.stdErr = new PrintStream(callbacks.getStderr());
   }
 
   public IExtensionHelpers getBurpExtensionHelpers() {
@@ -105,26 +120,68 @@ public class ExtensionHelper {
 
     for (Parameter parameter : operation.getValue().getParameters()) {
       String type;
+      byte paramType = (byte) 0;
 
       if (parameter instanceof AbstractSerializableParameter) {
         AbstractSerializableParameter abstractSerializableParameter = (AbstractSerializableParameter) parameter;
         type = abstractSerializableParameter.getType();
       } else {
-        type = "not-accessible";
+        stdErr.println("[SWURG] unknown type");
+        type = "";
       }
 
+      String generatedParam = "";
+      //System.out.println("DEBUG parameter.getIn(): "+parameter.getIn());
       switch (parameter.getIn()) {
         case "body":
-          httpMessage = this.burpExtensionHelpers
-              .addParameter(httpMessage, this.burpExtensionHelpers
-                  .buildParameter(parameter.getName(), type, (byte) 1));
+          paramType = (byte) 1;//IParameter.PARAM_BODY;
+          Model schema = ((BodyParameter)parameter).getSchema();
+          if (schema != null) {
+            if(schema instanceof RefModel) { // handle RefModel
+              RefModel refmodel = (RefModel)schema;
+              ExampleGenerator gen = new ExampleGenerator(swagger.getDefinitions());
+              final List<String> expectedTypes = Arrays.asList(ExampleGenerator.MIME_TYPE_JSON);
+              List<Map<String,String>> generatedList = gen.generate(null, expectedTypes, refmodel.getSimpleRef());
+              if(generatedList.size()>0) {
+              	Map<String,String> map = generatedList.get(0);
+              	if (map.containsKey(ExampleGenerator.EXAMPLE)) {
+                  generatedParam = map.getOrDefault(ExampleGenerator.EXAMPLE, "{}");
+              	}
+              }
+            } else if (schema instanceof ArrayModel) { // handle Arraymodel
+              ArrayModel arrModel = (ArrayModel)schema;
+              ExampleGenerator gen = new ExampleGenerator(swagger.getDefinitions());
+              final List<String> expectedTypes = Arrays.asList(ExampleGenerator.MIME_TYPE_JSON);
+              Property prop = arrModel.getItems();
+              if (prop.getType() == "ref") {
+              	RefProperty refprop = (RefProperty)prop;
+              	List<Map<String,String>> generatedList = gen.generate(null, expectedTypes, refprop.getSimpleRef());
+              	if(generatedList.size()>0) {
+                  Map<String,String> map = generatedList.get(0);
+                  if (map.containsKey(ExampleGenerator.EXAMPLE)) {
+              	    generatedParam = map.getOrDefault(ExampleGenerator.EXAMPLE, "{}");
+              	  }
+              	}
+              } else {
+              	stdErr.println("[SWURG] not implemented array-prop type: "+prop.getType());
+              }
+	    } else {
+              stdErr.println("[SWURG] not implemented schema type: "+schema.getClass());
+	    }
+          }
+          break;
         case "query":
-          httpMessage = this.burpExtensionHelpers
-              .addParameter(httpMessage, this.burpExtensionHelpers
-                  .buildParameter(parameter.getName(), type, (byte) 0));
+          paramType = (byte) 0;//IParameter.PARAM_URL;
+          break;
       }
+      // add the generated parameter
+      httpMessage = this.burpExtensionHelpers
+          .addParameter(httpMessage, this.burpExtensionHelpers
+              .buildParameter(generatedParam.isEmpty() ? parameter.getName() : generatedParam, type, paramType));
+      // remove '='(decimal 61) at the end, if exist
+      if(httpMessage[httpMessage.length-1] == 61)
+        httpMessage = Arrays.copyOf(httpMessage, httpMessage.length-1);
     }
-
     return httpMessage;
   }
 }
