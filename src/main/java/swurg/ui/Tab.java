@@ -151,7 +151,7 @@ public class Tab implements ITab {
     topPanel.add(filerPanel, gridBagConstraints);
 
     // scroll table
-    Object columns[] = { "#", "Method", "Server", "Endpoint", "Parameters", "Description" };
+    Object columns[] = { "#", "Method", "Server", "Path", "Parameters", "Description" };
     Object rows[][] = {};
     this.table = new JTable(new DefaultTableModel(rows, columns) {
       @Override

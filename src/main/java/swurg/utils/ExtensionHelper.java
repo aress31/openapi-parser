@@ -53,7 +53,7 @@ public class ExtensionHelper {
     headers.add("Host: " + uri.getHost());
 
     if (operation.getValue().getResponses() != null && operation.getValue().getResponses().get("200") != null) {
-      StringJoiner stringJoiner = new StringJoiner(", ");
+      StringJoiner stringJoiner = new StringJoiner(",");
 
       for (Map.Entry<String, MediaType> response : operation.getValue().getResponses().get("200").getContent()
           .entrySet()) {
@@ -64,10 +64,12 @@ public class ExtensionHelper {
     }
 
     if (operation.getValue().getRequestBody() != null && operation.getValue().getRequestBody().getContent() != null) {
-      StringJoiner stringJoiner = new StringJoiner(", ");
+      StringJoiner stringJoiner = new StringJoiner(",");
 
       for (Map.Entry<String, MediaType> requestBody : operation.getValue().getRequestBody().getContent().entrySet()) {
         stringJoiner.add(requestBody.getKey());
+        // TODO: Optimise this code to only get the first relevant value as Content-Type
+        // must be uniq
       }
 
       headers.add("Content-Type: " + stringJoiner.toString());
@@ -122,7 +124,7 @@ public class ExtensionHelper {
             break;
           default:
             throw new NullPointerException(
-                "buildRequest(URI uri, Map.Entry<String, PathItem> pathItem, Map.Entry<String, Operation> operation) -> entered 'default' case... Please open a ticket on the GitHub repository of this project.");
+                "buildRequest(URI uri, Map.Entry<String, PathItem> pathItem, Map.Entry<String, Operation> operation) -> entered 'default' case... Please raise a ticket on the GitHub repository.");
           }
         }
       }

@@ -67,7 +67,7 @@ class ContextMenu extends JPopupMenu {
           String.format("%s -> %s %s",
               tab.getTable().getValueAt(row, tab.getTable().getColumn("Server").getModelIndex()),
               tab.getTable().getValueAt(row, tab.getTable().getColumn("Method").getModelIndex()),
-              tab.getTable().getValueAt(row, tab.getTable().getColumn("Endpoint").getModelIndex())));
+              tab.getTable().getValueAt(row, tab.getTable().getColumn("Path").getModelIndex())));
     }));
 
     JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
