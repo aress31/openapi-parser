@@ -26,6 +26,7 @@ import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.parameters.Parameter;
 
 public class ExtensionHelper {
@@ -50,6 +51,35 @@ public class ExtensionHelper {
     headers.add(operation.getKey() + " " + pathItem.getKey() + " HTTP/1.1");
     headers.add("Host: " + uri.getHost());
 
+    if (operation.getValue().getResponses() != null && operation.getValue().getResponses().get("200") != null) {
+      StringBuilder stringBuilder = new StringBuilder();
+
+      for (Map.Entry<String, MediaType> response : operation.getValue().getResponses().get("200").getContent()
+          .entrySet()) {
+        stringBuilder.append(response.getKey()).append(", ");
+      }
+
+      if (stringBuilder.length() > 0) {
+        stringBuilder.setLength(stringBuilder.length() - 2);
+      }
+
+      headers.add("Accept: " + stringBuilder.toString());
+    }
+
+    if (operation.getValue().getRequestBody() != null && operation.getValue().getRequestBody().getContent() != null) {
+      StringBuilder stringBuilder = new StringBuilder();
+
+      for (Map.Entry<String, MediaType> requestBody : operation.getValue().getRequestBody().getContent().entrySet()) {
+        stringBuilder.append(requestBody.getKey()).append(", ");
+      }
+
+      if (stringBuilder.length() > 0) {
+        stringBuilder.setLength(stringBuilder.length() - 2);
+      }
+
+      headers.add("Content-Type: " + stringBuilder.toString());
+    }
+
     if (operation.getValue().getParameters() != null) {
       for (Parameter parameter : operation.getValue().getParameters()) {
         if (parameter != null && parameter.getIn() != null) {
@@ -68,21 +98,6 @@ public class ExtensionHelper {
         }
       }
     }
-
-    // TODO and add API key if needed
-    // if (CollectionUtils.isNotEmpty(operation.getValue().getProduces())) {
-    // headers.add("Accept: " + String.join(",",
-    // operation.getValue().getProduces()));
-    // } else if (CollectionUtils.isNotEmpty(swagger.getProduces())) {
-    // headers.add("Accept: " + String.join(",", swagger.getProduces()));
-    // }
-
-    // if (CollectionUtils.isNotEmpty(operation.getValue().getConsumes())) {
-    // headers.add("Content-Type: " + String.join(",",
-    // operation.getValue().getConsumes()));
-    // } else if (CollectionUtils.isNotEmpty(swagger.getConsumes())) {
-    // headers.add("Content-Type: " + String.join(",", swagger.getConsumes()));
-    // }
 
     return headers;
   }
