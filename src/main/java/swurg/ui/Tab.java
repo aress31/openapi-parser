@@ -31,10 +31,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.PrintWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -80,7 +84,7 @@ public class Tab implements ITab {
   private List<HttpRequestResponse> httpRequestResponses;
 
   // For debugging purposes
-  private PrintWriter stdout;
+  private PrintWriter stdOut, stdErr;
 
   public Tab(IBurpExtenderCallbacks callbacks) {
     this.contextMenu = new ContextMenu(callbacks, this);
@@ -88,7 +92,8 @@ public class Tab implements ITab {
     this.httpRequestResponses = new ArrayList<>();
 
     // For debugging purposes
-    this.stdout = new PrintWriter(callbacks.getStdout(), true);
+    this.stdErr = new PrintWriter(callbacks.getStderr(), true);
+    this.stdOut = new PrintWriter(callbacks.getStdout(), true);
 
     initUI();
   }
@@ -146,7 +151,7 @@ public class Tab implements ITab {
     topPanel.add(filerPanel, gridBagConstraints);
 
     // scroll table
-    Object columns[] = { "#", "Method", "Server", "Endpoint", "Parameters" };
+    Object columns[] = { "#", "Method", "Server", "Endpoint", "Parameters", "Description" };
     Object rows[][] = {};
     this.table = new JTable(new DefaultTableModel(rows, columns) {
       @Override
@@ -235,6 +240,10 @@ public class Tab implements ITab {
     return this.table;
   }
 
+  public void printStatus(String status) {
+    this.statusLabel.setText(status);
+  }
+
   public void printStatus(String status, Color color) {
     this.statusLabel.setText(status);
     this.statusLabel.setForeground(color);
@@ -245,46 +254,48 @@ public class Tab implements ITab {
 
     for (Server server : openAPI.getServers()) {
       for (Map.Entry<String, PathItem> pathItem : openAPI.getPaths().entrySet()) {
+        Map<String, Operation> operationMap = new HashMap<>();
+        operationMap.put("DELETE", pathItem.getValue().getDelete());
+        operationMap.put("GET", pathItem.getValue().getGet());
+        operationMap.put("HEAD", pathItem.getValue().getHead());
+        operationMap.put("PATCH", pathItem.getValue().getPatch());
+        operationMap.put("POST", pathItem.getValue().getPost());
+        operationMap.put("PUT", pathItem.getValue().getPut());
+        operationMap.put("TRACE", pathItem.getValue().getTrace());
+
         // create different maps for different methods merge them and iterate them
-        for (Operation operation : new ArrayList<Operation>(
-            Arrays.asList(pathItem.getValue().getGet(), pathItem.getValue().getHead(), pathItem.getValue().getPatch(),
-                pathItem.getValue().getPost(), pathItem.getValue().getPut(), pathItem.getValue().getTrace()))) {
+        for (Map.Entry<String, Operation> operation : operationMap.entrySet()) {
+          if (operation.getValue() != null) {
+            StringBuilder stringBuilder = new StringBuilder();
 
-          StringBuilder stringBuilder = new StringBuilder();
-
-          if (operation != null && operation.getParameters() != null) {
-            for (Parameter parameter : operation.getParameters()) {
-              stdout.println("---------");
-              stdout.println(parameter.getName());
-              stdout.println(parameter.getIn());
-              stdout.println(parameter.getSchema().getType());
-              stdout.println("---------");
-              stringBuilder.append(parameter.getName()).append(", ");
+            if (operation.getValue().getParameters() != null) {
+              for (Parameter parameter : operation.getValue().getParameters()) {
+                stringBuilder.append(parameter.getName()).append(", ");
+              }
             }
+
+            if (stringBuilder.length() > 0) {
+              stringBuilder.setLength(stringBuilder.length() - 2);
+            }
+
+            try {
+              URI uri = new URI(server.getUrl());
+              int port = uri.getScheme().equals("http") ? 80 : 443;
+
+              HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
+                  this.extensionHelper.getBurpExtensionHelpers().buildHttpService(uri.getHost(), port, port == 443),
+                  uri.getPort() == 443, this.extensionHelper.buildRequest(uri, pathItem, operation));
+
+              this.httpRequestResponses.add(httpRequestResponse);
+            } catch (URISyntaxException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+
+            defaultTableModel.addRow(new Object[] { defaultTableModel.getRowCount(), operation.getKey(),
+                server.getUrl(), pathItem.getKey(), stringBuilder.toString(),
+                Optional.ofNullable(operation.getValue().getDescription()).orElse("N/A") });
           }
-
-          if (stringBuilder.length() > 0) {
-            stringBuilder.setLength(stringBuilder.length() - 2);
-          }
-
-          // try {
-          // URI uri = new URI(server.getUrl());
-
-          // this.httpRequestResponses
-          // .add(new HttpRequestResponse(
-          // this.extensionHelper.getBurpExtensionHelpers().buildHttpService(uri.getHost(),
-          // uri.getPort(),
-          // uri.getPort() == 443),
-          // uri.getPort() == 443, this.extensionHelper.buildRequest(openAPI, operation))
-          // // parameyets
-          // );
-          // } catch (URISyntaxException e) {
-          // // TODO Auto-generated catch block
-          // e.printStackTrace();
-          // }
-
-          defaultTableModel.addRow(new Object[] { defaultTableModel.getRowCount(), "METHOD", server.getUrl(),
-              pathItem.getKey(), stringBuilder.toString() });
         }
       }
     }
@@ -313,7 +324,7 @@ public class Tab implements ITab {
         try {
           OpenAPI swagger = new Loader().process(resource);
           populateTable(swagger);
-          printStatus(COPYRIGHT, Color.BLACK);
+          printStatus(COPYRIGHT);
         } catch (Exception e1) {
           printStatus(e1.getMessage(), Color.RED);
           resourceTextField.requestFocus();

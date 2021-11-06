@@ -17,16 +17,15 @@
 package swurg.utils;
 
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
-import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
 
 public class ExtensionHelper {
@@ -44,55 +43,79 @@ public class ExtensionHelper {
     return this.burpExtensionHelpers;
   }
 
-  private static String nullEmptyString(String input) {
-    return input == null ? "" : input;
-  }
-
-  private List<String> buildHeaders(Operation operation) {
+  private List<String> buildHeaders(URI uri, Map.Entry<String, PathItem> pathItem,
+      Map.Entry<String, Operation> operation) {
     List<String> headers = new ArrayList<>();
 
-    headers.add(
-        operation.getKey().toString() + " " + nullEmptyString(swagger.getBasePath()) + path.getKey() + " HTTP/1.1");
-    headers.add("Host: " + swagger.getHost().split(":")[0]);
+    headers.add(operation.getKey() + " " + pathItem.getKey() + " HTTP/1.1");
+    headers.add("Host: " + uri.getHost());
 
-    if (CollectionUtils.isNotEmpty(operation.getValue().getProduces())) {
-      headers.add("Accept: " + String.join(",", operation.getValue().getProduces()));
-    } else if (CollectionUtils.isNotEmpty(swagger.getProduces())) {
-      headers.add("Accept: " + String.join(",", swagger.getProduces()));
+    if (operation.getValue().getParameters() != null) {
+      for (Parameter parameter : operation.getValue().getParameters()) {
+        if (parameter != null && parameter.getIn() != null) {
+          switch (parameter.getIn()) {
+          case "header":
+            headers.add(parameter.getName() + " " + parameter.getSchema().getType());
+            break;
+          case "path":
+            // TODO: If I want to replace let's say {petId} in the path with {int} need to
+            // use a regex to replace parameter.getName() with
+            // parameter.getSchema().getType()
+            break;
+          default:
+            break;
+          }
+        }
+      }
     }
 
-    if (CollectionUtils.isNotEmpty(operation.getValue().getConsumes())) {
-      headers.add("Content-Type: " + String.join(",", operation.getValue().getConsumes()));
-    } else if (CollectionUtils.isNotEmpty(swagger.getConsumes())) {
-      headers.add("Content-Type: " + String.join(",", swagger.getConsumes()));
-    }
+    // TODO and add API key if needed
+    // if (CollectionUtils.isNotEmpty(operation.getValue().getProduces())) {
+    // headers.add("Accept: " + String.join(",",
+    // operation.getValue().getProduces()));
+    // } else if (CollectionUtils.isNotEmpty(swagger.getProduces())) {
+    // headers.add("Accept: " + String.join(",", swagger.getProduces()));
+    // }
+
+    // if (CollectionUtils.isNotEmpty(operation.getValue().getConsumes())) {
+    // headers.add("Content-Type: " + String.join(",",
+    // operation.getValue().getConsumes()));
+    // } else if (CollectionUtils.isNotEmpty(swagger.getConsumes())) {
+    // headers.add("Content-Type: " + String.join(",", swagger.getConsumes()));
+    // }
 
     return headers;
   }
 
-  // TODO: This!
-  public byte[] buildRequest(Operation operation) {
-    // byte[] httpMessage =
-    // this.burpExtensionHelpers.buildHttpMessage(buildHeaders(swagger, path,
-    // operation),
-    // null);
+  public byte[] buildRequest(URI uri, Map.Entry<String, PathItem> pathItem, Map.Entry<String, Operation> operation) {
+    List<String> headers = buildHeaders(uri, pathItem, operation);
+    byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
 
-    byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(null, null);
-
-    if (operation != null && operation.getParameters() != null) {
-      for (Parameter parameter : operation.getParameters()) {
-        switch (parameter.getIn()) {
-        case "body":
-          httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
-              this.burpExtensionHelpers.buildParameter(parameter.getName(), parameter.getSchema().getType(), (byte) 1));
-          break;
-        case "query":
-          httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
-              this.burpExtensionHelpers.buildParameter(parameter.getName(), parameter.getSchema().getType(), (byte) 0));
-          break;
-        default:
-          throw new NullPointerException(
-              "buildRequest(Operation operation) -> entered 'default' case... Please open a ticket on the GitHub repository of this project.");
+    if (operation.getValue().getParameters() != null) {
+      for (Parameter parameter : operation.getValue().getParameters()) {
+        if (parameter != null && parameter.getIn() != null) {
+          switch (parameter.getIn()) {
+          // TODO: Do not seem to be used in OAS v3 but still...
+          case "body":
+            httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
+                .buildParameter(parameter.getName(), "{" + parameter.getSchema().getType() + "}", (byte) 1));
+            break;
+          case "header":
+            // Handled in buildHeaders(URI uri, Map.Entry<String, PathItem> pathItem,
+            // Map.Entry<String, Operation> operation)
+            break;
+          case "path":
+            // Handled in buildHeaders(URI uri, Map.Entry<String, PathItem> pathItem,
+            // Map.Entry<String, Operation> operation)
+            break;
+          case "query":
+            httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
+                .buildParameter(parameter.getName(), "{" + parameter.getSchema().getType() + "}", (byte) 0));
+            break;
+          default:
+            throw new NullPointerException(
+                "buildRequest(URI uri, Map.Entry<String, PathItem> pathItem, Map.Entry<String, Operation> operation) -> entered 'default' case... Please open a ticket on the GitHub repository of this project.");
+          }
         }
       }
     }
