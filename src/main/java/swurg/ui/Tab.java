@@ -34,11 +34,11 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -266,16 +266,12 @@ public class Tab implements ITab {
         // create different maps for different methods merge them and iterate them
         for (Map.Entry<String, Operation> operation : operationMap.entrySet()) {
           if (operation.getValue() != null) {
-            StringBuilder stringBuilder = new StringBuilder();
+            StringJoiner stringJoiner = new StringJoiner(", ");
 
             if (operation.getValue().getParameters() != null) {
               for (Parameter parameter : operation.getValue().getParameters()) {
-                stringBuilder.append(parameter.getName()).append(", ");
+                stringJoiner.add(parameter.getName());
               }
-            }
-
-            if (stringBuilder.length() > 0) {
-              stringBuilder.setLength(stringBuilder.length() - 2);
             }
 
             try {
@@ -293,7 +289,7 @@ public class Tab implements ITab {
             }
 
             defaultTableModel.addRow(new Object[] { defaultTableModel.getRowCount(), operation.getKey(),
-                server.getUrl(), pathItem.getKey(), stringBuilder.toString(),
+                server.getUrl(), pathItem.getKey(), stringJoiner.toString(),
                 Optional.ofNullable(operation.getValue().getDescription()).orElse("N/A") });
           }
         }

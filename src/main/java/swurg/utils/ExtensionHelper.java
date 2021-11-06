@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import burp.IBurpExtenderCallbacks;
 import burp.IExtensionHelpers;
@@ -52,32 +53,24 @@ public class ExtensionHelper {
     headers.add("Host: " + uri.getHost());
 
     if (operation.getValue().getResponses() != null && operation.getValue().getResponses().get("200") != null) {
-      StringBuilder stringBuilder = new StringBuilder();
+      StringJoiner stringJoiner = new StringJoiner(", ");
 
       for (Map.Entry<String, MediaType> response : operation.getValue().getResponses().get("200").getContent()
           .entrySet()) {
-        stringBuilder.append(response.getKey()).append(", ");
+        stringJoiner.add(response.getKey());
       }
 
-      if (stringBuilder.length() > 0) {
-        stringBuilder.setLength(stringBuilder.length() - 2);
-      }
-
-      headers.add("Accept: " + stringBuilder.toString());
+      headers.add("Accept: " + stringJoiner.toString());
     }
 
     if (operation.getValue().getRequestBody() != null && operation.getValue().getRequestBody().getContent() != null) {
-      StringBuilder stringBuilder = new StringBuilder();
+      StringJoiner stringJoiner = new StringJoiner(", ");
 
       for (Map.Entry<String, MediaType> requestBody : operation.getValue().getRequestBody().getContent().entrySet()) {
-        stringBuilder.append(requestBody.getKey()).append(", ");
+        stringJoiner.add(requestBody.getKey());
       }
 
-      if (stringBuilder.length() > 0) {
-        stringBuilder.setLength(stringBuilder.length() - 2);
-      }
-
-      headers.add("Content-Type: " + stringBuilder.toString());
+      headers.add("Content-Type: " + stringJoiner.toString());
     }
 
     if (operation.getValue().getParameters() != null) {
