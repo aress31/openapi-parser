@@ -19,16 +19,6 @@ package swurg.ui;
 import static burp.BurpExtender.COPYRIGHT;
 import static burp.BurpExtender.EXTENSION;
 
-import burp.HttpRequestResponse;
-import burp.IBurpExtenderCallbacks;
-import burp.ITab;
-import com.google.common.base.Strings;
-import io.swagger.models.HttpMethod;
-import io.swagger.models.Operation;
-import io.swagger.models.Path;
-import io.swagger.models.Scheme;
-import io.swagger.models.Swagger;
-import io.swagger.models.parameters.Parameter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -40,9 +30,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -57,6 +50,17 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+
+import com.google.common.base.Strings;
+
+import burp.HttpRequestResponse;
+import burp.IBurpExtenderCallbacks;
+import burp.ITab;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.servers.Server;
 import swurg.process.Loader;
 import swurg.utils.ExtensionHelper;
 
@@ -75,10 +79,16 @@ public class Tab implements ITab {
 
   private List<HttpRequestResponse> httpRequestResponses;
 
+  // For debugging purposes
+  private PrintWriter stdout;
+
   public Tab(IBurpExtenderCallbacks callbacks) {
     this.contextMenu = new ContextMenu(callbacks, this);
     this.extensionHelper = new ExtensionHelper(callbacks);
     this.httpRequestResponses = new ArrayList<>();
+
+    // For debugging purposes
+    this.stdout = new PrintWriter(callbacks.getStdout(), true);
 
     initUI();
   }
@@ -136,15 +146,7 @@ public class Tab implements ITab {
     topPanel.add(filerPanel, gridBagConstraints);
 
     // scroll table
-    Object columns[] = {
-        "#",
-        "Method",
-        "Host",
-        "Protocol",
-        "Base Path",
-        "Endpoint",
-        "Param"
-    };
+    Object columns[] = { "#", "Method", "Server", "Endpoint", "Parameters" };
     Object rows[][] = {};
     this.table = new JTable(new DefaultTableModel(rows, columns) {
       @Override
@@ -157,9 +159,7 @@ public class Tab implements ITab {
       }
 
       @Override
-      public boolean isCellEditable(
-          int rows, int columns
-      ) {
+      public boolean isCellEditable(int rows, int columns) {
         return false;
       }
     });
@@ -197,9 +197,7 @@ public class Tab implements ITab {
     // enable column sorting
     this.table.setAutoCreateRowSorter(true);
     // enable table filtering
-    this.tableRowSorter = new TableRowSorter<>(
-        this.table.getModel()
-    );
+    this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
     this.table.setRowSorter(tableRowSorter);
 
     // status panel
@@ -217,11 +215,9 @@ public class Tab implements ITab {
 
     if (this.resourceTextField.getText().isEmpty()) {
       JFileChooser fileChooser = new JFileChooser();
-      fileChooser.addChoosableFileFilter(
-          new FileNameExtensionFilter("Swagger JSON File (*.json)", "json"));
-      fileChooser.addChoosableFileFilter(
-          new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml",
-              "yml"));
+      fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Swagger JSON File (*.json)", "json"));
+      fileChooser
+          .addChoosableFileFilter(new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml"));
 
       if (fileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
         File file = fileChooser.getSelectedFile();
@@ -239,60 +235,56 @@ public class Tab implements ITab {
     return this.table;
   }
 
-  public void printStatus(
-      String status, Color color
-  ) {
+  public void printStatus(String status, Color color) {
     this.statusLabel.setText(status);
     this.statusLabel.setForeground(color);
   }
 
-  public void populateTable(Swagger swagger) {
+  public void populateTable(OpenAPI openAPI) {
     DefaultTableModel defaultTableModel = (DefaultTableModel) this.table.getModel();
-    List<Scheme> schemes = swagger.getSchemes();
 
-    for (Scheme scheme : schemes) {
-      for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
-        for (Map.Entry<HttpMethod, Operation> operation : path.getValue().getOperationMap()
-            .entrySet()) {
+    for (Server server : openAPI.getServers()) {
+      for (Map.Entry<String, PathItem> pathItem : openAPI.getPaths().entrySet()) {
+        // create different maps for different methods merge them and iterate them
+        for (Operation operation : new ArrayList<Operation>(
+            Arrays.asList(pathItem.getValue().getGet(), pathItem.getValue().getHead(), pathItem.getValue().getPatch(),
+                pathItem.getValue().getPost(), pathItem.getValue().getPut(), pathItem.getValue().getTrace()))) {
+
           StringBuilder stringBuilder = new StringBuilder();
 
-          for (Parameter parameter : operation.getValue().getParameters()) {
-            stringBuilder.append(parameter.getName()).append(", ");
+          if (operation != null && operation.getParameters() != null) {
+            for (Parameter parameter : operation.getParameters()) {
+              stdout.println("---------");
+              stdout.println(parameter.getName());
+              stdout.println(parameter.getIn());
+              stdout.println(parameter.getSchema().getType());
+              stdout.println("---------");
+              stringBuilder.append(parameter.getName()).append(", ");
+            }
           }
 
           if (stringBuilder.length() > 0) {
             stringBuilder.setLength(stringBuilder.length() - 2);
           }
 
-          this.httpRequestResponses.add(
-              new HttpRequestResponse(
-                  this.extensionHelper.getBurpExtensionHelpers().buildHttpService(
-                      swagger.getHost().split(":")[0],
-                      this.extensionHelper
-                          .getPort(
-                              swagger,
-                              scheme
-                          ),
-                      this.extensionHelper
-                          .isUseHttps(
-                              scheme)
-                  ),
-                  this.extensionHelper.isUseHttps(scheme),
-                  this.extensionHelper
-                      .buildRequest(swagger, path,
-                          operation
-                      )
-              ));
+          // try {
+          // URI uri = new URI(server.getUrl());
 
-          defaultTableModel.addRow(new Object[]{
-              defaultTableModel.getRowCount(),
-              operation.getKey().toString(),
-              swagger.getHost().split(":")[0],
-              scheme.toValue().toUpperCase(),
-              swagger.getBasePath(),
-              path.getKey(),
-              stringBuilder.toString()
-          });
+          // this.httpRequestResponses
+          // .add(new HttpRequestResponse(
+          // this.extensionHelper.getBurpExtensionHelpers().buildHttpService(uri.getHost(),
+          // uri.getPort(),
+          // uri.getPort() == 443),
+          // uri.getPort() == 443, this.extensionHelper.buildRequest(openAPI, operation))
+          // // parameyets
+          // );
+          // } catch (URISyntaxException e) {
+          // // TODO Auto-generated catch block
+          // e.printStackTrace();
+          // }
+
+          defaultTableModel.addRow(new Object[] { defaultTableModel.getRowCount(), "METHOD", server.getUrl(),
+              pathItem.getKey(), stringBuilder.toString() });
         }
       }
     }
@@ -319,7 +311,7 @@ public class Tab implements ITab {
         String resource = getResource();
 
         try {
-          Swagger swagger = new Loader().process(resource);
+          OpenAPI swagger = new Loader().process(resource);
           populateTable(swagger);
           printStatus(COPYRIGHT, Color.BLACK);
         } catch (Exception e1) {

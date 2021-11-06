@@ -34,7 +34,6 @@ public class BurpExtender implements IBurpExtender {
     callbacks.printOutput(String.format("%s tab initialised", EXTENSION));
 
     callbacks.registerContextMenuFactory(contextMenuFactory);
-    callbacks
-        .printOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
+    callbacks.printOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
   }
 }

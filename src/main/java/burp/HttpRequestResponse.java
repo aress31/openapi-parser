@@ -22,9 +22,7 @@ public class HttpRequestResponse implements IHttpRequestResponse {
   private boolean useHttps;
   private byte[] request;
 
-  public HttpRequestResponse(
-      IHttpService httpService, boolean useHttps, byte[] request
-  ) {
+  public HttpRequestResponse(IHttpService httpService, boolean useHttps, byte[] request) {
     this.httpService = httpService;
     this.useHttps = useHttps;
     this.request = request;
