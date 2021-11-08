@@ -25,10 +25,11 @@ Swurg is an OpenAPI parser that aims to streamline this entire process by allowi
 
 ## Supported Features
 
-- Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications (OAS).
-- Supports both JSON and YAML formats.
 - OpenAPI documents can be parsed either from a supplied file or URL. The extension can fetch OpenAPI documents directly from a URL using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
+- Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications (OAS).
 - Requests can be sent to the `Comparer, Intruder, Repeater, Scanner and Site map` Burp tools.
+- Row highlighting allowing pentesters to highlight "interesting" API calls and/or colour code them for reporting purposes.
+- Supports both JSON and YAML formats.
 
 ## Installation
 
