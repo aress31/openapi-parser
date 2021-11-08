@@ -41,7 +41,8 @@ import burp.IBurpExtenderCallbacks;
 @SuppressWarnings("serial")
 class ContextMenu extends JPopupMenu {
 
-  private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
+  // private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
+  private final Map<Integer, Color> highlightedRows = new HashMap<>();
   private List<HttpRequestResponse> httpRequestResponses;
 
   // For debugging purposes
@@ -113,28 +114,27 @@ class ContextMenu extends JPopupMenu {
           .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Server").getModelIndex()).toString()));
 
       x.addActionListener(e -> {
-        IntStream.of(tab.getTable().getSelectedRows())
-            .forEach(row -> this.highlightedRows.put(row, Arrays.asList(Color.BLACK, color)));
-
-        stdOut.println(this.highlightedRows);
-
-        stdOut.println(highlightedRows.containsKey(5));
+        IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> this.highlightedRows.put(row, color)
+        // this.highlightedRows.put(row, Arrays.asList(Color.BLACK, color)
+        );
 
         tab.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
           @Override
           public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
               boolean hasFocus, int row, int column) {
-            final var component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-            stdOut.println(row);
-            // stdOut.println(highlightedRows.get(row).toString());
+            stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
 
-            // component.setBackground(highlightedRows.get(row).get(1));
-
-            if (!isSelected && highlightedRows.containsKey(row)) {
-              component.setForeground(highlightedRows.get(row).get(0));
-              component.setBackground(highlightedRows.get(row).get(1));
+            if (highlightedRows.get(row) != null) {
+              component.setBackground(highlightedRows.get(row));
+              stdOut.println("XXXXXXX");
             }
+
+            // if (!isSelected && highlightedRows.containsKey(row)) {
+            // component.setForeground(highlightedRows.get(row).get(0));
+            // component.setBackground(highlightedRows.get(row).get(1));
+            // }
 
             return component;
           }
