@@ -100,12 +100,12 @@ class ContextMenu extends JPopupMenu {
     JMenu highlightMenu = new JMenu("Highlight");
 
     // Add null
-    for (Color color : Arrays.asList(Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA,
-        Color.PINK, Color.GRAY)) {
+    for (Color color : Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
+        Color.MAGENTA, Color.PINK, Color.GRAY)) {
       final JMenuItem x = new JMenuItem();
       x.setOpaque(true);
       x.setBackground(color);
-      x.setForeground(Color.BLACK);
+      x.setForeground(color != null ? Color.BLACK : null);
 
       highlightMenu.add(x);
 
@@ -114,7 +114,7 @@ class ContextMenu extends JPopupMenu {
 
       x.addActionListener(e -> {
         IntStream.of(tab.getTable().getSelectedRows())
-            .forEach(row -> this.highlightedRows.put(row, Arrays.asList(Color.BLACK, color)));
+            .forEach(row -> this.highlightedRows.put(row, Arrays.asList(color != null ? Color.BLACK : null, color)));
 
         tab.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
           @Override
