@@ -125,9 +125,18 @@ class ContextMenu extends JPopupMenu {
 
             // stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
 
+            if (isSelected) {
+              component
+                  .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground"));
+              component
+                  .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground"));
+            }
+
             if (highlightedRows.containsKey(row)) {
-              component.setForeground(highlightedRows.get(row).get(0));
-              component.setBackground(highlightedRows.get(row).get(1));
+              component.setForeground(
+                  isSelected ? highlightedRows.get(row).get(0).darker() : highlightedRows.get(row).get(0));
+              component.setBackground(
+                  isSelected ? highlightedRows.get(row).get(1).brighter() : highlightedRows.get(row).get(1));
             } else {
               if (row % 2 == 0) {
                 component.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.background"));
@@ -137,13 +146,6 @@ class ContextMenu extends JPopupMenu {
               }
 
               component.setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.foreground"));
-            }
-
-            if (isSelected) {
-              component
-                  .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground"));
-              component
-                  .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground"));
             }
 
             return component;
