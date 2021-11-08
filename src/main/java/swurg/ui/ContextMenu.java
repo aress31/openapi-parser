@@ -114,7 +114,7 @@ class ContextMenu extends JPopupMenu {
 
       x.addActionListener(e -> {
         IntStream.of(tab.getTable().getSelectedRows())
-            .forEach(row -> this.highlightedRows.put(row, Arrays.asList(color != null ? Color.BLACK : null, color)));
+            .forEach(row -> this.highlightedRows.put(row, color != null ? Arrays.asList(Color.BLACK, color) : null));
 
         tab.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
           @Override
@@ -125,14 +125,7 @@ class ContextMenu extends JPopupMenu {
 
             // stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
 
-            if (isSelected) {
-              component
-                  .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground"));
-              component
-                  .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground"));
-            }
-
-            if (highlightedRows.containsKey(row)) {
+            if (highlightedRows.containsKey(row) && highlightedRows.get(row) != null) {
               component.setForeground(
                   isSelected ? highlightedRows.get(row).get(0).darker() : highlightedRows.get(row).get(0));
               component.setBackground(
@@ -146,6 +139,13 @@ class ContextMenu extends JPopupMenu {
               }
 
               component.setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.foreground"));
+            }
+
+            if (isSelected) {
+              component
+                  .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground"));
+              component
+                  .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground"));
             }
 
             return component;
