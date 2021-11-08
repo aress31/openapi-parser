@@ -19,7 +19,6 @@ package swurg.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,8 +40,8 @@ import burp.IBurpExtenderCallbacks;
 @SuppressWarnings("serial")
 class ContextMenu extends JPopupMenu {
 
-  // private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
-  private final Map<Integer, Color> highlightedRows = new HashMap<>();
+  private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
+  // private final Map<Integer, Color> highlightedRows = new HashMap<>();
   private List<HttpRequestResponse> httpRequestResponses;
 
   // For debugging purposes
@@ -103,7 +102,7 @@ class ContextMenu extends JPopupMenu {
     // Add null
     for (Color color : Arrays.asList(Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA,
         Color.PINK, Color.GRAY)) {
-      JMenuItem x = new JMenuItem();
+      final JMenuItem x = new JMenuItem();
       x.setOpaque(true);
       x.setBackground(color);
       x.setForeground(Color.BLACK);
@@ -114,27 +113,38 @@ class ContextMenu extends JPopupMenu {
           .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Server").getModelIndex()).toString()));
 
       x.addActionListener(e -> {
-        IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> this.highlightedRows.put(row, color)
-        // this.highlightedRows.put(row, Arrays.asList(Color.BLACK, color)
-        );
+        IntStream.of(tab.getTable().getSelectedRows())
+            .forEach(row -> this.highlightedRows.put(row, Arrays.asList(Color.BLACK, color)));
 
         tab.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
           @Override
           public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
               boolean hasFocus, int row, int column) {
-            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                column);
 
             stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
 
-            if (highlightedRows.get(row) != null) {
-              component.setBackground(highlightedRows.get(row));
-              stdOut.println("XXXXXXX");
+            if (highlightedRows.containsKey(row)) {
+              component.setForeground(highlightedRows.get(row).get(0));
+              component.setBackground(highlightedRows.get(row).get(1));
+            } else {
+              if (row % 2 == 0) {
+                component.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.background"));
+              } else {
+                component
+                    .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.alternateRowColor"));
+              }
+
+              component.setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.foreground"));
             }
 
-            // if (!isSelected && highlightedRows.containsKey(row)) {
-            // component.setForeground(highlightedRows.get(row).get(0));
-            // component.setBackground(highlightedRows.get(row).get(1));
-            // }
+            if (isSelected) {
+              component
+                  .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground"));
+              component
+                  .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground"));
+            }
 
             return component;
           }
