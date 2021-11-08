@@ -123,7 +123,7 @@ class ContextMenu extends JPopupMenu {
             final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
                 column);
 
-            stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
+            // stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
 
             if (highlightedRows.containsKey(row)) {
               component.setForeground(highlightedRows.get(row).get(0));
