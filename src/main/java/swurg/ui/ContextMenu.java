@@ -16,22 +16,42 @@
 
 package swurg.ui;
 
-import burp.HttpRequestResponse;
-import burp.IBurpExtenderCallbacks;
+import java.awt.Color;
+import java.awt.Component;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
+
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+
+import burp.HttpRequestResponse;
+import burp.IBurpExtenderCallbacks;
 
 @SuppressWarnings("serial")
 class ContextMenu extends JPopupMenu {
 
+  private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
   private List<HttpRequestResponse> httpRequestResponses;
 
+  // For debugging purposes
+  private PrintWriter stdOut, stdErr;
+
   ContextMenu(IBurpExtenderCallbacks callbacks, Tab tab) {
+    // For debugging purposes
+    this.stdErr = new PrintWriter(callbacks.getStderr(), true);
+    this.stdOut = new PrintWriter(callbacks.getStdout(), true);
+
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
     addToSiteMap.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
       int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
@@ -77,6 +97,51 @@ class ContextMenu extends JPopupMenu {
       callbacks.sendToComparer(httpRequestResponse.getRequest());
     }));
 
+    JMenu highlightMenu = new JMenu("Highlight");
+
+    // Add null
+    for (Color color : Arrays.asList(Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA,
+        Color.PINK, Color.GRAY)) {
+      JMenuItem x = new JMenuItem();
+      x.setOpaque(true);
+      x.setBackground(color);
+      x.setForeground(Color.BLACK);
+
+      highlightMenu.add(x);
+
+      x.addHierarchyListener(e -> x.setText(tab.getTable()
+          .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Server").getModelIndex()).toString()));
+
+      x.addActionListener(e -> {
+        IntStream.of(tab.getTable().getSelectedRows())
+            .forEach(row -> this.highlightedRows.put(row, Arrays.asList(Color.BLACK, color)));
+
+        stdOut.println(this.highlightedRows);
+
+        stdOut.println(highlightedRows.containsKey(5));
+
+        tab.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+          @Override
+          public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+              boolean hasFocus, int row, int column) {
+            final var component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            stdOut.println(row);
+            // stdOut.println(highlightedRows.get(row).toString());
+
+            // component.setBackground(highlightedRows.get(row).get(1));
+
+            if (!isSelected && highlightedRows.containsKey(row)) {
+              component.setForeground(highlightedRows.get(row).get(0));
+              component.setBackground(highlightedRows.get(row).get(1));
+            }
+
+            return component;
+          }
+        });
+      });
+    }
+
     JMenuItem clear = new JMenuItem("Clear item(s)");
     clear.addActionListener(e -> {
       // iterating the indices in decreasing order to not mess up the table shifting
@@ -98,15 +163,17 @@ class ContextMenu extends JPopupMenu {
       ((DefaultTableModel) tab.getTable().getModel()).setRowCount(0);
     });
 
-    add(addToSiteMap);
-    add(new JSeparator());
-    add(activeScan);
-    add(sendToIntruder);
-    add(sendToRepeater);
-    add(sendToComparer);
-    add(new JSeparator());
-    add(clear);
-    add(clearAll);
+    this.add(addToSiteMap);
+    this.add(new JSeparator());
+    this.add(activeScan);
+    this.add(sendToIntruder);
+    this.add(sendToRepeater);
+    this.add(sendToComparer);
+    this.add(new JSeparator());
+    this.add(highlightMenu);
+    this.add(new JSeparator());
+    this.add(clear);
+    this.add(clearAll);
   }
 
   void setHttpRequestResponses(List<HttpRequestResponse> httpRequestResponses) {

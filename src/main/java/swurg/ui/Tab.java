@@ -51,6 +51,7 @@ import javax.swing.RowFilter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -327,5 +328,8 @@ public class Tab implements ITab {
         }
       }
     }
+  }
+
+  public void setDefaultRenderer(Class<Object> class1, DefaultTableCellRenderer defaultTableCellRenderer) {
   }
 }
