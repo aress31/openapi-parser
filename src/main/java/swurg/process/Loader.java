@@ -17,11 +17,16 @@
 package swurg.process;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import com.google.common.base.Strings;
 
 import burp.IBurpExtenderCallbacks;
 import io.swagger.parser.OpenAPIParser;
+
+import java.nio.file.Paths;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
@@ -30,11 +35,14 @@ public class Loader {
   public OpenAPI process(IBurpExtenderCallbacks callbacks, String resource) {
     SwaggerParseResult result;
 
-    if (Strings.isNullOrEmpty(resource))
-      throw new IllegalArgumentException("No file or URL specified");
-
-    if (new File(resource).exists()) {
-      result = new OpenAPIParser().readContents(resource, null, null);
+    if (Files.exists(Paths.get(resource))) {
+      try {
+        String openAPIasString = Files.readString(Paths.get(resource), StandardCharsets.US_ASCII);
+        result = new OpenAPIParser().readContents(openAPIasString, null, null);
+      } catch (IOException e) {
+        callbacks.printError(e.getMessage());
+        throw new NullPointerException(String.format("%s", e.getMessage()));
+      }
     } else {
       result = new OpenAPIParser().readLocation(resource, null, null);
     }

@@ -289,14 +289,16 @@ public class Tab implements ITab {
       if (e.getSource() instanceof JButton) {
         String resource = getResource();
 
-        try {
-          OpenAPI openAPI = new Loader().process(callbacks, resource);
-          populateTable(openAPI);
-          printStatus(COPYRIGHT, javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
-        } catch (Exception e1) {
-          callbacks.printError(e1.getMessage());
-          printStatus(e1.getMessage(), Color.RED);
-          resourceTextField.requestFocus();
+        if (resource != null) {
+          try {
+            OpenAPI openAPI = new Loader().process(callbacks, resource);
+            populateTable(openAPI);
+            printStatus(COPYRIGHT, javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
+          } catch (Exception e1) {
+            callbacks.printError(e1.getMessage());
+            printStatus(e1.getMessage(), Color.RED);
+            resourceTextField.requestFocus();
+          }
         }
       }
     }
