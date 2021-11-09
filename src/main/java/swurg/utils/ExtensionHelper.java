@@ -45,6 +45,22 @@ public class ExtensionHelper {
     return this.burpExtensionHelpers;
   }
 
+  public String parseParameter(Parameter parameter) {
+    String value;
+
+    if (parameter.getSchema().getExample() != null) {
+      value = parameter.getSchema().getExample().toString();
+    } else if (parameter.getSchema().getEnum() != null) {
+      value = parameter.getSchema().getEnum().get(0).toString();
+    } else if (parameter.getSchema().getFormat() != null) {
+      value = parameter.getSchema().getType() + "->" + parameter.getSchema().getFormat();
+    } else {
+      value = parameter.getSchema().getType();
+    }
+
+    return value;
+  }
+
   private List<String> buildHeaders(URI uri, Map.Entry<String, PathItem> pathItem,
       Map.Entry<String, Operation> operation) {
     List<String> headers = new ArrayList<>();
@@ -64,23 +80,21 @@ public class ExtensionHelper {
     }
 
     if (operation.getValue().getRequestBody() != null && operation.getValue().getRequestBody().getContent() != null) {
-      StringJoiner stringJoiner = new StringJoiner(",");
-
-      for (Map.Entry<String, MediaType> requestBody : operation.getValue().getRequestBody().getContent().entrySet()) {
-        stringJoiner.add(requestBody.getKey());
-        // TODO: Optimise this code to only get the first relevant value as Content-Type
-        // must be uniq
-      }
-
-      headers.add("Content-Type: " + stringJoiner.toString());
+      // Using the first specified value for 'Content-Type'
+      headers.add("Content-Type: "
+          + operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey());
     }
 
     if (operation.getValue().getParameters() != null) {
       for (Parameter parameter : operation.getValue().getParameters()) {
+        String value = parseParameter(parameter);
+
+        // this.stdOut.println(String.format("value -> %s", value));
+
         if (parameter != null && parameter.getIn() != null) {
           switch (parameter.getIn()) {
           case "header":
-            headers.add(parameter.getName() + " " + parameter.getSchema().getType());
+            headers.add(parameter.getName() + " " + value);
             break;
           case "path":
             // TODO: If I want to replace let's say {petId} in the path with {int} need to
@@ -104,11 +118,33 @@ public class ExtensionHelper {
     if (operation.getValue().getParameters() != null) {
       for (Parameter parameter : operation.getValue().getParameters()) {
         if (parameter != null && parameter.getIn() != null) {
+          String value = parseParameter(parameter);
+
+          // this.stdOut.println(String.format("value -> %s", value));
+          // this.stdOut.println(String.format("parameter.getIn() -> %s",
+          // parameter.getIn()));
+
           switch (parameter.getIn()) {
-          // TODO: Do not seem to be used in OAS v3 but still...
+          // TODO: parameter.getIn() does not return 'body' for some reasons...
           case "body":
-            httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-                .buildParameter(parameter.getName(), "{" + parameter.getSchema().getType() + "}", (byte) 1));
+            this.stdOut.println(String.format(
+                "operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey() -> %s",
+                operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey()));
+
+            byte type;
+
+            if (operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey()
+                .contains("json")) {
+              type = 6;
+            } else if (operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey()
+                .contains("xml")) {
+              type = 3;
+            } else {
+              type = 1;
+            }
+
+            httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
+                this.burpExtensionHelpers.buildParameter(parameter.getName(), "{" + value + "}", type));
             break;
           case "header":
             // Handled in buildHeaders(URI uri, Map.Entry<String, PathItem> pathItem,
@@ -119,8 +155,8 @@ public class ExtensionHelper {
             // Map.Entry<String, Operation> operation)
             break;
           case "query":
-            httpMessage = this.burpExtensionHelpers.addParameter(httpMessage, this.burpExtensionHelpers
-                .buildParameter(parameter.getName(), "{" + parameter.getSchema().getType() + "}", (byte) 0));
+            httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
+                this.burpExtensionHelpers.buildParameter(parameter.getName(), "{" + value + "}", (byte) 0));
             break;
           default:
             throw new NullPointerException(

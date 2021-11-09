@@ -26,8 +26,9 @@ public class ContextMenuFactory implements IContextMenuFactory {
   @Override
   public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
     List<JMenuItem> jMenuItems = new ArrayList<>();
-    JMenuItem send_to_openAPI_parser = new JMenuItem(String.format("Send to %s", EXTENSION));
-    send_to_openAPI_parser.addActionListener(e -> {
+    JMenuItem sendToOpenAPIParser = new JMenuItem(String.format("Send to %s", EXTENSION));
+
+    sendToOpenAPIParser.addActionListener(e -> {
       for (IHttpRequestResponse selectedMessage : invocation.getSelectedMessages()) {
         IRequestInfo requestInfo = this.callbacks.getHelpers().analyzeRequest(selectedMessage);
         String resource = requestInfo.getUrl().toString();
@@ -35,14 +36,15 @@ public class ContextMenuFactory implements IContextMenuFactory {
         try {
           OpenAPI openAPI = new Loader().process(resource);
           this.tab.populateTable(openAPI);
-          this.tab.printStatus(COPYRIGHT, Color.BLACK);
-        } catch (IllegalArgumentException | NullPointerException e1) {
+          this.tab.printStatus(COPYRIGHT,
+              javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
+        } catch (Exception e1) {
           this.tab.printStatus(e1.getMessage(), Color.RED);
         }
       }
     });
 
-    jMenuItems.add(send_to_openAPI_parser);
+    jMenuItems.add(sendToOpenAPIParser);
 
     return jMenuItems;
   }

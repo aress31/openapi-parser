@@ -3,7 +3,7 @@
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# You may obtain a copyToClipboard of the License at
 
 # http://www.apache.org/licenses/LICENSE-2.0
 
@@ -18,7 +18,13 @@ package swurg.ui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,6 +57,40 @@ class ContextMenu extends JPopupMenu {
     // For debugging purposes
     this.stdErr = new PrintWriter(callbacks.getStderr(), true);
     this.stdOut = new PrintWriter(callbacks.getStdout(), true);
+
+    JMenuItem copyToClipboard = new JMenuItem();
+
+    tab.getTable().addMouseListener(new MouseAdapter() {
+      public void mousePressed(MouseEvent e) {
+        JTable source = (JTable) e.getSource();
+        int row = source.rowAtPoint(e.getPoint());
+        int column = source.columnAtPoint(e.getPoint());
+
+        if (!source.isRowSelected(row))
+          source.changeSelection(row, column, false, false);
+
+        copyToClipboard
+            .setText(tab.getTable().getValueAt(row, tab.getTable().getColumn("Server").getModelIndex()).toString()
+                + tab.getTable().getValueAt(row, tab.getTable().getColumn("Path").getModelIndex()).toString());
+      }
+    });
+
+    copyToClipboard.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard()
+        .setContents(new StringSelection(copyToClipboard.getText()), null));
+
+    JMenuItem addToScope = new JMenuItem("Add to scope");
+    addToScope.addActionListener(e -> {
+      try {
+        callbacks.includeInScope(new URL(tab.getTable()
+            .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Server").getModelIndex()).toString()
+            + tab.getTable()
+                .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Path").getModelIndex())
+                .toString()));
+      } catch (MalformedURLException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+    });
 
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
     addToSiteMap.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
@@ -175,6 +215,9 @@ class ContextMenu extends JPopupMenu {
       ((DefaultTableModel) tab.getTable().getModel()).setRowCount(0);
     });
 
+    this.add(copyToClipboard);
+    this.add(new JSeparator());
+    this.add(addToScope);
     this.add(addToSiteMap);
     this.add(new JSeparator());
     this.add(activeScan);

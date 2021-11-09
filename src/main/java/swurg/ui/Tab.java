@@ -48,10 +48,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -68,6 +68,9 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.servers.Server;
 import swurg.process.Loader;
 import swurg.utils.ExtensionHelper;
+
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 public class Tab implements ITab {
 
@@ -88,7 +91,6 @@ public class Tab implements ITab {
   private PrintWriter stdOut, stdErr;
 
   public Tab(IBurpExtenderCallbacks callbacks) {
-    this.contextMenu = new ContextMenu(callbacks, this);
     this.extensionHelper = new ExtensionHelper(callbacks);
     this.httpRequestResponses = new ArrayList<>();
 
@@ -97,6 +99,8 @@ public class Tab implements ITab {
     this.stdOut = new PrintWriter(callbacks.getStdout(), true);
 
     initUI();
+
+    this.contextMenu = new ContextMenu(callbacks, this);
   }
 
   private void initUI() {
@@ -111,7 +115,7 @@ public class Tab implements ITab {
     gridBagConstraints.weightx = 1.0;
     JPanel resourcePanel = new JPanel();
     resourcePanel.add(new JLabel("Parse file/URL:"));
-    this.resourceTextField.setHorizontalAlignment(JTextField.CENTER);
+    this.resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
     resourcePanel.add(this.resourceTextField);
     JButton resourceButton = new JButton("Browse/Load");
     resourceButton.addActionListener(new LoadButtonListener());
@@ -152,8 +156,8 @@ public class Tab implements ITab {
     topPanel.add(filerPanel, gridBagConstraints);
 
     // scroll table
-    Object columns[] = { "#", "Method", "Server", "Path", "Parameters", "Description" };
-    Object rows[][] = {};
+    Object[] columns = { "#", "Method", "Server", "Path", "Parameters", "Description" };
+    Object[][] rows = {};
     this.table = new JTable(new DefaultTableModel(rows, columns) {
       @Override
       public Class<?> getColumnClass(int column) {
@@ -175,10 +179,9 @@ public class Tab implements ITab {
       public void mouseReleased(MouseEvent e) {
         int selectedRow = table.rowAtPoint(e.getPoint());
 
-        if (selectedRow >= 0 && selectedRow < table.getRowCount()) {
-          if (!table.getSelectionModel().isSelectedIndex(selectedRow)) {
-            table.setRowSelectionInterval(selectedRow, selectedRow);
-          }
+        if ((selectedRow >= 0 && selectedRow < table.getRowCount())
+            && !table.getSelectionModel().isSelectedIndex(selectedRow)) {
+          table.setRowSelectionInterval(selectedRow, selectedRow);
         }
 
         if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
@@ -216,33 +219,8 @@ public class Tab implements ITab {
     this.rootPanel.add(bottomPanel, BorderLayout.SOUTH);
   }
 
-  private String getResource() {
-    String resource = null;
-
-    if (this.resourceTextField.getText().isEmpty()) {
-      JFileChooser fileChooser = new JFileChooser();
-      fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Swagger JSON File (*.json)", "json"));
-      fileChooser
-          .addChoosableFileFilter(new FileNameExtensionFilter("Swagger YAML File (*.yml, *.yaml)", "yaml", "yml"));
-
-      if (fileChooser.showOpenDialog(this.rootPanel) == JFileChooser.APPROVE_OPTION) {
-        File file = fileChooser.getSelectedFile();
-        resource = file.getAbsolutePath();
-        resourceTextField.setText(resource);
-      }
-    } else {
-      resource = this.resourceTextField.getText();
-    }
-
-    return resource;
-  }
-
   JTable getTable() {
     return this.table;
-  }
-
-  public void printStatus(String status) {
-    this.statusLabel.setText(status);
   }
 
   public void printStatus(String status, Color color) {
@@ -319,17 +297,35 @@ public class Tab implements ITab {
         String resource = getResource();
 
         try {
-          OpenAPI swagger = new Loader().process(resource);
-          populateTable(swagger);
-          printStatus(COPYRIGHT);
+          OpenAPI openAPI = new Loader().process(resource);
+          populateTable(openAPI);
+          printStatus(COPYRIGHT, javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
         } catch (Exception e1) {
           printStatus(e1.getMessage(), Color.RED);
           resourceTextField.requestFocus();
         }
       }
     }
-  }
 
-  public void setDefaultRenderer(Class<Object> class1, DefaultTableCellRenderer defaultTableCellRenderer) {
+    private String getResource() {
+      String resource = null;
+
+      if (resourceTextField.getText().isEmpty()) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("OpenAPI JSON File (*.json)", "json"));
+        fileChooser
+            .addChoosableFileFilter(new FileNameExtensionFilter("OpenAPI YAML File (*.yml, *.yaml)", "yaml", "yml"));
+
+        if (fileChooser.showOpenDialog(rootPanel) == JFileChooser.APPROVE_OPTION) {
+          File file = fileChooser.getSelectedFile();
+          resource = file.getAbsolutePath();
+          resourceTextField.setText(resource);
+        }
+      } else {
+        resource = resourceTextField.getText();
+      }
+
+      return resource;
+    }
   }
 }
