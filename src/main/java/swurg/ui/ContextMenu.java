@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    Copyright (C) 2016-2021 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -47,17 +46,9 @@ import burp.IBurpExtenderCallbacks;
 class ContextMenu extends JPopupMenu {
 
   private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
-  // private final Map<Integer, Color> highlightedRows = new HashMap<>();
   private List<HttpRequestResponse> httpRequestResponses;
 
-  // For debugging purposes
-  private PrintWriter stdOut, stdErr;
-
   ContextMenu(IBurpExtenderCallbacks callbacks, Tab tab) {
-    // For debugging purposes
-    this.stdErr = new PrintWriter(callbacks.getStderr(), true);
-    this.stdOut = new PrintWriter(callbacks.getStdout(), true);
-
     JMenuItem copyToClipboard = new JMenuItem();
 
     tab.getTable().addMouseListener(new MouseAdapter() {
@@ -87,8 +78,7 @@ class ContextMenu extends JPopupMenu {
                 .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Path").getModelIndex())
                 .toString()));
       } catch (MalformedURLException e1) {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
+        callbacks.printError(e1.getMessage());
       }
     });
 
@@ -163,7 +153,8 @@ class ContextMenu extends JPopupMenu {
             final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
                 column);
 
-            // stdOut.println(String.format("%s -> %s", row, highlightedRows.get(row)));
+            // callbacks.printOutput(String.format("%s -> %s", row,
+            // highlightedRows.get(row)));
 
             if (highlightedRows.containsKey(row) && highlightedRows.get(row) != null) {
               component.setForeground(

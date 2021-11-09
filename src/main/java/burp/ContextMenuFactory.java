@@ -34,11 +34,12 @@ public class ContextMenuFactory implements IContextMenuFactory {
         String resource = requestInfo.getUrl().toString();
 
         try {
-          OpenAPI openAPI = new Loader().process(resource);
+          OpenAPI openAPI = new Loader().process(callbacks, resource);
           this.tab.populateTable(openAPI);
           this.tab.printStatus(COPYRIGHT,
               javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
         } catch (Exception e1) {
+          this.callbacks.printError(e1.getMessage());
           this.tab.printStatus(e1.getMessage(), Color.RED);
         }
       }

@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    Copyright (C) 2016-2021 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import java.io.File;
 
 import com.google.common.base.Strings;
 
-import io.swagger.v3.oas.models.OpenAPI;
+import burp.IBurpExtenderCallbacks;
 import io.swagger.parser.OpenAPIParser;
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 public class Loader {
 
-  public OpenAPI process(String resource) {
+  public OpenAPI process(IBurpExtenderCallbacks callbacks, String resource) {
     SwaggerParseResult result;
 
     if (Strings.isNullOrEmpty(resource))
@@ -40,14 +41,12 @@ public class Loader {
 
     OpenAPI openAPI = result.getOpenAPI();
 
-    if (result.getMessages() != null)
-      result.getMessages().forEach(System.err::println); // validation errors and warnings
-
-    if (openAPI != null) {
-      return openAPI;
-    } else {
-      throw new NullPointerException(
-          String.format("The OpenAPI specification contained in %s is ill formed and cannot be parsed", resource));
+    // validation errors and warnings
+    if (result.getMessages() != null && !result.getMessages().isEmpty()) {
+      callbacks.printError(result.getMessages().toString());
+      throw new NullPointerException(String.format("%s", result.getMessages()));
     }
+
+    return openAPI;
   }
 }

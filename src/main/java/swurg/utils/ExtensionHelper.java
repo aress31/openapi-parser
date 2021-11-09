@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    Copyright (C) 2016-2021 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package swurg.utils;
 
-import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +32,11 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 public class ExtensionHelper {
 
   private IExtensionHelpers burpExtensionHelpers;
-  private PrintStream stdOut, stdErr;
+  private IBurpExtenderCallbacks callbacks;
 
   public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
     this.burpExtensionHelpers = callbacks.getHelpers();
-    this.stdOut = new PrintStream(callbacks.getStdout());
-    this.stdErr = new PrintStream(callbacks.getStderr());
+    this.callbacks = callbacks;
   }
 
   public IExtensionHelpers getBurpExtensionHelpers() {
@@ -89,7 +87,7 @@ public class ExtensionHelper {
       for (Parameter parameter : operation.getValue().getParameters()) {
         String value = parseParameter(parameter);
 
-        // this.stdOut.println(String.format("value -> %s", value));
+        // this.callbacks.printOutput(String.format("value -> %s", value));
 
         if (parameter != null && parameter.getIn() != null) {
           switch (parameter.getIn()) {
@@ -120,14 +118,14 @@ public class ExtensionHelper {
         if (parameter != null && parameter.getIn() != null) {
           String value = parseParameter(parameter);
 
-          // this.stdOut.println(String.format("value -> %s", value));
-          // this.stdOut.println(String.format("parameter.getIn() -> %s",
+          // this.callbacks.printOutput(String.format("value -> %s", value));
+          // this.callbacks.printOutput(String.format("parameter.getIn() -> %s",
           // parameter.getIn()));
 
           switch (parameter.getIn()) {
           // TODO: parameter.getIn() does not return 'body' for some reasons...
           case "body":
-            this.stdOut.println(String.format(
+            this.callbacks.printOutput(String.format(
                 "operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey() -> %s",
                 operation.getValue().getRequestBody().getContent().entrySet().stream().findFirst().get().getKey()));
 

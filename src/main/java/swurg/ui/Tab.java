@@ -30,7 +30,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -69,13 +68,11 @@ import io.swagger.v3.oas.models.servers.Server;
 import swurg.process.Loader;
 import swurg.utils.ExtensionHelper;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-
 public class Tab implements ITab {
 
   private final ContextMenu contextMenu;
   private ExtensionHelper extensionHelper;
+  private IBurpExtenderCallbacks callbacks;
 
   private JPanel rootPanel;
   private JTable table;
@@ -87,16 +84,12 @@ public class Tab implements ITab {
 
   private List<HttpRequestResponse> httpRequestResponses;
 
-  // For debugging purposes
-  private PrintWriter stdOut, stdErr;
-
   public Tab(IBurpExtenderCallbacks callbacks) {
     this.extensionHelper = new ExtensionHelper(callbacks);
     this.httpRequestResponses = new ArrayList<>();
 
     // For debugging purposes
-    this.stdErr = new PrintWriter(callbacks.getStderr(), true);
-    this.stdOut = new PrintWriter(callbacks.getStdout(), true);
+    this.callbacks = callbacks;
 
     initUI();
 
@@ -263,8 +256,8 @@ public class Tab implements ITab {
 
               this.httpRequestResponses.add(httpRequestResponse);
             } catch (URISyntaxException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
+              this.callbacks.printError(e.getMessage());
+              printStatus(e.getMessage(), Color.RED);
             }
 
             defaultTableModel.addRow(new Object[] { defaultTableModel.getRowCount(), operation.getKey(),
@@ -297,10 +290,11 @@ public class Tab implements ITab {
         String resource = getResource();
 
         try {
-          OpenAPI openAPI = new Loader().process(resource);
+          OpenAPI openAPI = new Loader().process(callbacks, resource);
           populateTable(openAPI);
           printStatus(COPYRIGHT, javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
         } catch (Exception e1) {
+          callbacks.printError(e1.getMessage());
           printStatus(e1.getMessage(), Color.RED);
           resourceTextField.requestFocus();
         }
