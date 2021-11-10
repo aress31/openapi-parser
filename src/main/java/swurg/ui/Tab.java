@@ -252,7 +252,7 @@ public class Tab implements ITab {
 
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
                   this.extensionHelper.getBurpExtensionHelpers().buildHttpService(uri.getHost(), port, port == 443),
-                  uri.getPort() == 443, this.extensionHelper.buildRequest(uri, pathItem, operation));
+                  uri.getPort() == 443, this.extensionHelper.buildRequest(uri, pathItem.getKey(), openAPI, operation));
 
               this.httpRequestResponses.add(httpRequestResponse);
             } catch (URISyntaxException e) {
