@@ -70,17 +70,15 @@ class ContextMenu extends JPopupMenu {
         .setContents(new StringSelection(copyToClipboard.getText()), null));
 
     JMenuItem addToScope = new JMenuItem("Add to scope");
-    addToScope.addActionListener(e -> {
+    addToScope.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
       try {
-        callbacks.includeInScope(new URL(tab.getTable()
-            .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Server").getModelIndex()).toString()
-            + tab.getTable()
-                .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Path").getModelIndex())
-                .toString()));
+        callbacks.includeInScope(
+            new URL(tab.getTable().getValueAt(row, tab.getTable().getColumn("Server").getModelIndex()).toString()
+                + tab.getTable().getValueAt(row, tab.getTable().getColumn("Path").getModelIndex()).toString()));
       } catch (MalformedURLException e1) {
         callbacks.printError(e1.getMessage());
       }
-    });
+    }));
 
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
     addToSiteMap.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
@@ -187,7 +185,7 @@ class ContextMenu extends JPopupMenu {
 
     JMenuItem clear = new JMenuItem("Clear item(s)");
     clear.addActionListener(e -> {
-      // iterating the indices in decreasing order to not mess up the table shifting
+      // iterating the indices in de creasing order to not mess up the table shifting
       IntStream.of(tab.getTable().getSelectedRows()).boxed().map(row -> tab.getTable().convertRowIndexToModel(row))
           .sorted(Collections.reverseOrder()).forEach(row -> {
             int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
