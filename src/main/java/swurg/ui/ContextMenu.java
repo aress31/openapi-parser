@@ -202,6 +202,7 @@ class ContextMenu extends JPopupMenu {
 
     JMenuItem clearAll = new JMenuItem("Clear all");
     clearAll.addActionListener(e -> {
+      this.highlightedRows.clear();
       this.httpRequestResponses.clear();
       ((DefaultTableModel) tab.getTable().getModel()).setRowCount(0);
     });

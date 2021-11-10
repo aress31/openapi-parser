@@ -16,45 +16,46 @@
 
 package swurg.process;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-
-import com.google.common.base.Strings;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import burp.IBurpExtenderCallbacks;
 import io.swagger.parser.OpenAPIParser;
-
-import java.nio.file.Paths;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 public class Loader {
 
+  // TODO: Improve check if file or url
   public OpenAPI process(IBurpExtenderCallbacks callbacks, String resource) {
-    SwaggerParseResult result;
+    SwaggerParseResult result = new SwaggerParseResult();
 
-    if (Files.exists(Paths.get(resource))) {
-      try {
+    try {
+      Path filePath = Paths.get(resource);
+
+      if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
+        // File case
         String openAPIasString = Files.readString(Paths.get(resource), StandardCharsets.US_ASCII);
         result = new OpenAPIParser().readContents(openAPIasString, null, null);
-      } catch (IOException e) {
-        callbacks.printError(e.getMessage());
-        throw new NullPointerException(String.format("%s", e.getMessage()));
+      } else {
+        throw new InvalidPathException(resource, "File does not exist on the system or is not a file.");
       }
-    } else {
+    } catch (InvalidPathException e) {
+      // URL case
       result = new OpenAPIParser().readLocation(resource, null, null);
+    } catch (IOException e) {
+      callbacks.printError(e.getMessage());
     }
 
-    OpenAPI openAPI = result.getOpenAPI();
-
-    // validation errors and warnings
     if (result.getMessages() != null && !result.getMessages().isEmpty()) {
       callbacks.printError(result.getMessages().toString());
-      throw new NullPointerException(String.format("%s", result.getMessages()));
+      throw new NullPointerException(result.getMessages().toString());
     }
 
-    return openAPI;
+    return result.getOpenAPI();
   }
 }
