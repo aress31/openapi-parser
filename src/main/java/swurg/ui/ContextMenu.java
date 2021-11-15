@@ -45,13 +45,24 @@ import burp.IBurpExtenderCallbacks;
 @SuppressWarnings("serial")
 class ContextMenu extends JPopupMenu {
 
+  private IBurpExtenderCallbacks callbacks;
+  private JTable table;
+
   private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
   private List<HttpRequestResponse> httpRequestResponses;
 
   ContextMenu(IBurpExtenderCallbacks callbacks, Tab tab) {
+    this.callbacks = callbacks;
+    this.table = tab.getTable();
+
+    initContextMenu();
+  }
+
+  private void initContextMenu() {
     JMenuItem copyToClipboard = new JMenuItem();
 
-    tab.getTable().addMouseListener(new MouseAdapter() {
+    this.table.addMouseListener(new MouseAdapter() {
+      @Override
       public void mousePressed(MouseEvent e) {
         JTable source = (JTable) e.getSource();
         int row = source.rowAtPoint(e.getPoint());
@@ -60,69 +71,80 @@ class ContextMenu extends JPopupMenu {
         if (!source.isRowSelected(row))
           source.changeSelection(row, column, false, false);
 
-        copyToClipboard
-            .setText(tab.getTable().getValueAt(row, tab.getTable().getColumn("Server").getModelIndex()).toString()
-                + tab.getTable().getValueAt(row, tab.getTable().getColumn("Path").getModelIndex()).toString());
+        int index = table.getSelectedRow();
+        HttpRequestResponse httpRequestResponse = httpRequestResponses.get(index);
+
+        copyToClipboard.setText(callbacks.getHelpers()
+            .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl()
+            .toString());
       }
     });
 
-    copyToClipboard.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard()
-        .setContents(new StringSelection(copyToClipboard.getText()), null));
+    copyToClipboard.addActionListener(e -> {
+      int index = this.table.getSelectedRow();
+      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+
+      Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(this.callbacks.getHelpers()
+          .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl().toString()),
+          null);
+    });
 
     JMenuItem addToScope = new JMenuItem("Add to scope");
-    addToScope.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
-      try {
-        callbacks.includeInScope(
-            new URL(tab.getTable().getValueAt(row, tab.getTable().getColumn("Server").getModelIndex()).toString()
-                + tab.getTable().getValueAt(row, tab.getTable().getColumn("Path").getModelIndex()).toString()));
-      } catch (MalformedURLException e1) {
-        callbacks.printError(e1.getMessage());
-      }
+    addToScope.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
+      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
+      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+
+      this.callbacks.includeInScope(this.callbacks.getHelpers()
+          .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl());
     }));
 
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
-    addToSiteMap.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
-      int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
+    addToSiteMap.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
+      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
       HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
-      callbacks.addToSiteMap(httpRequestResponse);
+
+      this.callbacks.addToSiteMap(httpRequestResponse);
     }));
 
     JMenuItem activeScan = new JMenuItem("Do an active scan");
-    activeScan.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
-      int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
+    activeScan.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
+      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
       HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
-      callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
+
+      this.callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
           httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
           httpRequestResponse.getRequest());
     }));
 
     JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
-    sendToIntruder.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
-      int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
+    sendToIntruder.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
+      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
       HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
-      callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
+
+      this.callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
           httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
           httpRequestResponse.getRequest());
     }));
 
     JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
-    sendToRepeater.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
-      int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
+    sendToRepeater.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
+      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
       HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
-      callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
+
+      this.callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
           httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
           httpRequestResponse.getRequest(),
-          String.format("%s -> %s %s",
-              tab.getTable().getValueAt(row, tab.getTable().getColumn("Server").getModelIndex()),
-              tab.getTable().getValueAt(row, tab.getTable().getColumn("Method").getModelIndex()),
-              tab.getTable().getValueAt(row, tab.getTable().getColumn("Path").getModelIndex())));
+          String.format("%s -> %s %s", this.table.getValueAt(row, this.table.getColumn("Server").getModelIndex()),
+              this.table.getValueAt(row, this.table.getColumn("Method").getModelIndex()),
+              this.table.getValueAt(row, this.table.getColumn("Path").getModelIndex())));
     }));
 
     JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
-    sendToComparer.addActionListener(e -> IntStream.of(tab.getTable().getSelectedRows()).forEach(row -> {
-      int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
+    sendToComparer.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
+      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
       HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
-      callbacks.sendToComparer(httpRequestResponse.getRequest());
+
+      this.callbacks.sendToComparer(httpRequestResponse.getRequest());
     }));
 
     JMenu highlightMenu = new JMenu("Highlight");
@@ -137,22 +159,19 @@ class ContextMenu extends JPopupMenu {
 
       highlightMenu.add(x);
 
-      x.addHierarchyListener(e -> x.setText(tab.getTable()
-          .getValueAt(tab.getTable().getSelectedRow(), tab.getTable().getColumn("Server").getModelIndex()).toString()));
+      x.addHierarchyListener(e -> x.setText(this.table
+          .getValueAt(this.table.getSelectedRow(), this.table.getColumn("Server").getModelIndex()).toString()));
 
       x.addActionListener(e -> {
-        IntStream.of(tab.getTable().getSelectedRows())
+        IntStream.of(this.table.getSelectedRows())
             .forEach(row -> this.highlightedRows.put(row, color != null ? Arrays.asList(Color.BLACK, color) : null));
 
-        tab.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        this.table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
           @Override
           public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
               boolean hasFocus, int row, int column) {
             final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
                 column);
-
-            // callbacks.printOutput(String.format("%s -> %s", row,
-            // highlightedRows.get(row)));
 
             if (highlightedRows.containsKey(row) && highlightedRows.get(row) != null) {
               component.setForeground(
@@ -186,23 +205,24 @@ class ContextMenu extends JPopupMenu {
     JMenuItem clear = new JMenuItem("Clear item(s)");
     clear.addActionListener(e -> {
       // iterating the indices in de creasing order to not mess up the table shifting
-      IntStream.of(tab.getTable().getSelectedRows()).boxed().map(row -> tab.getTable().convertRowIndexToModel(row))
+      IntStream.of(this.table.getSelectedRows()).boxed().map(row -> this.table.convertRowIndexToModel(row))
           .sorted(Collections.reverseOrder()).forEach(row -> {
-            int index = (int) tab.getTable().getValueAt(row, tab.getTable().getColumn("#").getModelIndex());
+            int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
+
             this.httpRequestResponses.remove(index);
-            ((DefaultTableModel) tab.getTable().getModel()).removeRow(row);
+            ((DefaultTableModel) this.table.getModel()).removeRow(row);
           });
 
       // updating the rows' index (reindexing table)
-      IntStream.rangeClosed(0, tab.getTable().getRowCount()).forEach(
-          row -> tab.getTable().getModel().setValueAt(row, row, tab.getTable().getColumn("#").getModelIndex()));
+      IntStream.rangeClosed(0, this.table.getRowCount())
+          .forEach(row -> this.table.getModel().setValueAt(row, row, this.table.getColumn("#").getModelIndex()));
     });
 
     JMenuItem clearAll = new JMenuItem("Clear all");
     clearAll.addActionListener(e -> {
       this.highlightedRows.clear();
       this.httpRequestResponses.clear();
-      ((DefaultTableModel) tab.getTable().getModel()).setRowCount(0);
+      ((DefaultTableModel) this.table.getModel()).setRowCount(0);
     });
 
     this.add(copyToClipboard);
