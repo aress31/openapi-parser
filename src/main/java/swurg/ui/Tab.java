@@ -1,5 +1,5 @@
 /*
-#    statusLabel (C) 2016 Alexandre Teyar
+#    Copyright (C) 2016-2021 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static burp.BurpExtender.EXTENSION;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -110,7 +111,7 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
     this.rootPanel = new JPanel(new BorderLayout());
 
     // file panel
-    JPanel topPanel = new JPanel(new GridBagLayout());
+    JPanel northPanel = new JPanel(new GridBagLayout());
     GridBagConstraints gridBagConstraints = new GridBagConstraints();
 
     gridBagConstraints.anchor = GridBagConstraints.CENTER;
@@ -121,9 +122,11 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
     this.resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
     resourcePanel.add(this.resourceTextField);
     JButton resourceButton = new JButton("Browse/Load");
+    resourceButton.setFont(new Font(resourceButton.getFont().getName(), Font.BOLD, resourceButton.getFont().getSize()));
+    resourceButton.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpOrange"));
     resourceButton.addActionListener(new LoadButtonListener());
     resourcePanel.add(resourceButton);
-    topPanel.add(resourcePanel, gridBagConstraints);
+    northPanel.add(resourcePanel, gridBagConstraints);
 
     gridBagConstraints.anchor = GridBagConstraints.LINE_START;
     gridBagConstraints.insets = new Insets(0, 0, 4, 0);
@@ -156,7 +159,7 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
       }
     });
     filerPanel.add(this.filterTextField);
-    topPanel.add(filerPanel, gridBagConstraints);
+    northPanel.add(filerPanel, gridBagConstraints);
 
     // log table
     Object[] columns = { "#", "Method", "Server", "Path", "Parameters", "Description" };
@@ -224,23 +227,23 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
     this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
     this.table.setRowSorter(tableRowSorter);
 
-    // tabs with request/response viewers
-    JTabbedPane tabs = new JTabbedPane();
+    // tabbedPane with request/response viewers
+    JTabbedPane tabbedPane = new JTabbedPane();
     requestViewer = this.callbacks.createMessageEditor(this, true);
-    tabs.addTab("Request", requestViewer.getComponent());
+    tabbedPane.addTab("Request", requestViewer.getComponent());
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(new JScrollPane(this.table));
-    splitPane.setBottomComponent(tabs);
+    splitPane.setBottomComponent(tabbedPane);
 
     // status panel
-    JPanel bottomPanel = new JPanel();
-    bottomPanel.add(this.statusLabel);
+    JPanel southPanel = new JPanel();
+    southPanel.add(this.statusLabel);
 
     // parent container
-    this.rootPanel.add(topPanel, BorderLayout.NORTH);
+    this.rootPanel.add(northPanel, BorderLayout.NORTH);
     this.rootPanel.add(splitPane);
-    this.rootPanel.add(bottomPanel, BorderLayout.SOUTH);
+    this.rootPanel.add(southPanel, BorderLayout.SOUTH);
   }
 
   JTable getTable() {
@@ -289,7 +292,7 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
               this.httpRequestResponses.add(httpRequestResponse);
             } catch (URISyntaxException e) {
               this.callbacks.printError(e.getMessage());
-              printStatus(e.getMessage(), Color.RED);
+              printStatus(e.getMessage(), javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpError"));
             }
 
             defaultTableModel.addRow(new Object[] { defaultTableModel.getRowCount(), operation.getKey(),
