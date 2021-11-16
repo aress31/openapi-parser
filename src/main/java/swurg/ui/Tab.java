@@ -122,8 +122,9 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
     this.resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
     resourcePanel.add(this.resourceTextField);
     JButton resourceButton = new JButton("Browse/Load");
-    resourceButton.setFont(new Font(resourceButton.getFont().getName(), Font.BOLD, resourceButton.getFont().getSize()));
     resourceButton.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpOrange"));
+    resourceButton.setFont(new Font(resourceButton.getFont().getName(), Font.BOLD, resourceButton.getFont().getSize()));
+    resourceButton.setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpTitle"));
     resourceButton.addActionListener(new LoadButtonListener());
     resourcePanel.add(resourceButton);
     northPanel.add(resourcePanel, gridBagConstraints);
