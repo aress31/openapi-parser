@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -333,7 +334,8 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
       String resource = null;
 
       if (resourceTextField.getText().isEmpty()) {
-        JFileChooser fileChooser = new JFileChooser();
+        Preferences prefs = Preferences.userRoot().node(getClass().getName());
+        JFileChooser fileChooser = new JFileChooser(prefs.get("LAST_USED_FOLDER", new File(".").getAbsolutePath()));
         fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("OpenAPI JSON File (*.json)", "json"));
         fileChooser
             .addChoosableFileFilter(new FileNameExtensionFilter("OpenAPI YAML File (*.yml, *.yaml)", "yaml", "yml"));
@@ -342,6 +344,7 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
           File file = fileChooser.getSelectedFile();
           resource = file.getAbsolutePath();
           resourceTextField.setText(resource);
+          prefs.put("LAST_USED_FOLDER", fileChooser.getSelectedFile().getParent());
         }
       } else {
         resource = resourceTextField.getText();
