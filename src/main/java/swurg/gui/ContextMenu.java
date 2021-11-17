@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package swurg.ui;
+package swurg.gui;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -22,6 +22,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,16 +48,16 @@ class ContextMenu extends JPopupMenu {
   private JTable table;
 
   private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
-  private List<HttpRequestResponse> httpRequestResponses;
+  private List<HttpRequestResponse> httpRequestResponses = new ArrayList<>();
 
-  ContextMenu(IBurpExtenderCallbacks callbacks, Tab tab) {
+  ContextMenu(IBurpExtenderCallbacks callbacks, ParserPanel tab) {
     this.callbacks = callbacks;
     this.table = tab.getTable();
 
-    initContextMenu();
+    initComponents();
   }
 
-  private void initContextMenu() {
+  private void initComponents() {
     JMenuItem copyToClipboard = new JMenuItem();
 
     this.table.addMouseListener(new MouseAdapter() {

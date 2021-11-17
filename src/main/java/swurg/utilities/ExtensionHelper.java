@@ -14,7 +14,7 @@
 #    limitations under the License. 
 */
 
-package swurg.utils;
+package swurg.utilities;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import burp.IBurpExtenderCallbacks;
-import burp.IExtensionHelpers;
 import burp.IParameter;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -36,19 +35,13 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 
 public class ExtensionHelper {
 
-  private IExtensionHelpers burpExtensionHelpers;
   private IBurpExtenderCallbacks callbacks;
 
   public ExtensionHelper(IBurpExtenderCallbacks callbacks) {
-    this.burpExtensionHelpers = callbacks.getHelpers();
     this.callbacks = callbacks;
   }
 
-  public IExtensionHelpers getBurpExtensionHelpers() {
-    return this.burpExtensionHelpers;
-  }
-
-  public String parseParameterValue(Schema schema) {
+  private String parseParameterValue(Schema schema) {
     String value;
 
     if (schema.getExample() != null) {
@@ -64,15 +57,15 @@ public class ExtensionHelper {
     return value;
   }
 
-  public byte[] parseParameter(byte[] httpMessage, String parameterName, Schema schema, byte parameterType) {
-    httpMessage = this.burpExtensionHelpers.addParameter(httpMessage,
-        this.burpExtensionHelpers.buildParameter(parameterName, parseParameterValue(schema), parameterType));
+  private byte[] parseParameter(byte[] httpMessage, String parameterName, Schema schema, byte parameterType) {
+    httpMessage = this.callbacks.getHelpers().addParameter(httpMessage,
+        this.callbacks.getHelpers().buildParameter(parameterName, parseParameterValue(schema), parameterType));
 
     return httpMessage;
   }
 
-  // TODO: Improve this function and make it recursive
-  public byte[] parseBodyParameters(byte[] httpMessage, OpenAPI openAPI, RequestBody requestBody) {
+  // TODO: Make this function recursive to get informaiton about nested parameters
+  private byte[] parseBodyParameters(byte[] httpMessage, OpenAPI openAPI, RequestBody requestBody) {
     MediaType mediaType = requestBody.getContent().entrySet().stream().findFirst().get().getValue();
 
     if (mediaType.getSchema().get$ref() != null) {
@@ -173,7 +166,7 @@ public class ExtensionHelper {
     List<String> headers = buildHeaders(uri, operation.getKey(), path, operation.getValue().getParameters(),
         operation.getValue().getRequestBody(), operation.getValue().getResponses());
 
-    byte[] httpMessage = this.burpExtensionHelpers.buildHttpMessage(headers, null);
+    byte[] httpMessage = this.callbacks.getHelpers().buildHttpMessage(headers, null);
 
     if (operation.getValue().getParameters() != null) {
       for (Parameter parameter : operation.getValue().getParameters()) {

@@ -17,21 +17,42 @@
 package swurg.process;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 
+import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import swurg.utilities.ExtensionHelper;
+import swurg.utilities.LogEntry;
 
 public class Loader {
 
-  // TODO: Improve check if file or url
-  public OpenAPI process(IBurpExtenderCallbacks callbacks, String resource) {
+  private ExtensionHelper extensionHelper;
+  private IBurpExtenderCallbacks callbacks;
+
+  public Loader(IBurpExtenderCallbacks callbacks) {
+    this.callbacks = callbacks;
+    this.extensionHelper = new ExtensionHelper(callbacks);
+  }
+
+  public OpenAPI processOpenAPI(String resource) {
     SwaggerParseResult result = new SwaggerParseResult();
 
     try {
@@ -48,14 +69,61 @@ public class Loader {
       // URL case
       result = new OpenAPIParser().readLocation(resource, null, null);
     } catch (IOException e) {
-      callbacks.printError(e.getMessage());
+      callbacks.printError(String.format("%s -> %s", this.getClass().getName(), e.getMessage()));
     }
 
     if (result.getMessages() != null && !result.getMessages().isEmpty()) {
-      callbacks.printError(result.getMessages().toString());
+      callbacks.printError(String.format("%s -> %s", this.getClass().getName(), result.getMessages()));
       throw new NullPointerException(result.getMessages().toString());
     }
 
     return result.getOpenAPI();
+  }
+
+  public List<LogEntry> parseOpenAPI(OpenAPI openAPI) {
+    List<LogEntry> logEntries = new ArrayList<>();
+
+    for (Server server : openAPI.getServers()) {
+      for (Map.Entry<String, PathItem> pathItem : openAPI.getPaths().entrySet()) {
+        Map<String, Operation> operationMap = new HashMap<>();
+        operationMap.put("DELETE", pathItem.getValue().getDelete());
+        operationMap.put("GET", pathItem.getValue().getGet());
+        operationMap.put("HEAD", pathItem.getValue().getHead());
+        operationMap.put("PATCH", pathItem.getValue().getPatch());
+        operationMap.put("POST", pathItem.getValue().getPost());
+        operationMap.put("PUT", pathItem.getValue().getPut());
+        operationMap.put("TRACE", pathItem.getValue().getTrace());
+
+        // create different maps for different methods merge them and iterate them
+        for (Map.Entry<String, Operation> operation : operationMap.entrySet()) {
+          if (operation.getValue() != null) {
+            StringJoiner stringJoiner = new StringJoiner(", ");
+
+            if (operation.getValue().getParameters() != null) {
+              for (Parameter parameter : operation.getValue().getParameters()) {
+                stringJoiner.add(parameter.getName());
+              }
+            }
+
+            try {
+              URI uri = new URI(server.getUrl());
+              int port = uri.getScheme().equals("http") ? 80 : 443;
+
+              HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
+                  this.callbacks.getHelpers().buildHttpService(uri.getHost(), port, port == 443), uri.getPort() == 443,
+                  this.extensionHelper.buildRequest(uri, uri.getPath() + pathItem.getKey(), openAPI, operation));
+
+              logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), server.getUrl(), pathItem.getKey(),
+                  stringJoiner.toString(), operation.getValue().getDescription()));
+            } catch (URISyntaxException e) {
+              callbacks.printError(String.format("%s -> %s", this.getClass().getName(), e.getMessage()));
+              throw new NullPointerException(e.getMessage());
+            }
+          }
+        }
+      }
+    }
+
+    return logEntries;
   }
 }

@@ -16,24 +16,24 @@
 
 package burp;
 
-import swurg.ui.Tab;
+import swurg.gui.MainTabGroup;
 
 public class BurpExtender implements IBurpExtender {
 
-  public static final String COPYRIGHT = "Copyright \u00a9 2016 - 2021 Alexandre Teyar (Aegis Cyber - www.aegiscyber.co.uk). All Rights Reserved.";
+  public static final String COPYRIGHT = "Copyright \u00a9 2016 - 2021 Alexandre Teyar, Aegis Cyber (www.aegiscyber.co.uk). All Rights Reserved.";
   public static final String EXTENSION = "OpenAPI Parser";
 
   @Override
   public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-    Tab tab = new Tab(callbacks);
-    ContextMenuFactory contextMenuFactory = new ContextMenuFactory(callbacks, tab);
+    MainTabGroup mainTabGroup = new MainTabGroup(callbacks);
 
     callbacks.setExtensionName(EXTENSION);
-    callbacks.addSuiteTab(tab);
-    callbacks.customizeUiComponent(tab.getUiComponent());
+
+    callbacks.addSuiteTab(mainTabGroup);
+    callbacks.customizeUiComponent(mainTabGroup.getUiComponent());
     callbacks.printOutput(String.format("%s tab initialised", EXTENSION));
 
-    callbacks.registerContextMenuFactory(contextMenuFactory);
+    callbacks.registerContextMenuFactory(new ContextMenuFactory(callbacks, mainTabGroup.getParserPanel()));
     callbacks.printOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
   }
 }
