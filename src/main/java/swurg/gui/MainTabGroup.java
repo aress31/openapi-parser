@@ -52,7 +52,7 @@ public class MainTabGroup extends JTabbedPane implements ITab {
 
     @Override
     public Component getUiComponent() {
-        return this;
+        return this.getParserPanel();
     }
 
     @Override

@@ -242,8 +242,8 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
   }
 
   public void printStatus(String status, Color color) {
-    this.statusLabel.setText(status);
     this.statusLabel.setForeground(color);
+    this.statusLabel.setText(status);
   }
 
   class LoadButtonListener implements ActionListener {
