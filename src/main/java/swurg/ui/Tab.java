@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.prefs.Preferences;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -89,7 +90,7 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
 
   private JLabel statusLabel = new JLabel(COPYRIGHT);
   private JTextField resourceTextField = new JTextField(null, 64);
-  private JTextField filterTextField = new JTextField(null, 36);
+  private JTextField filterTextField = new JTextField(null, 32);
 
   private IHttpRequestResponse currentlyDisplayedItem;
   private IMessageEditor requestViewer;
@@ -111,28 +112,33 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
   private void initUI() {
     this.rootPanel = new JPanel(new BorderLayout());
 
-    // file panel
     JPanel northPanel = new JPanel(new GridBagLayout());
+
     GridBagConstraints gridBagConstraints = new GridBagConstraints();
 
     gridBagConstraints.anchor = GridBagConstraints.CENTER;
-    gridBagConstraints.insets = new Insets(8, 0, 0, 0);
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.insets = new Insets(4, 0, 0, 0);
     gridBagConstraints.weightx = 1.0;
+
     JPanel resourcePanel = new JPanel();
     resourcePanel.add(new JLabel("Parse file/URL:"));
-    this.resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
     resourcePanel.add(this.resourceTextField);
+
     JButton resourceButton = new JButton("Browse/Load");
     resourceButton.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpOrange"));
     resourceButton.setFont(new Font(resourceButton.getFont().getName(), Font.BOLD, resourceButton.getFont().getSize()));
-    resourceButton.setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpTitle"));
+    resourceButton
+        .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.primaryButtonForeground"));
     resourceButton.addActionListener(new LoadButtonListener());
     resourcePanel.add(resourceButton);
+
     northPanel.add(resourcePanel, gridBagConstraints);
 
     gridBagConstraints.anchor = GridBagConstraints.LINE_START;
-    gridBagConstraints.insets = new Insets(0, 0, 4, 0);
     gridBagConstraints.gridy = 1;
+    gridBagConstraints.insets = new Insets(0, 0, 4, 0);
+
     JPanel filerPanel = new JPanel();
     filerPanel.add(new JLabel("Filter (accepts regular expressions):"));
     this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
@@ -161,9 +167,9 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
       }
     });
     filerPanel.add(this.filterTextField);
+
     northPanel.add(filerPanel, gridBagConstraints);
 
-    // log table
     Object[] columns = { "#", "Method", "Server", "Path", "Parameters", "Description" };
     Object[][] rows = {};
 
@@ -223,13 +229,10 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
       }
     });
 
-    // enable column sorting
     this.table.setAutoCreateRowSorter(true);
-    // enable table filtering
     this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
     this.table.setRowSorter(tableRowSorter);
 
-    // tabbedPane with request/response viewers
     JTabbedPane tabbedPane = new JTabbedPane();
     requestViewer = this.callbacks.createMessageEditor(this, true);
     tabbedPane.addTab("Request", requestViewer.getComponent());
@@ -238,11 +241,9 @@ public class Tab implements IBurpExtender, IMessageEditorController, ITab {
     splitPane.setTopComponent(new JScrollPane(this.table));
     splitPane.setBottomComponent(tabbedPane);
 
-    // status panel
     JPanel southPanel = new JPanel();
     southPanel.add(this.statusLabel);
 
-    // parent container
     this.rootPanel.add(northPanel, BorderLayout.NORTH);
     this.rootPanel.add(splitPane);
     this.rootPanel.add(southPanel, BorderLayout.SOUTH);
