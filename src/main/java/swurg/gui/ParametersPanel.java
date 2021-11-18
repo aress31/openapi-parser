@@ -228,6 +228,8 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
                 + "<ul>" + "<li>Any click on the 'Clear item(s)' or 'Clear all' options of the contextual menu.</li>"
                 + "<li>Any click on the 'Browse/Load' button.</li>" + "</ul>"
                 + "<p><u>Known bugs <b>(PRs are welcomed)</b>:</u></p>" + "<ul>"
+                + "<li>Body parameters can only be formatted as 'application/x-www-form-urlencoded', this is due"
+                + "<br/>" + "to the current limitations of the Burp Extender API.</li>"
                 + "<li>Editing the 'Edited Value' column of the table in the 'Parameters' tab whilst filtering the"
                 + "<br/>" + "table would cause the edited value to be set to 'null'.</li>"
                 + "<li>No support for <b>deep/recursive</b> parsing of 'OpenAPI Schema fields'.</li>" + "</ul>"
