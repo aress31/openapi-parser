@@ -24,7 +24,6 @@ import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,11 +51,15 @@ import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpListener;
 import burp.IHttpRequestResponse;
+import burp.IMessageEditorController;
+import burp.IMessageEditorTab;
+import burp.IMessageEditorTabFactory;
 import burp.IParameter;
 import burp.IRequestInfo;
+import burp.MessageEditorTab;
 import swurg.utilities.LogEntry;
 
-public class ParametersPanel extends JPanel implements IHttpListener {
+public class ParametersPanel extends JPanel implements IHttpListener, IMessageEditorTabFactory {
 
     private transient IBurpExtenderCallbacks callbacks;
 
@@ -78,8 +81,13 @@ public class ParametersPanel extends JPanel implements IHttpListener {
 
     private Model model;
 
+    Boolean enableMessageEditorTab;
+    private IHttpRequestResponse interceptedRequestResponse;
+    MessageEditorTab messageEditorTab;
+
     public ParametersPanel(IBurpExtenderCallbacks callbacks) {
         this.callbacks = callbacks;
+        this.messageEditorTab = new MessageEditorTab(callbacks);
 
         initComponents();
     }
@@ -89,6 +97,10 @@ public class ParametersPanel extends JPanel implements IHttpListener {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if (!model.getLogEntries().isEmpty()) {
+                    // Note: Dirty workaround to avoide table diplicates
+                    parameters.clear();
+                    editedParameters.clear();
+                    ((DefaultTableModel) parametersTable.getModel()).setRowCount(0);
                     initParametersList();
                 }
             }
@@ -156,8 +168,6 @@ public class ParametersPanel extends JPanel implements IHttpListener {
                     int type = Integer.parseInt(parametersTable.getValueAt(e.getFirstRow(), 1).toString());
                     String value = (String) parametersTable.getValueAt(e.getFirstRow(), 3);
 
-                    callbacks.printOutput(value);
-
                     if (value != null && !value.isBlank()) {
                         editedParameters.removeIf(x -> x.getName().equals(name) && x.getType() == (byte) type);
                         editedParameters.add(callbacks.getHelpers().buildParameter(name, value, (byte) type));
@@ -203,19 +213,25 @@ public class ParametersPanel extends JPanel implements IHttpListener {
 
         JPanel howToPanel = new JPanel();
         howToPanel.setBorder(BorderFactory.createTitledBorder("How To"));
-        JLabel howToLabel = new JLabel(
-                "<html><p>This tab allows for the visualisation/edition of the detected parameters (along with their default types/values) within<br/>parsed OpenAPI file(s) ('Parser' tab).<p/>"
-                        + "<p>One of the ways to leverage this match and replace feature when assessing OpenAPI based RESTful API(s) is to set<br/>valid test values provided within the 'Edited Value' column.<p/>"
-                        + "<p>The match and replace will be applied only on request(s) with ALL the following conditions met:</p>"
-                        + "<ul>"
-                        + "<li>The Burp tool to listen to/process has been selected within the 'Match/Replace Scope' section of this tab.</li>"
-                        + "<b>AND</b>"
-                        + "<li>The request(s) sent contain(s) parameter(s) with a 'name' and 'type' matching 'Parameter' and 'Type'.</li>"
-                        + "<b>AND</b>"
-                        + "<li>The request(s) sent contain(s) parameter(s) with a 'value' matching 'Parsed Value'.</li>"
-                        + "</ul>"
-                        + "<p>For optimals results/accuracy, it is strongly advised to take the time to properly fill the 'Edited Value' column with<br/>valid (that would trigger an HTTP 200 response) test parameters prior to launching any type of scan.</p>"
-                        + "</html>");
+        JLabel howToLabel = new JLabel("<html>"
+                + "<p>This tab allows for the visualisation/edition of the detected parameters (along with their parsed 'types/values') within<br/>parsed OpenAPI file(s) ('Parser' tab).<p/>"
+                + "<p>One of the ways to leverage this match and replace feature when assessing OpenAPI based RESTful API(s) is to set"
+                + "<br/>" + "valid test values provided within the 'Edited Value' column.<p/>"
+                + "<p>The match and replace will be applied only on request(s) with <b>ALL</b> of the following conditions met:</p>"
+                + "<ul>"
+                + "<li>The BurpSuite tool to monitor/process has been selected within the 'Match/Replace Scope' section of this tab.</li>"
+                + "<li>The request(s) sent contain(s) at least a parameter with its 'name' and 'type' matching 'Parameter' and 'Type'"
+                + "<br/>" + "<b>AND</b> its 'value' matching 'Parsed Value'.</li>" + "</ul>"
+                + "<p>For optimals results/accuracy, it is strongly advised to take the time to properly fill the 'Edited Value' column with<br/>valid test parameters <em>(i.e., that would trigger an HTTP 200 response)</em> <b>PRIOR TO</b> launching any type of scan.</p>"
+                + "<br/>"
+                + "<p><u>Warning:</u> Currently, the following operations relevant to the 'Parser' tab would cause a total reset of the 'Parameters' tab:</p>"
+                + "<ul>" + "<li>Any click on the 'Clear item(s)' or 'Clear all' options of the contextual menu.</li>"
+                + "<li>Any click on the 'Browse/Load' button.</li>" + "</ul>"
+                + "<p><u>Known bugs <b>(PRs are welcomed)</b>:</u></p>" + "<ul>"
+                + "<li>Editing the 'Edited Value' column of the table in the 'Parameters' tab whilst filtering the"
+                + "<br/>" + "table would cause the edited value to be set to 'null'.</li>"
+                + "<li>No support for <b>deep/recursive</b> parsing of 'OpenAPI Schema fields'.</li>" + "</ul>"
+                + "</html>");
         howToPanel.add(howToLabel);
 
         JPanel tablePanel = new JPanel(new BorderLayout());
@@ -244,18 +260,20 @@ public class ParametersPanel extends JPanel implements IHttpListener {
 
         HashSet<Object> seen = new HashSet<>();
         this.parameters.removeIf(
-                parameter -> !seen.add(Arrays.asList(parameter.getName(), parameter.getType(), parameter.getValue())));
+                parameter -> !seen.add(List.of(parameter.getName(), parameter.getType(), parameter.getValue())));
 
         // Fill table
         for (IParameter parameter : this.parameters) {
-            ((DefaultTableModel) this.parametersTable.getModel())
-                    .addRow(new Object[] { parameter.getName(), parameter.getType(), parameter.getValue(), null });
-        }
+            Object[] newRow = new Object[] { parameter.getName(), parameter.getType(), parameter.getValue(), null };
 
+            ((DefaultTableModel) this.parametersTable.getModel()).addRow(newRow);
+        }
     }
 
     @Override
     public void processHttpMessage(int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
+        boolean isIntercepted = false;
+
         if (messageIsRequest && toolsInScope.contains(toolFlag)) {
             byte[] request = messageInfo.getRequest();
 
@@ -272,11 +290,23 @@ public class ParametersPanel extends JPanel implements IHttpListener {
                             && requestParameter.getValue().equals(parsedParameter.getValue())) {
                         request = this.callbacks.getHelpers().removeParameter(request, requestParameter);
                         request = this.callbacks.getHelpers().addParameter(request, editedParameter);
+
+                        isIntercepted = true;
                     }
                 }
             }
 
             messageInfo.setRequest(request);
+
+            this.messageEditorTab.setIsEnabled(isIntercepted);
+            // TODO: Workaround to common bug:
+            // https://forum.portswigger.net/thread/repeater-tab-imessageeditortab-getmessage-ae1f0795
+            this.messageEditorTab.setContent(messageInfo.getRequest());
         }
+    }
+
+    @Override
+    public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
+        return messageEditorTab;
     }
 }
