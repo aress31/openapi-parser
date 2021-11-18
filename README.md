@@ -29,6 +29,7 @@ Swurg is an OpenAPI parser that aims to streamline this entire process by allowi
 - Parse OpenAPI documents, formerly known as the `Swagger specification`, fully compliant with OpenAPI 2.0/3.0 Specifications (OAS).
 - Requests can be directly viewed/edited within the extension prior to sending them to other Burp tools.
 - Requests can be sent to the `Comparer, Intruder, Repeater, Scanner, Site map and Scope` Burp tools.
+- Requests matching specific criterias (detailed in the 'Parameters' tab) can be intercepted to automatically match and replace the parsed parameters default values defined in the 'Parameters' tab. This feature allows for fine-tuning of the requests prior to sending them to other Burp tools (e.g., scanner).
 - Row highlighting allowing pentesters to highlight "interesting" API calls and/or colour code them for reporting purposes.
 - Supports both JSON and YAML formats.
 
@@ -59,11 +60,14 @@ In Burp Suite, under the `Extender/Options` tab, click on the `Add` button and l
 ## Possible Improvements
 
 - [ ] Beautify the graphical user interface.
-- [ ] Enable cells editing to change API calls directly from the GUI.
+- [ ] Deep parsing of OpenAPI schemas to collect all nested parameters along with their example/type.
+- [ ] Code simplification/refactoring.
+- [x] Enable cells editing to change API calls directly from the GUI.
 - [x] Further optimise the source code.
 - [ ] Implement support for authenticated testing (via user-supplied API-keys).
-- [ ] Improve the Param column by adding the type of parameters (e.g. inquery, inbody, etc.).
-- [ ] Increase the extension verbosity (via the bottom panel).
+- [x] Improve the Param column by adding the type of parameters (e.g. inquery, inbody, etc.).
+- [ ] Implement the tables and context menus.
+- [x] Increase the extension verbosity (via the bottom panel).
 
 ## Dependencies
 

@@ -19,15 +19,22 @@ package swurg.gui;
 import static burp.BurpExtender.EXTENSION;
 
 import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import javax.swing.JTabbedPane;
+import javax.swing.event.SwingPropertyChangeSupport;
 
 import burp.IBurpExtenderCallbacks;
 import burp.ITab;
+import swurg.utilities.LogEntry;
 
 public class MainTabGroup extends JTabbedPane implements ITab {
 
-    private final IBurpExtenderCallbacks callbacks;
+    private transient IBurpExtenderCallbacks callbacks;
 
     private ParserPanel parserPanel;
     private ParametersPanel parametersPanel;
@@ -38,6 +45,10 @@ public class MainTabGroup extends JTabbedPane implements ITab {
         initComponents();
     }
 
+    public ParametersPanel getParametersPanel() {
+        return this.parametersPanel;
+    }
+
     public ParserPanel getParserPanel() {
         return this.parserPanel;
     }
@@ -46,17 +57,56 @@ public class MainTabGroup extends JTabbedPane implements ITab {
         this.parserPanel = new ParserPanel(callbacks);
         this.parametersPanel = new ParametersPanel(callbacks);
 
+        Model model = new Model();
+
+        this.parserPanel.setModel(model);
+        parametersPanel.setModel(model);
+
         this.addTab("Parser", parserPanel);
-        this.addTab("Headers/Parameters", parametersPanel);
+
+        model.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (!model.getLogEntries().isEmpty()) {
+                    addTab("Parameters", parametersPanel);
+                } else {
+                    removeTabAt(1);
+                }
+            }
+        });
     }
 
     @Override
     public Component getUiComponent() {
-        return this.getParserPanel();
+        return this;
     }
 
     @Override
     public String getTabCaption() {
         return EXTENSION;
+    }
+}
+
+class Model {
+
+    private List<LogEntry> logEntries = new ArrayList<>();
+    private SwingPropertyChangeSupport swingPropertyChangeSupport = new SwingPropertyChangeSupport(this);
+
+    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        swingPropertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        swingPropertyChangeSupport.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    public List<LogEntry> getLogEntries() {
+        return this.logEntries;
+    }
+
+    public void setLogEntries(List<LogEntry> logEntries) {
+        this.logEntries = logEntries;
+        swingPropertyChangeSupport.firePropertyChange("logEntries", UUID.randomUUID().toString(),
+                UUID.randomUUID().toString());
     }
 }

@@ -34,10 +34,12 @@ public class ContextMenuFactory implements IContextMenuFactory {
         IRequestInfo requestInfo = this.callbacks.getHelpers().analyzeRequest(selectedMessage);
         String resource = requestInfo.getUrl().toString();
 
-        // TODO: Redundant piece of code
+        // TODO: Redundant piece of code and buggy need to set 'logEntries'
         try {
           Loader loader = new Loader(callbacks);
           List<LogEntry> logEntries = loader.parseOpenAPI(loader.processOpenAPI(resource));
+
+          this.tab.setResourceTextField(resource);
 
           // Updating table model
           for (LogEntry entry : logEntries) {

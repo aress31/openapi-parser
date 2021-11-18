@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.swing.JMenu;
@@ -40,21 +41,26 @@ import javax.swing.table.DefaultTableModel;
 
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
+import swurg.utilities.LogEntry;
 
 @SuppressWarnings("serial")
 class ContextMenu extends JPopupMenu {
 
-  private IBurpExtenderCallbacks callbacks;
+  private transient IBurpExtenderCallbacks callbacks;
   private JTable table;
 
   private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
-  private List<HttpRequestResponse> httpRequestResponses = new ArrayList<>();
+  private Model model;
 
   ContextMenu(IBurpExtenderCallbacks callbacks, ParserPanel tab) {
     this.callbacks = callbacks;
     this.table = tab.getTable();
 
     initComponents();
+  }
+
+  public void setModel(Model model) {
+    this.model = model;
   }
 
   private void initComponents() {
@@ -71,7 +77,8 @@ class ContextMenu extends JPopupMenu {
           source.changeSelection(row, column, false, false);
 
         int index = table.getSelectedRow();
-        HttpRequestResponse httpRequestResponse = httpRequestResponses.get(index);
+        HttpRequestResponse httpRequestResponse = model.getLogEntries().stream().map(LogEntry::getHttpRequestResponse)
+            .collect(Collectors.toList()).get(index);
 
         copyToClipboard.setText(callbacks.getHelpers()
             .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl()
@@ -81,7 +88,8 @@ class ContextMenu extends JPopupMenu {
 
     copyToClipboard.addActionListener(e -> {
       int index = this.table.getSelectedRow();
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(this.callbacks.getHelpers()
           .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl().toString()),
@@ -91,7 +99,8 @@ class ContextMenu extends JPopupMenu {
     JMenuItem addToScope = new JMenuItem("Add to scope");
     addToScope.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
       int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       this.callbacks.includeInScope(this.callbacks.getHelpers()
           .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl());
@@ -100,7 +109,8 @@ class ContextMenu extends JPopupMenu {
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
     addToSiteMap.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
       int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       this.callbacks.addToSiteMap(httpRequestResponse);
     }));
@@ -108,7 +118,8 @@ class ContextMenu extends JPopupMenu {
     JMenuItem activeScan = new JMenuItem("Do an active scan");
     activeScan.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
       int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       this.callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
           httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
@@ -118,7 +129,8 @@ class ContextMenu extends JPopupMenu {
     JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
     sendToIntruder.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
       int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       this.callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
           httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
@@ -128,7 +140,8 @@ class ContextMenu extends JPopupMenu {
     JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
     sendToRepeater.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
       int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       this.callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
           httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
@@ -141,7 +154,8 @@ class ContextMenu extends JPopupMenu {
     JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
     sendToComparer.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
       int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.httpRequestResponses.get(index);
+      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
+          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
 
       this.callbacks.sendToComparer(httpRequestResponse.getRequest());
     }));
@@ -207,10 +221,13 @@ class ContextMenu extends JPopupMenu {
       IntStream.of(this.table.getSelectedRows()).boxed().map(row -> this.table.convertRowIndexToModel(row))
           .sorted(Collections.reverseOrder()).forEach(row -> {
             int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-
-            this.httpRequestResponses.remove(index);
+            this.model.getLogEntries().remove(index);
             ((DefaultTableModel) this.table.getModel()).removeRow(row);
           });
+
+      // Setting logEntries to the newly shrinked list in order to fire the associated
+      // events
+      this.model.setLogEntries(this.model.getLogEntries());
 
       // updating the rows' index (reindexing table)
       IntStream.rangeClosed(0, this.table.getRowCount())
@@ -220,7 +237,7 @@ class ContextMenu extends JPopupMenu {
     JMenuItem clearAll = new JMenuItem("Clear all");
     clearAll.addActionListener(e -> {
       this.highlightedRows.clear();
-      this.httpRequestResponses.clear();
+      this.model.setLogEntries(new ArrayList<LogEntry>());
       ((DefaultTableModel) this.table.getModel()).setRowCount(0);
     });
 
@@ -238,9 +255,5 @@ class ContextMenu extends JPopupMenu {
     this.add(new JSeparator());
     this.add(clear);
     this.add(clearAll);
-  }
-
-  void setHttpRequestResponses(List<HttpRequestResponse> httpRequestResponses) {
-    this.httpRequestResponses = httpRequestResponses;
   }
 }

@@ -29,8 +29,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -66,27 +64,24 @@ import swurg.utilities.LogEntry;
 
 public class ParserPanel extends JPanel implements IMessageEditorController {
 
-  private final ContextMenu contextMenu;
-  private IBurpExtenderCallbacks callbacks;
+  private transient IBurpExtenderCallbacks callbacks;
 
   private JTable table;
-  private TableRowSorter<TableModel> tableRowSorter;
+  private transient TableRowSorter<TableModel> tableRowSorter;
 
   private JLabel statusLabel = new JLabel(COPYRIGHT);
   private JTextField resourceTextField = new JTextField(null, 64);
   private JTextField filterTextField = new JTextField(null, 32);
 
-  private IHttpRequestResponse currentlyDisplayedItem;
-  private IMessageEditor requestViewer;
+  private Model model;
 
-  private List<LogEntry> logEntries = new ArrayList<>();
+  private transient IHttpRequestResponse currentlyDisplayedItem;
+  private transient IMessageEditor requestViewer;
 
   public ParserPanel(IBurpExtenderCallbacks callbacks) {
     this.callbacks = callbacks;
 
     initComponents();
-
-    this.contextMenu = new ContextMenu(callbacks, this);
   }
 
   private void initComponents() {
@@ -120,8 +115,8 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
     gridBagConstraints.gridy = 1;
     gridBagConstraints.insets = new Insets(0, 0, 4, 0);
 
-    JPanel filerPanel = new JPanel();
-    filerPanel.add(new JLabel("Filter (accepts regular expressions):"));
+    JPanel filterPanel = new JPanel();
+    filterPanel.add(new JLabel("Filter (accepts regular expressions):"));
     this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
       private void process() {
         String regex = filterTextField.getText();
@@ -145,11 +140,12 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
 
       @Override
       public void changedUpdate(DocumentEvent e) {
+        // Dummy comment
       }
     });
-    filerPanel.add(this.filterTextField);
+    filterPanel.add(this.filterTextField);
 
-    northPanel.add(filerPanel, gridBagConstraints);
+    northPanel.add(filterPanel, gridBagConstraints);
 
     initTable();
 
@@ -170,13 +166,10 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
   }
 
   private void initTable() {
-    Object[] columns = { "#", "Method", "Server", "Path", "Parameters", "Description" };
-    Object[][] rows = {};
-
     this.table = new JTable() {
       @Override
       public void changeSelection(int row, int col, boolean toggle, boolean extend) {
-        HttpRequestResponse selectedRow = logEntries.stream().map(LogEntry::getHttpRequestResponse)
+        HttpRequestResponse selectedRow = model.getLogEntries().stream().map(LogEntry::getHttpRequestResponse)
             .collect(Collectors.toList()).get(row);
 
         requestViewer.setMessage(selectedRow.getRequest(), true);
@@ -185,6 +178,8 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
         super.changeSelection(row, col, toggle, extend);
       }
     };
+
+    ContextMenu contextMenu = new ContextMenu(callbacks, this);
 
     this.table.addMouseListener(new MouseAdapter() {
       @Override
@@ -200,8 +195,7 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
           this.show(e);
         }
 
-        contextMenu.setHttpRequestResponses(
-            logEntries.stream().map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()));
+        contextMenu.setModel(model);
       }
 
       @Override
@@ -216,10 +210,8 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
       }
     });
 
-    this.table.setAutoCreateRowSorter(true);
-    this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
-    this.table.setRowSorter(tableRowSorter);
-
+    Object[] columns = { "#", "Method", "Server", "Path", "Parameters (inHeader, inQuery & inPath)", "Description" };
+    Object[][] rows = {};
     this.table.setModel(new DefaultTableModel(rows, columns) {
       @Override
       public Class<?> getColumnClass(int column) {
@@ -235,10 +227,22 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
         return false;
       }
     });
+
+    this.table.setAutoCreateRowSorter(true);
+    this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
+    this.table.setRowSorter(this.tableRowSorter);
   }
 
   public JTable getTable() {
     return this.table;
+  }
+
+  public void setModel(Model model) {
+    this.model = model;
+  }
+
+  public void setResourceTextField(String resourceTextField) {
+    this.resourceTextField.setText(resourceTextField);
   }
 
   public void printStatus(String status, Color color) {
@@ -259,13 +263,13 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
         if (resource != null) {
           try {
             Loader loader = new Loader(callbacks);
-            logEntries = loader.parseOpenAPI(loader.processOpenAPI(resource));
+            model.setLogEntries(loader.parseOpenAPI(loader.processOpenAPI(resource)));
 
             // Updating table model
-            for (LogEntry entry : logEntries) {
+            for (LogEntry entry : model.getLogEntries()) {
               ((DefaultTableModel) table.getModel())
                   .addRow(new Object[] { ((DefaultTableModel) table.getModel()).getRowCount(), entry.getHttpMethod(),
-                      entry.getServer(), entry.getParameters(), entry.getParameters(),
+                      entry.getServer(), entry.getPathItem(), entry.getParameters(),
                       Optional.ofNullable(entry.getDescription()).orElse("N/A") });
             }
 
