@@ -52,9 +52,8 @@ public class AboutPanel extends JPanel {
                 + "<p>Would you like to see new feature(s) implemented? Raise a ticket and share your thoughts.</p>"
                 + "<p>Would you like to actively contribute to this project? PRs are <b>ALWAYS</b> welcome!</p>"
                 + "<br/>" + "<p>If you use " + EXTENSION
-                + " and like it, show your appreciation by giving its repository a star and rating"
-                + "it on BApp Store.</p>" + "<br/>" + "<p>Special thanks to all the GitHub contributors!</p>"
-                + "</body>" + "</html>");
+                + " and like it, show your appreciation by giving its repository a star and rating it on BApp Store.</p>"
+                + "<br/>" + "<p>Special thanks to all the GitHub contributors!</p>" + "</body>" + "</html>");
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
@@ -68,10 +67,12 @@ public class AboutPanel extends JPanel {
 
         JPanel aboutButton = new JPanel(new GridBagLayout());
 
-        for (Map.Entry<String, String> entry : Map.of("<html>Talk With <b>Aegis Cyber</b></html>",
-                "www.aegiscyber.co.uk", "<html>Connect <b>(With Me)<b> on <b>LinkedIn</b></html>",
-                "www.linkedin.com/in/alexandre-teyar", "<html>Follow <b>(Me)</b> on <b>GitHub</b></html>",
-                "github.com/aress31", "<html>Submit <b>PR</b>/Report a <b>Bug</b></html>", "github.com/aress31/swurg")
+        for (Map.Entry<String, String> entry : Map
+                .of("<html>Talk With <b>Aegis Cyber</b></html>", "https://www.aegiscyber.co.uk",
+                        "<html>Connect <b>(With Me)<b> on <b>LinkedIn</b></html>",
+                        "https://www.linkedin.com/in/alexandre-teyar",
+                        "<html>Follow <b>(Me)</b> on <b>GitHub</b></html>", "https://github.com/aress31",
+                        "<html>Submit <b>PR</b>/Report a <b>Bug</b></html>", "https://github.com/aress31/swurg")
                 .entrySet()) {
             JButton x = new JButton();
             x.setPreferredSize(new Dimension(192, 40));
