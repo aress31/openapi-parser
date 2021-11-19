@@ -45,6 +45,7 @@ import swurg.utilities.LogEntry;
 public class Loader {
 
   private ExtensionHelper extensionHelper;
+
   private IBurpExtenderCallbacks callbacks;
 
   public Loader(IBurpExtenderCallbacks callbacks) {

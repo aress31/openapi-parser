@@ -18,9 +18,9 @@ package burp;
 
 public class HttpRequestResponse implements IHttpRequestResponse {
 
-  private IHttpService httpService;
-  private boolean useHttps;
   private byte[] request;
+  private boolean useHttps;
+  private IHttpService httpService;
 
   public HttpRequestResponse(IHttpService httpService, boolean useHttps, byte[] request) {
     this.httpService = httpService;

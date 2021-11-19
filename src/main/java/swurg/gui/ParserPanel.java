@@ -67,18 +67,16 @@ import swurg.utilities.LogEntry;
 public class ParserPanel extends JPanel implements IMessageEditorController {
 
   private transient IBurpExtenderCallbacks callbacks;
-
-  private JTable table;
+  private transient IHttpRequestResponse currentlyDisplayedItem;
+  private transient IMessageEditor requestViewer;
   private transient TableRowSorter<TableModel> tableRowSorter;
 
   private JLabel statusLabel = new JLabel(COPYRIGHT);
+  private JTable table;
   private JTextField resourceTextField = new JTextField(null, 64);
   private JTextField filterTextField = new JTextField(null, 32);
 
   private Model model;
-
-  private transient IHttpRequestResponse currentlyDisplayedItem;
-  private transient IMessageEditor requestViewer;
 
   public ParserPanel(IBurpExtenderCallbacks callbacks) {
     this.callbacks = callbacks;
@@ -89,10 +87,27 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
   private void initComponents() {
     this.setLayout(new BorderLayout());
 
-    JPanel resourcePanel = new JPanel();
-    resourcePanel.add(new JLabel("Parse file/URL:"));
+    JPanel resourcePanel = initResourcePanel();
+    JPanel tablePanel = initTablePanel();
+
+    JTabbedPane tabbedPane = new JTabbedPane();
+    requestViewer = this.callbacks.createMessageEditor(this, true);
+    tabbedPane.addTab("Request", requestViewer.getComponent());
+
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    splitPane.setTopComponent(tablePanel);
+    splitPane.setBottomComponent(tabbedPane);
+
+    JPanel southPanel = new JPanel();
+    southPanel.add(this.statusLabel);
+
+    this.add(resourcePanel, BorderLayout.NORTH);
+    this.add(splitPane);
+    this.add(southPanel, BorderLayout.SOUTH);
+  }
+
+  private JPanel initResourcePanel() {
     this.resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
-    resourcePanel.add(this.resourceTextField);
 
     JButton resourceButton = new JButton("Browse/Load");
     resourceButton.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpOrange"));
@@ -100,10 +115,17 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
     resourceButton
         .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.primaryButtonForeground"));
     resourceButton.addActionListener(new LoadButtonListener());
+
+    JPanel resourcePanel = new JPanel();
+    resourcePanel.setBorder(BorderFactory.createTitledBorder(""));
+    resourcePanel.add(new JLabel("Parse file/URL:"));
+    resourcePanel.add(this.resourceTextField);
     resourcePanel.add(resourceButton);
 
-    JPanel filterPanel = new JPanel();
-    filterPanel.add(new JLabel("Filter (accepts regular expressions):"));
+    return resourcePanel;
+  }
+
+  private JPanel initTablePanel() {
     this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
       private void process() {
         String regex = filterTextField.getText();
@@ -130,52 +152,7 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
         // Dummy comment
       }
     });
-    // Prevents JTextField from collapsing on resizes...
-    this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
-    filterPanel.add(this.filterTextField);
 
-    initTable();
-
-    JPanel northPanel = new JPanel();
-    northPanel.setBorder(BorderFactory.createTitledBorder(""));
-    northPanel.add(resourcePanel);
-
-    JPanel tablePanel = new JPanel(new GridBagLayout());
-
-    GridBagConstraints gridBagConstraints = new GridBagConstraints();
-    gridBagConstraints.anchor = GridBagConstraints.LINE_START;
-    gridBagConstraints.insets = new Insets(4, 0, 4, 0);
-    gridBagConstraints.gridy = 0;
-    gridBagConstraints.weightx = 0;
-    gridBagConstraints.weighty = 0;
-
-    tablePanel.add(filterPanel, gridBagConstraints);
-
-    gridBagConstraints.fill = GridBagConstraints.BOTH;
-    gridBagConstraints.insets = new Insets(0, 0, 0, 0);
-    gridBagConstraints.gridy++;
-    gridBagConstraints.weightx = 1.0;
-    gridBagConstraints.weighty = 1.0;
-
-    tablePanel.add(new JScrollPane(this.table), gridBagConstraints);
-
-    JTabbedPane tabbedPane = new JTabbedPane();
-    requestViewer = this.callbacks.createMessageEditor(this, true);
-    tabbedPane.addTab("Request", requestViewer.getComponent());
-
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    splitPane.setTopComponent(tablePanel);
-    splitPane.setBottomComponent(tabbedPane);
-
-    JPanel southPanel = new JPanel();
-    southPanel.add(this.statusLabel);
-
-    this.add(northPanel, BorderLayout.NORTH);
-    this.add(splitPane);
-    this.add(southPanel, BorderLayout.SOUTH);
-  }
-
-  private void initTable() {
     this.table = new JTable() {
       @Override
       public void changeSelection(int row, int col, boolean toggle, boolean extend) {
@@ -241,6 +218,33 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
     this.table.setAutoCreateRowSorter(true);
     this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
     this.table.setRowSorter(this.tableRowSorter);
+
+    JPanel filterPanel = new JPanel();
+    filterPanel.add(new JLabel("Filter (accepts regular expressions):"));
+    // Prevents JTextField from collapsing on resizes...
+    this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
+    filterPanel.add(this.filterTextField);
+
+    JPanel tablePanel = new JPanel(new GridBagLayout());
+
+    GridBagConstraints gridBagConstraints = new GridBagConstraints();
+    gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+    gridBagConstraints.insets = new Insets(4, 0, 4, 0);
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.weightx = 0;
+    gridBagConstraints.weighty = 0;
+
+    tablePanel.add(filterPanel, gridBagConstraints);
+
+    gridBagConstraints.fill = GridBagConstraints.BOTH;
+    gridBagConstraints.insets = new Insets(0, 0, 0, 0);
+    gridBagConstraints.gridy++;
+    gridBagConstraints.weightx = 1.0;
+    gridBagConstraints.weighty = 1.0;
+
+    tablePanel.add(new JScrollPane(this.table), gridBagConstraints);
+
+    return tablePanel;
   }
 
   public JTable getTable() {

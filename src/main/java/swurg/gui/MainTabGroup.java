@@ -36,8 +36,8 @@ public class MainTabGroup extends JTabbedPane implements ITab {
 
     private transient IBurpExtenderCallbacks callbacks;
 
-    private ParserPanel parserPanel;
     private ParametersPanel parametersPanel;
+    private ParserPanel parserPanel;
 
     public MainTabGroup(IBurpExtenderCallbacks callbacks) {
         this.callbacks = callbacks;
@@ -56,6 +56,7 @@ public class MainTabGroup extends JTabbedPane implements ITab {
     private void initComponents() {
         this.parserPanel = new ParserPanel(callbacks);
         this.parametersPanel = new ParametersPanel(callbacks);
+        AboutPanel aboutPanel = new AboutPanel();
 
         Model model = new Model();
 
@@ -65,15 +66,20 @@ public class MainTabGroup extends JTabbedPane implements ITab {
         this.addTab("Parser", parserPanel);
 
         model.addPropertyChangeListener(new PropertyChangeListener() {
+            // Reorder the tabs whenever ParameterPanel is mounted
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if (!model.getLogEntries().isEmpty()) {
+                    removeTabAt(1);
                     addTab("Parameters", parametersPanel);
+                    addTab("About", aboutPanel);
                 } else {
                     removeTabAt(1);
                 }
             }
         });
+
+        this.addTab("About", aboutPanel);
     }
 
     @Override

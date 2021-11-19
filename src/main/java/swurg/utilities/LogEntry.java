@@ -20,11 +20,11 @@ import burp.HttpRequestResponse;
 
 public class LogEntry {
     private HttpRequestResponse httpRequestResponse;
-    private String httpMethod;
-    private String server;
-    private String pathItem;
     private String description;
+    private String httpMethod;
+    private String pathItem;
     private String parameters;
+    private String server;
 
     // TODO: Derive most of the constructors from httpRequestResponse
     public LogEntry(HttpRequestResponse httpRequestResponse, String httpMethod, String server, String pathItem,

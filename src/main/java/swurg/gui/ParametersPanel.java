@@ -19,23 +19,16 @@ package swurg.gui;
 import static burp.BurpExtender.COPYRIGHT;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.FlowLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +36,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -77,16 +69,13 @@ import swurg.utilities.LogEntry;
 public class ParametersPanel extends JPanel implements IHttpListener, IMessageEditorTabFactory {
 
     private transient IBurpExtenderCallbacks callbacks;
+    private transient List<IParameter> editedParameters = new ArrayList<>();
+    private transient List<IParameter> parameters = new ArrayList<>();
+    private transient List<Integer> toolsInScope = new ArrayList<>();
+    private transient TableRowSorter<TableModel> tableRowSorter;
 
-    private JLabel statusLabel = new JLabel(COPYRIGHT);
     private JTable parametersTable;
     private JTextField filterTextField = new JTextField(null, 32);
-
-    private transient List<IParameter> parameters = new ArrayList<>();
-    private transient List<IParameter> editedParameters = new ArrayList<>();
-    private transient List<Integer> toolsInScope = new ArrayList<>();
-
-    private transient TableRowSorter<TableModel> tableRowSorter;
 
     private Map<String, Integer> toolsMap = Map.of("Extender", IBurpExtenderCallbacks.TOOL_EXTENDER, "Intruder",
             IBurpExtenderCallbacks.TOOL_INTRUDER, "Proxy", IBurpExtenderCallbacks.TOOL_PROXY, "Repeater",
@@ -97,7 +86,6 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
     private Model model;
 
     Boolean enableMessageEditorTab;
-    private IHttpRequestResponse interceptedRequestResponse;
     MessageEditorTab messageEditorTab;
 
     public ParametersPanel(IBurpExtenderCallbacks callbacks) {
@@ -127,6 +115,115 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
     private void initComponents() {
         this.setLayout(new BorderLayout());
 
+        JPanel tablePanel = initTablePanel();
+        JPanel scopePanel = initScopePanel();
+        JPanel howToPanel = initHowToPanel();
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setTopComponent(tablePanel);
+        splitPane.setBottomComponent(howToPanel);
+
+        // Resize splitPane
+        this.addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                // Dummy comment
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                // Dummy comment
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                splitPane.setDividerLocation(0.75);
+                removeComponentListener(this);
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                // Dummy comment
+            }
+        });
+
+        JPanel southPanel = new JPanel();
+        southPanel.add(new JLabel(COPYRIGHT));
+
+        this.add(scopePanel, BorderLayout.NORTH);
+        this.add(splitPane);
+        this.add(southPanel, BorderLayout.SOUTH);
+    }
+
+    public JPanel initScopePanel() {
+        JPanel scopePanel = new JPanel();
+        scopePanel.setBorder(BorderFactory.createTitledBorder("Match/Replace Scope"));
+
+        for (Map.Entry<String, Integer> tool : toolsMap.entrySet()) {
+            JCheckBox x = new JCheckBox(tool.getKey());
+
+            if (List.of("Proxy", "Repeater").contains(tool.getKey())) {
+                x.setSelected(true);
+                this.toolsInScope.add(tool.getValue());
+            }
+
+            x.addItemListener((ItemListener) new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        toolsInScope.add(tool.getValue());
+                    } else {
+                        toolsInScope.remove(tool.getValue());
+                    }
+                }
+            });
+
+            scopePanel.add(x);
+        }
+
+        return scopePanel;
+    }
+
+    public JPanel initHowToPanel() {
+        JLabel howToLabel = new JLabel("<html>" + "<body style=\"text-align: justify; text-justify: inter-word;\">"
+                + "<p>This tab allows for the visualisation/edition of the detected parameters (along with their parsed 'types/values') within parsed OpenAPI file(s) ('Parser' tab).</p>"
+                + "<br/>"
+                + "<p>One of the ways to leverage this match and replace feature when assessing OpenAPI based RESTful API(s) is to set"
+                + "valid test values provided within the 'Edited Value' column.</p>" + "<br/>"
+                + "<p>The match and replace will be applied only on request(s) with <b>ALL</b> of the following conditions met:</p>"
+                + "<ul>"
+                + "<li>The BurpSuite tool to monitor/process has been selected within the 'Match/Replace Scope' section of this tab.</li>"
+                + "<li>The request(s) sent contain(s) at least a parameter with its 'name' and 'type' matching 'Parameter' and 'Type'"
+                + "<b>AND</b> its 'value' matching 'Parsed Value'.</li>" + "</ul>"
+                + "<p>For optimals results/accuracy, it is strongly advised to take the time to properly fill the 'Edited Value' column with valid test parameters <em>(i.e., that would trigger an HTTP 200 response)</em> <b>PRIOR TO</b> launching any type of scans.</p>"
+                + "<br/>"
+                + "<p><u>Warning:</u> Currently, the following operations relevant to the 'Parser' tab would cause a total reset of the 'Parameters' tab:</p>"
+                + "<ul>" + "<li>Any click on the 'Clear item(s)' or 'Clear all' options of the contextual menu.</li>"
+                + "<li>Any click on the 'Browse/Load' button.</li>" + "</ul>"
+                + "<p><u>Known bugs <b>(PRs are welcomed)</b>:</u></p>" + "<ul>"
+                + "<li>Body parameters can only be formatted as 'application/x-www-form-urlencoded', this is due"
+                + "to the current limitations of the Burp Extender API.</li>"
+                + "<li>Editing the 'Edited Value' column of the table in the 'Parameters' tab whilst filtering the"
+                + "table would cause the edited value to be set to 'null'.</li>"
+                + "<li>No support for <b>deep/recursive</b> parsing of 'OpenAPI Schema fields'.</li>" + "</ul>"
+                + "</body>" + "</html>");
+
+        JPanel howToPanel = new JPanel(new GridBagLayout());
+        howToPanel.setBorder(BorderFactory.createTitledBorder("How To"));
+
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new Insets(4, 8, 4, 8);
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+
+        howToPanel.add(howToLabel, gridBagConstraints);
+
+        return howToPanel;
+    }
+
+    public JPanel initTablePanel() {
         this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
             private void process() {
                 String regex = filterTextField.getText();
@@ -197,155 +294,15 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
         this.tableRowSorter = new TableRowSorter<>(this.parametersTable.getModel());
         this.parametersTable.setRowSorter(this.tableRowSorter);
 
-        JPanel scopePanel = new JPanel();
-        scopePanel.setBorder(BorderFactory.createTitledBorder("Match/Replace Scope"));
-
-        for (Map.Entry<String, Integer> tool : toolsMap.entrySet()) {
-            JCheckBox x = new JCheckBox(tool.getKey());
-
-            if (List.of("Proxy", "Repeater").contains(tool.getKey())) {
-                x.setSelected(true);
-                this.toolsInScope.add(tool.getValue());
-            }
-
-            x.addItemListener((ItemListener) new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        toolsInScope.add(tool.getValue());
-                    } else {
-                        toolsInScope.remove(tool.getValue());
-                    }
-                }
-            });
-
-            scopePanel.add(x);
-        }
-
         JPanel filterPanel = new JPanel();
         filterPanel.add(new JLabel("Filter (accepts regular expressions):"));
         // Prevents JTextField from collapsing on resizes...
         this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
         filterPanel.add(this.filterTextField);
 
-        JLabel howToLabel = new JLabel("<html>" + "<body style=\"text-align: justify; text-justify: inter-word;\">"
-                + "<p>This tab allows for the visualisation/edition of the detected parameters (along with their parsed 'types/values') within parsed OpenAPI file(s) ('Parser' tab).</p>"
-                + "<br/>"
-                + "<p>One of the ways to leverage this match and replace feature when assessing OpenAPI based RESTful API(s) is to set"
-                + "valid test values provided within the 'Edited Value' column.</p>" + "<br/>"
-                + "<p>The match and replace will be applied only on request(s) with <b>ALL</b> of the following conditions met:</p>"
-                + "<ul>"
-                + "<li>The BurpSuite tool to monitor/process has been selected within the 'Match/Replace Scope' section of this tab.</li>"
-                + "<li>The request(s) sent contain(s) at least a parameter with its 'name' and 'type' matching 'Parameter' and 'Type'"
-                + "<b>AND</b> its 'value' matching 'Parsed Value'.</li>" + "</ul>"
-                + "<p>For optimals results/accuracy, it is strongly advised to take the time to properly fill the 'Edited Value' column with valid test parameters <em>(i.e., that would trigger an HTTP 200 response)</em> <b>PRIOR TO</b> launching any type of scans.</p>"
-                + "<br/>"
-                + "<p><u>Warning:</u> Currently, the following operations relevant to the 'Parser' tab would cause a total reset of the 'Parameters' tab:</p>"
-                + "<ul>" + "<li>Any click on the 'Clear item(s)' or 'Clear all' options of the contextual menu.</li>"
-                + "<li>Any click on the 'Browse/Load' button.</li>" + "</ul>"
-                + "<p><u>Known bugs <b>(PRs are welcomed)</b>:</u></p>" + "<ul>"
-                + "<li>Body parameters can only be formatted as 'application/x-www-form-urlencoded', this is due"
-                + "to the current limitations of the Burp Extender API.</li>"
-                + "<li>Editing the 'Edited Value' column of the table in the 'Parameters' tab whilst filtering the"
-                + "table would cause the edited value to be set to 'null'.</li>"
-                + "<li>No support for <b>deep/recursive</b> parsing of 'OpenAPI Schema fields'.</li>" + "</ul>"
-                + "</body>" + "</html>");
-
-        JPanel howToPanel = new JPanel(new GridBagLayout());
-        howToPanel.setBorder(BorderFactory.createTitledBorder("How To"));
-
-        GridBagConstraints gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new Insets(4, 8, 4, 8);
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-
-        howToPanel.add(howToLabel, gridBagConstraints);
-
-        JLabel aboutLabel = new JLabel("<html>" + "<body style=\"text-align: justify; text-justify: inter-word;\">"
-                + "<p>This extension has been developped by <b>Alexandre Teyar</b>, Managing Director at <b>Aegis Cyber</b>.</p>"
-                + "<p>Extension version: <b>2.4.3</b></p>"
-                + "<p>Do you have a feature request? Raise a ticket and share your thoughts.</p>"
-                + "<p>Do you want to contribute to this project? PRs are welcome!</p>"
-                + "<p>If you use and like this extension, show your appreciation by giving the Swurg repository a star and rating"
-                + "this extension on BApp Store.</p>" + "<p>Special thanks to all the GitHub contributors!</p>"
-                + "</body>" + "</html>");
-
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-
-        int index = 1;
-
-        JPanel aboutButton = new JPanel(new GridBagLayout());
-
-        for (Map.Entry<String, String> entry : Map.of("<html>Talk With <b>Aegis Cyber</b></html>",
-                "www.aegiscyber.co.uk", "<html>Connect <b>(With Me)<b> on <b>LinkedIn</b></html>",
-                "www.linkedin.com/in/alexandre-teyar", "<html>Follow <b>(Me)</b> on <b>GitHub</b></html>",
-                "github.com/aress31", "<html>Submit <b>PR</b>/Report a <b>Bug</b></html>", "github.com/aress31/swurg")
-                .entrySet()) {
-            JButton x = new JButton();
-            x.setPreferredSize(new Dimension(192, 34));
-            x.setText(entry.getKey());
-            x.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try {
-                        java.awt.Desktop.getDesktop().browse(new URI(entry.getValue()));
-                    } catch (IOException | URISyntaxException e1) {
-                        // Do nothing
-                    }
-                }
-            });
-
-            if (index % 2 == 0) {
-                gridBagConstraints.gridx = 1;
-            } else {
-                gridBagConstraints.gridx = 0;
-                gridBagConstraints.gridy++;
-            }
-
-            aboutButton.add(x, gridBagConstraints);
-
-            index++;
-        }
-
-        JPanel aboutPanel = new JPanel(new GridBagLayout());
-        aboutPanel.setBorder(BorderFactory.createTitledBorder("About"));
-
-        gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new Insets(4, 8, 4, 8);
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 0;
-
-        aboutPanel.add(aboutLabel, gridBagConstraints);
-
-        gridBagConstraints.gridy++;
-        gridBagConstraints.fill = GridBagConstraints.NONE;
-        gridBagConstraints.insets = new Insets(0, 4, 0, 4);
-        gridBagConstraints.weightx = 0;
-        gridBagConstraints.weighty = 1.0;
-
-        aboutPanel.add(aboutButton, gridBagConstraints);
-
-        aboutPanel.setPreferredSize(new Dimension(0, aboutPanel.getPreferredSize().height + 64));
-
-        // JPanel eastPanel = new JPanel(new BorderLayout());
-        // eastPanel.add(new JScrollPane(aboutPanel), BorderLayout.SOUTH);
-        // eastPanel.add(howToPanel, BorderLayout.NORTH);
-
         JPanel tablePanel = new JPanel(new GridBagLayout());
 
-        gridBagConstraints = new GridBagConstraints();
-
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.anchor = GridBagConstraints.LINE_START;
         gridBagConstraints.insets = new Insets(4, 0, 4, 0);
         gridBagConstraints.gridy = 0;
@@ -362,42 +319,7 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
 
         tablePanel.add(new JScrollPane(this.parametersTable), gridBagConstraints);
 
-        JPanel southPanel = new JPanel();
-        southPanel.add(this.statusLabel);
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setEnabled(false);
-        splitPane.setTopComponent(tablePanel);
-        splitPane.setBottomComponent(howToPanel);
-        // splitPane.setBottomComponent(eastPanel);
-
-        // Resize splitPane
-        this.addComponentListener(new ComponentListener() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                // Dummy comment
-            }
-
-            @Override
-            public void componentMoved(ComponentEvent e) {
-                // Dummy comment
-            }
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                splitPane.setDividerLocation(0.75);
-                removeComponentListener(this);
-            }
-
-            @Override
-            public void componentHidden(ComponentEvent e) {
-                // Dummy comment
-            }
-        });
-
-        this.add(scopePanel, BorderLayout.NORTH);
-        this.add(splitPane);
-        this.add(southPanel, BorderLayout.SOUTH);
+        return tablePanel;
     }
 
     public void initParametersList() {

@@ -43,13 +43,14 @@ import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
 import swurg.utilities.LogEntry;
 
-@SuppressWarnings("serial")
 class ContextMenu extends JPopupMenu {
 
+  private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
+
   private transient IBurpExtenderCallbacks callbacks;
+
   private JTable table;
 
-  private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
   private Model model;
 
   ContextMenu(IBurpExtenderCallbacks callbacks, ParserPanel tab) {

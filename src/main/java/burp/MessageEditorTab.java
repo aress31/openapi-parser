@@ -4,10 +4,10 @@ import java.awt.Component;
 
 public class MessageEditorTab implements IMessageEditorTab {
 
-    private IBurpExtenderCallbacks callbacks;
+    private byte[] content;
     private boolean isEnabled;
+    private IBurpExtenderCallbacks callbacks;
     private ITextEditor textEditor;
-    byte[] content;
 
     public MessageEditorTab(IBurpExtenderCallbacks callbacks) {
         this.callbacks = callbacks;
