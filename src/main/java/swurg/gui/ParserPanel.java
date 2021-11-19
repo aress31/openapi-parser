@@ -20,6 +20,7 @@ import static burp.BurpExtender.COPYRIGHT;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -87,15 +89,6 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
   private void initComponents() {
     this.setLayout(new BorderLayout());
 
-    JPanel northPanel = new JPanel(new GridBagLayout());
-
-    GridBagConstraints gridBagConstraints = new GridBagConstraints();
-
-    gridBagConstraints.anchor = GridBagConstraints.CENTER;
-    gridBagConstraints.gridy = 0;
-    gridBagConstraints.insets = new Insets(4, 0, 0, 0);
-    gridBagConstraints.weightx = 1.0;
-
     JPanel resourcePanel = new JPanel();
     resourcePanel.add(new JLabel("Parse file/URL:"));
     this.resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
@@ -108,12 +101,6 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
         .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.primaryButtonForeground"));
     resourceButton.addActionListener(new LoadButtonListener());
     resourcePanel.add(resourceButton);
-
-    northPanel.add(resourcePanel, gridBagConstraints);
-
-    gridBagConstraints.anchor = GridBagConstraints.LINE_START;
-    gridBagConstraints.gridy = 1;
-    gridBagConstraints.insets = new Insets(0, 0, 4, 0);
 
     JPanel filterPanel = new JPanel();
     filterPanel.add(new JLabel("Filter (accepts regular expressions):"));
@@ -143,18 +130,41 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
         // Dummy comment
       }
     });
+    // Prevents JTextField from collapsing on resizes...
+    this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
     filterPanel.add(this.filterTextField);
 
-    northPanel.add(filterPanel, gridBagConstraints);
-
     initTable();
+
+    JPanel northPanel = new JPanel();
+    northPanel.setBorder(BorderFactory.createTitledBorder(""));
+    northPanel.add(resourcePanel);
+
+    JPanel tablePanel = new JPanel(new GridBagLayout());
+
+    GridBagConstraints gridBagConstraints = new GridBagConstraints();
+    gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+    gridBagConstraints.insets = new Insets(4, 0, 4, 0);
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.weightx = 0;
+    gridBagConstraints.weighty = 0;
+
+    tablePanel.add(filterPanel, gridBagConstraints);
+
+    gridBagConstraints.fill = GridBagConstraints.BOTH;
+    gridBagConstraints.insets = new Insets(0, 0, 0, 0);
+    gridBagConstraints.gridy++;
+    gridBagConstraints.weightx = 1.0;
+    gridBagConstraints.weighty = 1.0;
+
+    tablePanel.add(new JScrollPane(this.table), gridBagConstraints);
 
     JTabbedPane tabbedPane = new JTabbedPane();
     requestViewer = this.callbacks.createMessageEditor(this, true);
     tabbedPane.addTab("Request", requestViewer.getComponent());
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    splitPane.setTopComponent(new JScrollPane(this.table));
+    splitPane.setTopComponent(tablePanel);
     splitPane.setBottomComponent(tabbedPane);
 
     JPanel southPanel = new JPanel();
