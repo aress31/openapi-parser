@@ -36,9 +36,15 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import burp.IBurpExtenderCallbacks;
+
 public class AboutPanel extends JPanel {
 
-    public AboutPanel() {
+    private transient IBurpExtenderCallbacks callbacks;
+
+    public AboutPanel(IBurpExtenderCallbacks callbacks) {
+        this.callbacks = callbacks;
+
         initComponents();
     }
 
@@ -47,8 +53,8 @@ public class AboutPanel extends JPanel {
 
         JLabel aboutLabel = new JLabel("<html>" + "<body style=\"text-align: justify; text-justify: inter-word;\">"
                 + "<p>" + EXTENSION
-                + " has been developped by <b>Alexandre Teyar</b>, Managing Director at <b>Aegis Cyber</b>.</p>" + "<p>"
-                + EXTENSION + " version: <em>" + VERSION + "</em></p>" + "<br/>"
+                + " has been developped by <b>Alexandre Teyar</b>, Managing Director at <b>Aegis Cyber</b>.</p>"
+                + "<br/>" + "<p>" + EXTENSION + " version: <em>" + VERSION + "</em></p>" + "<br/>"
                 + "<p>Would you like to see new feature(s) implemented? Raise a ticket and share your thoughts.</p>"
                 + "<p>Would you like to actively contribute to this project? PRs are <b>ALWAYS</b> welcome!</p>"
                 + "<br/>" + "<p>If you use " + EXTENSION

@@ -56,7 +56,7 @@ public class MainTabGroup extends JTabbedPane implements ITab {
     private void initComponents() {
         this.parserPanel = new ParserPanel(callbacks);
         this.parametersPanel = new ParametersPanel(callbacks);
-        AboutPanel aboutPanel = new AboutPanel();
+        AboutPanel aboutPanel = new AboutPanel(callbacks);
 
         Model model = new Model();
 
