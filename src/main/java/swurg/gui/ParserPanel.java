@@ -69,14 +69,13 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
   private transient IBurpExtenderCallbacks callbacks;
   private transient IHttpRequestResponse currentlyDisplayedItem;
   private transient IMessageEditor requestViewer;
+  private transient Model model;
   private transient TableRowSorter<TableModel> tableRowSorter;
 
   private JLabel statusLabel = new JLabel(COPYRIGHT);
   private JTable table;
   private JTextField resourceTextField = new JTextField(null, 64);
   private JTextField filterTextField = new JTextField(null, 32);
-
-  private Model model;
 
   public ParserPanel(IBurpExtenderCallbacks callbacks) {
     this.callbacks = callbacks;

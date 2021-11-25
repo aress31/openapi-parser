@@ -32,13 +32,13 @@ public class BurpExtender implements IBurpExtender {
 
     callbacks.addSuiteTab(mainTabGroup);
     callbacks.customizeUiComponent(mainTabGroup.getUiComponent());
-    callbacks.printOutput(String.format("%s tab initialised", EXTENSION));
+    callbacks.printOutput(String.format("'%s' tab initialised", EXTENSION));
 
     callbacks.registerContextMenuFactory(new ContextMenuFactory(callbacks, mainTabGroup.getParserPanel()));
     callbacks.printOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
     callbacks.registerHttpListener(mainTabGroup.getParametersPanel());
-    callbacks.printOutput("HTTPListener registered");
+    callbacks.printOutput("'HTTPListener' registered");
     callbacks.registerMessageEditorTabFactory(mainTabGroup.getParametersPanel());
-    callbacks.printOutput("MessageEditorTabFactory registered");
+    callbacks.printOutput("'MessageEditorTabFactory' registered");
   }
 }

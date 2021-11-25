@@ -72,6 +72,8 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
     private transient List<IParameter> editedParameters = new ArrayList<>();
     private transient List<IParameter> parameters = new ArrayList<>();
     private transient List<Integer> toolsInScope = new ArrayList<>();
+    private transient MessageEditorTab messageEditorTab;
+    private transient Model model;
     private transient TableRowSorter<TableModel> tableRowSorter;
 
     private JTable parametersTable;
@@ -82,11 +84,6 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
             IBurpExtenderCallbacks.TOOL_REPEATER, "Scanner", IBurpExtenderCallbacks.TOOL_SCANNER, "Sequencer",
             IBurpExtenderCallbacks.TOOL_SEQUENCER, "Spider", IBurpExtenderCallbacks.TOOL_SPIDER, "Target",
             IBurpExtenderCallbacks.TOOL_TARGET);
-
-    private Model model;
-
-    Boolean enableMessageEditorTab;
-    MessageEditorTab messageEditorTab;
 
     public ParametersPanel(IBurpExtenderCallbacks callbacks) {
         this.callbacks = callbacks;
@@ -373,15 +370,15 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
 
             messageInfo.setRequest(request);
 
-            this.messageEditorTab.setIsEnabled(isIntercepted);
-            // TODO: Workaround to common bug:
+            // TODO: Workaround to a known bug:
             // https://forum.portswigger.net/thread/repeater-tab-imessageeditortab-getmessage-ae1f0795
-            this.messageEditorTab.setContent(messageInfo.getRequest());
+            this.messageEditorTab.setIsEnabled(isIntercepted);
+            this.messageEditorTab.setContent(request);
         }
     }
 
     @Override
     public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
-        return messageEditorTab;
+        return this.messageEditorTab;
     }
 }

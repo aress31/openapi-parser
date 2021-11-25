@@ -14,6 +14,14 @@ public class MessageEditorTab implements IMessageEditorTab {
         this.textEditor = callbacks.createTextEditor();
     }
 
+    public void setContent(byte[] content) {
+        this.content = content;
+    }
+
+    public void setIsEnabled(boolean isEnabled) {
+        this.isEnabled = isEnabled;
+    }
+
     @Override
     public String getTabCaption() {
         return "Modified Request (OpenAPI Parser)";
@@ -26,15 +34,7 @@ public class MessageEditorTab implements IMessageEditorTab {
 
     @Override
     public boolean isEnabled(byte[] content, boolean isRequest) {
-        return isRequest && this.isEnabled;
-    }
-
-    public void setContent(byte[] content) {
-        this.content = content;
-    }
-
-    public void setIsEnabled(boolean isEnabled) {
-        this.isEnabled = isEnabled;
+        return this.isEnabled;
     }
 
     @Override
