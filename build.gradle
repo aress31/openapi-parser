@@ -6,16 +6,16 @@ repositories {
 
 dependencies {
     // https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser
-    compile group: 'io.swagger.parser.v3', name: 'swagger-parser', version: '2.0.2'
-    // https://mvnrepository.com/artifact/net.portswigger.extender/burp-extender-api
-    compile group: 'net.portswigger.burp.extender', name: 'burp-extender-api', version: '1.7.22'
+    implementation group: 'io.swagger.parser.v3', name: 'swagger-parser', version: '2.0.28'
+    // https://mvnrepository.com/artifact/net.portswigger.burp.extender/burp-extender-api
+    implementation group: 'net.portswigger.burp.extender', name: 'burp-extender-api', version: '2.3'
     // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.2'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 
     // https://mvnrepository.com/artifact/junit/junit
-    testCompile 'junit:junit:4.12'
+    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-    testCompile group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.1'
+    testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.0-alpha5'
 }
 
 test {
@@ -24,6 +24,11 @@ test {
 
 task fatJar(type: Jar) {
     baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy = 'exclude'
+    from { 
+        configurations.runtimeClasspath.collect { 
+            it.isDirectory() ? it : zipTree(it) 
+        }
+    }
     with jar
 }

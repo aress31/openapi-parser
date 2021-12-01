@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    Copyright (C) 2016-2021 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ package burp;
 
 public class HttpRequestResponse implements IHttpRequestResponse {
 
-  private IHttpService httpService;
-  private boolean useHttps;
   private byte[] request;
+  private boolean useHttps;
+  private IHttpService httpService;
 
-  public HttpRequestResponse(
-      IHttpService httpService, boolean useHttps, byte[] request
-  ) {
+  public HttpRequestResponse(IHttpService httpService, boolean useHttps, byte[] request) {
     this.httpService = httpService;
     this.useHttps = useHttps;
     this.request = request;

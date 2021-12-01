@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016 Alexandre Teyar
+#    Copyright (C) 2016-2021 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,25 +16,29 @@
 
 package burp;
 
-import swurg.ui.Tab;
+import swurg.gui.MainTabGroup;
 
 public class BurpExtender implements IBurpExtender {
 
-  public static String COPYRIGHT = "Copyright \u00a9 2016 - 2018 Alexandre Teyar All Rights Reserved";
-  public static String EXTENSION = "OpenAPI Parser";
+  public static final String COPYRIGHT = "Copyright \u00a9 2016 - 2021 Alexandre Teyar, Aegis Cyber (www.aegiscyber.co.uk). All Rights Reserved.";
+  public static final String EXTENSION = "OpenAPI Parser";
+  public static final String VERSION = "2.4.3";
 
   @Override
   public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
-    Tab tab = new Tab(callbacks);
-    ContextMenuFactory contextMenuFactory = new ContextMenuFactory(callbacks, tab);
+    MainTabGroup mainTabGroup = new MainTabGroup(callbacks);
 
     callbacks.setExtensionName(EXTENSION);
-    callbacks.addSuiteTab(tab);
-    callbacks.customizeUiComponent(tab.getUiComponent());
-    callbacks.printOutput(String.format("%s tab initialised", EXTENSION));
 
-    callbacks.registerContextMenuFactory(contextMenuFactory);
-    callbacks
-        .printOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
+    callbacks.addSuiteTab(mainTabGroup);
+    callbacks.customizeUiComponent(mainTabGroup.getUiComponent());
+    callbacks.printOutput(String.format("'%s' tab initialised", EXTENSION));
+
+    callbacks.registerContextMenuFactory(new ContextMenuFactory(callbacks, mainTabGroup.getParserPanel()));
+    callbacks.printOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
+    callbacks.registerHttpListener(mainTabGroup.getParametersPanel());
+    callbacks.printOutput("'HTTPListener' registered");
+    callbacks.registerMessageEditorTabFactory(mainTabGroup.getParametersPanel());
+    callbacks.printOutput("'MessageEditorTabFactory' registered");
   }
 }

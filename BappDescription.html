@@ -1,8 +1,45 @@
+<p>
+  OpenAPI Parser is an extension aimed at streamlining the process of performing
+  web service assessments involving OpenAPI based APIs.
+</p>
+
 <p>This extension provides the following features:</p>
-<ul>  
-    <li>Parse OpenAPI documents, formerly known as the <em>Swagger specification</em>, fully compliant with OpenAPI 2.0/3.0 Specifications (OAS). Supports both JSON and YAML formats.</li>
-    <li>OpenAPI documents can be parsed either from a supplied file or URL. The extension can fetch OpenAPI documents directly from a URL using the <em>Send to OpenAPI Parser</em> feature under the <em>Target -> Site map</em> context menu.</li>
-    <li>Requests can be sent to the <em>Comparer, Intruder, Repeater, Scanner and Site map</em> Burp tools.</li>
+<ul>
+  <li>
+    OpenAPI documents can be parsed either from a supplied file or URL. The
+    extension can fetch OpenAPI documents directly from a URL using the `Send to
+    Swagger Parser` feature under the `Target -> Site map` context menu.
+  </li>
+  <li>
+    Parse OpenAPI documents, formerly known as the `Swagger specification`,
+    fully compliant with OpenAPI 2.0/3.0 Specifications (OAS).
+  </li>
+  <li>
+    Requests can be directly viewed/edited within the extension prior to sending
+    them to other Burp tools.
+  </li>
+  <li>
+    Requests can be sent to the `Comparer, Intruder, Repeater, Scanner, Site map
+    and Scope` Burp tools.
+  </li>
+  <li>
+    Requests matching specific criterias (detailed in the 'Parameters' tab) can
+    be intercepted to automatically match and replace the parsed parameters
+    default values defined in the 'Parameters' tab. This feature allows for
+    fine-tuning of the requests prior to sending them to other Burp's tools
+    (e.g., scanner). Edited requests can be viewed within the 'Modified Request
+    (OpenAPI Parser)' tab of Burp's message editor.
+  </li>
+  <li>
+    Row highlighting allowing pentesters to highlight "interesting" API calls
+    and/or colour code them for reporting purposes.
+  </li>
+  <li>Supports both JSON and YAML formats.</li>
 </ul>
 
-<p>If you are experiencing any issue at all, please file an issue on the <a href="https://github.com/AresS31/swurg">GitHub project page</a> or contact me personally via <a href="https://www.linkedin.com/in/alexandre-teyar/">LinkedIn</a>.</p>
+<p>
+  If you are experiencing any issue at all, please raise an issue on the
+  <a href="https://github.com/AresS31/swurg">GitHub project page</a> or contact
+  me personally via
+  <a href="https://www.linkedin.com/in/alexandre-teyar/">LinkedIn</a>.
+</p>
