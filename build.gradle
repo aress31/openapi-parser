@@ -4,6 +4,10 @@ repositories {
     mavenCentral()
 }
 
+targetCompatibility = 1.8
+sourceCompatibility = 1.8
+
+
 dependencies {
     // https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser
     implementation group: 'io.swagger.parser.v3', name: 'swagger-parser', version: '2.0.28'
