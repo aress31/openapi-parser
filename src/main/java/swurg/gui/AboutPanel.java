@@ -60,6 +60,7 @@ public class AboutPanel extends JPanel {
                 + "<br/>" + "<p>If you use " + EXTENSION
                 + " and like it, show your appreciation by giving its repository a star and rating it on BApp Store.</p>"
                 + "<br/>" + "<p>Special thanks to all the GitHub contributors!</p>" + "</body>" + "</html>");
+        aboutLabel.putClientProperty("html.disable", null);
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
@@ -81,6 +82,7 @@ public class AboutPanel extends JPanel {
                         "<html>Submit <b>PR</b>/Report a <b>Bug</b></html>", "https://github.com/aress31/swurg")
                 .entrySet()) {
             JButton x = new JButton();
+            x.putClientProperty("html.disable", null);
             x.setPreferredSize(new Dimension(192, 40));
             x.setText(entry.getKey());
             x.addActionListener(new ActionListener() {

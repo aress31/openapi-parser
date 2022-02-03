@@ -204,6 +204,7 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
                 + "table would cause the edited value to be set to 'null'.</li>"
                 + "<li>No support for <b>deep/recursive</b> parsing of 'OpenAPI Schema fields'.</li>" + "</ul>"
                 + "</body>" + "</html>");
+        howToLabel.putClientProperty("html.disable", null);
 
         JPanel howToPanel = new JPanel(new GridBagLayout());
         howToPanel.setBorder(BorderFactory.createTitledBorder("How To"));
