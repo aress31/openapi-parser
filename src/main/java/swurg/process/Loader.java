@@ -111,7 +111,7 @@ public class Loader {
               int port = uri.getScheme().equals("http") ? 80 : 443;
 
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
-                  this.callbacks.getHelpers().buildHttpService(uri.getHost(), port, port == 443), uri.getPort() == 443,
+                  this.callbacks.getHelpers().buildHttpService(uri.getHost(), port, port == 443), port == 443,
                   this.extensionHelper.buildRequest(uri, uri.getPath() + pathItem.getKey(), openAPI, operation));
 
               logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), server.getUrl(), pathItem.getKey(),
