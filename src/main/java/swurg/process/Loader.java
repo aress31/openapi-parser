@@ -61,7 +61,7 @@ public class Loader {
 
       if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
         // File case
-        String openAPIasString = Files.readString(Paths.get(resource), StandardCharsets.US_ASCII);
+        String openAPIasString = Files.readString(Paths.get(resource), StandardCharsets.UTF_8);
         result = new OpenAPIParser().readContents(openAPIasString, null, null);
       } else {
         throw new InvalidPathException(resource, "File does not exist on the system or is not a file.");
