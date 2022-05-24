@@ -108,7 +108,11 @@ public class Loader {
 
             try {
               URI uri = new URI(server.getUrl());
-              int port = uri.getScheme().equals("http") ? 80 : 443;
+              // take the port from the URI. If none specified, default to the default for http/https
+              int port = uri.getPort();
+              if(port == -1) {
+                port = uri.getScheme().equals("http") ? 80 : 443;
+              }
 
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
                   this.callbacks.getHelpers().buildHttpService(uri.getHost(), port, port == 443), uri.getPort() == 443,
