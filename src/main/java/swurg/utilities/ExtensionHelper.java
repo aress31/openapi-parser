@@ -25,6 +25,7 @@ import java.util.StringJoiner;
 
 import burp.IBurpExtenderCallbacks;
 import burp.IParameter;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -65,24 +66,26 @@ public class ExtensionHelper {
   }
 
   // TODO: Make this function recursive to get informaiton about nested parameters
-  private byte[] parseBodyParameters(byte[] httpMessage, OpenAPI openAPI, RequestBody requestBody) {
+  private byte[] parseBodyParameters(byte[] httpMessage, OpenAPI openAPI, RequestBody requestBody) throws JsonProcessingException {
     MediaType mediaType = requestBody.getContent().entrySet().stream().findFirst().get().getValue();
 
+    Schema schema = mediaType.getSchema();
     if (mediaType.getSchema().get$ref() != null) {
       String href = mediaType.getSchema().get$ref();
       String[] deconstructedHref = href.split("/");
       String formattedHref = deconstructedHref[deconstructedHref.length - 1];
-
-      Schema schema = openAPI.getComponents().getSchemas().get(formattedHref);
-
-      Map<String, Schema> properties = schema.getProperties();
-
-      for (Map.Entry<String, Schema> property : properties.entrySet()) {
-        httpMessage = parseParameter(httpMessage, property.getKey(), property.getValue(),
-            convertContentTypeToBurpCode(parseContentType(requestBody)));
-      }
+      schema = openAPI.getComponents().getSchemas().get(formattedHref);
     }
 
+    Map<String, Schema> properties = schema.getProperties();
+    if( convertContentTypeToBurpCode(parseContentType(requestBody)) == IParameter.PARAM_JSON ) {
+      httpMessage = new JSONBodyGenerator().addJsonToMessage(properties,httpMessage);
+    } else {
+      for (Map.Entry<String, Schema> property : properties.entrySet()) {
+        httpMessage = parseParameter(httpMessage, property.getKey(), property.getValue(),
+                convertContentTypeToBurpCode(parseContentType(requestBody)));
+      }
+    }
     return httpMessage;
   }
 
@@ -102,9 +105,8 @@ public class ExtensionHelper {
     byte result = IParameter.PARAM_BODY;
 
     switch (contentType) {
-    // Not yet supported
     case ("application/json"): {
-      // result = IParameter.PARAM_JSON;
+      result = IParameter.PARAM_JSON;
       break;
     }
     case ("application/octet-stream"): {
@@ -133,9 +135,12 @@ public class ExtensionHelper {
     String contentType = "";
 
     if (requestBody != null && requestBody.getContent() != null) {
-      contentType = requestBody.getContent().entrySet().stream().findFirst().get().getKey();
-    }
+      if(requestBody.getContent().entrySet().stream().findFirst().isPresent() ) {
+        contentType = requestBody.getContent().entrySet().stream().findFirst().get()
+                .getValue().getEncoding().keySet().stream().findFirst().orElse("");
 
+      }
+    }
     return contentType;
   }
 
@@ -177,7 +182,11 @@ public class ExtensionHelper {
     }
 
     if (operation.getValue().getRequestBody() != null && operation.getValue().getRequestBody().getContent() != null) {
-      httpMessage = parseBodyParameters(httpMessage, openAPI, operation.getValue().getRequestBody());
+      try {
+        httpMessage = parseBodyParameters(httpMessage, openAPI, operation.getValue().getRequestBody());
+      } catch (JsonProcessingException e) {
+        callbacks.printError(String.format("%s -> %s", this.getClass().getName(), e.getMessage()));
+      }
     }
 
     return httpMessage;
