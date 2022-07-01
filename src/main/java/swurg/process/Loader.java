@@ -118,15 +118,15 @@ public class Loader {
 
               URI newUri = new URIBuilder(uri).setScheme(scheme).setHost(host).setPort(port).build();
 
+              String path = newUri.getPath().equals("/") ? pathItem.getKey() : newUri.getPath() + pathItem.getKey();
+
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
                   this.callbacks.getHelpers().buildHttpService(newUri.getHost(), newUri.getPort(),
                       newUri.getPort() == 443),
                   newUri.getPort() == 443,
-                  this.extensionHelper.buildRequest(newUri,
-                      newUri.getPath().equals("/") ? pathItem.getKey() : newUri.getPath() + pathItem.getKey(), openAPI,
-                      operation));
+                  this.extensionHelper.buildRequest(newUri, path, openAPI, operation));
 
-              logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), newUri.getHost(), pathItem.getKey(),
+              logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), newUri.getHost(), path,
                   stringJoiner.toString(), operation.getValue().getDescription()));
             } catch (URISyntaxException e) {
               callbacks.printError(String.format("%s -> %s", this.getClass().getName(), e.getMessage()));
