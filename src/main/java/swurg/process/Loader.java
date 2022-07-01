@@ -118,9 +118,6 @@ public class Loader {
 
               URI newUri = new URIBuilder(uri).setScheme(scheme).setHost(host).setPort(port).build();
 
-              callbacks.printOutput(String.format("pathItem.getKey() -> %s", pathItem.getKey()));
-              callbacks.printOutput(String.format("newUri.getPath() -> %s", newUri.getPath()));
-
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
                   this.callbacks.getHelpers().buildHttpService(newUri.getHost(), newUri.getPort(),
                       newUri.getPort() == 443),
