@@ -22,7 +22,7 @@ public class BurpExtender implements IBurpExtender {
 
   public static final String COPYRIGHT = "Copyright \u00a9 2016 - 2021 Alexandre Teyar, Aegis Cyber (www.aegiscyber.co.uk). All Rights Reserved.";
   public static final String EXTENSION = "OpenAPI Parser";
-  public static final String VERSION = "2.4.3";
+  public static final String VERSION = "3.0";
 
   @Override
   public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
