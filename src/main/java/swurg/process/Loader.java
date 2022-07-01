@@ -118,11 +118,16 @@ public class Loader {
 
               URI newUri = new URIBuilder(uri).setScheme(scheme).setHost(host).setPort(port).build();
 
+              callbacks.printOutput(String.format("pathItem.getKey() -> %s", pathItem.getKey()));
+              callbacks.printOutput(String.format("newUri.getPath() -> %s", newUri.getPath()));
+
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
                   this.callbacks.getHelpers().buildHttpService(newUri.getHost(), newUri.getPort(),
                       newUri.getPort() == 443),
                   newUri.getPort() == 443,
-                  this.extensionHelper.buildRequest(newUri, newUri.getPath(), openAPI, operation));
+                  this.extensionHelper.buildRequest(newUri,
+                      newUri.getPath().equals("/") ? pathItem.getKey() : newUri.getPath() + pathItem.getKey(), openAPI,
+                      operation));
 
               logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), newUri.getHost(), pathItem.getKey(),
                   stringJoiner.toString(), operation.getValue().getDescription()));
