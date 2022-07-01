@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016-2021 Alexandre Teyar
+#    Copyright (C) 2016-2022 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,15 +36,9 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import burp.IBurpExtenderCallbacks;
-
 public class AboutPanel extends JPanel {
 
-    private transient IBurpExtenderCallbacks callbacks;
-
-    public AboutPanel(IBurpExtenderCallbacks callbacks) {
-        this.callbacks = callbacks;
-
+    public AboutPanel() {
         initComponents();
     }
 

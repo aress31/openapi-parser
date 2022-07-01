@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016-2021 Alexandre Teyar
+#    Copyright (C) 2016-2022 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class MainTabGroup extends JTabbedPane implements ITab {
     private void initComponents() {
         this.parserPanel = new ParserPanel(callbacks);
         this.parametersPanel = new ParametersPanel(callbacks);
-        AboutPanel aboutPanel = new AboutPanel(callbacks);
+        AboutPanel aboutPanel = new AboutPanel();
 
         Model model = new Model();
 
