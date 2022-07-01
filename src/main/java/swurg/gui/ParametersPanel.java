@@ -145,7 +145,9 @@ public class ParametersPanel extends JPanel implements IHttpListener, IMessageEd
         });
 
         JPanel southPanel = new JPanel();
-        southPanel.add(new JLabel(COPYRIGHT));
+        JLabel copyrightLabel = new JLabel(COPYRIGHT);
+        copyrightLabel.putClientProperty("html.disable", null);
+        southPanel.add(copyrightLabel);
 
         this.add(scopePanel, BorderLayout.NORTH);
         this.add(splitPane);

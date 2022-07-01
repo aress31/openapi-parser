@@ -98,6 +98,7 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
     splitPane.setBottomComponent(tabbedPane);
 
     JPanel southPanel = new JPanel();
+    this.statusLabel.putClientProperty("html.disable", null);
     southPanel.add(this.statusLabel);
 
     this.add(resourcePanel, BorderLayout.NORTH);

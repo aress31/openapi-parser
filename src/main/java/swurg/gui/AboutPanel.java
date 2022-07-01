@@ -125,7 +125,9 @@ public class AboutPanel extends JPanel {
         aboutPanel.setPreferredSize(new Dimension(0, aboutPanel.getPreferredSize().height + 64));
 
         JPanel southPanel = new JPanel();
-        southPanel.add(new JLabel(COPYRIGHT));
+        JLabel copyrightLabel = new JLabel(COPYRIGHT);
+        copyrightLabel.putClientProperty("html.disable", null);
+        southPanel.add(copyrightLabel);
 
         this.add(aboutPanel);
         this.add(southPanel, BorderLayout.SOUTH);
