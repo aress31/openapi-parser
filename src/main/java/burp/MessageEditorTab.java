@@ -6,11 +6,9 @@ public class MessageEditorTab implements IMessageEditorTab {
 
     private byte[] content;
     private boolean isEnabled;
-    private IBurpExtenderCallbacks callbacks;
     private ITextEditor textEditor;
 
     public MessageEditorTab(IBurpExtenderCallbacks callbacks) {
-        this.callbacks = callbacks;
         this.textEditor = callbacks.createTextEditor();
     }
 

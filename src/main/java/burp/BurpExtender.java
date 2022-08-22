@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016-2021 Alexandre Teyar
+#    Copyright (C) 2016-2022 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package burp;
 
+import java.util.Calendar;
+
 import swurg.gui.MainTabGroup;
 
 public class BurpExtender implements IBurpExtender {
 
-  public static final String COPYRIGHT = "Copyright \u00a9 2016 - 2021 Alexandre Teyar, Aegis Cyber (www.aegiscyber.co.uk). All Rights Reserved.";
+  public static final String COPYRIGHT = String.format(
+      "<html>Copyright \u00a9 2016 - %s Alexandre Teyar, Aegis Cyber &lt;<a href=\"https://aegiscyber.co.uk\">www.aegiscyber.co.uk</a>&gt;. All Rights Reserved.</htnl>",
+      Calendar.getInstance().get(Calendar.YEAR));
   public static final String EXTENSION = "OpenAPI Parser";
   public static final String VERSION = "3.0";
 

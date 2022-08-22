@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016-2021 Alexandre Teyar
+#    Copyright (C) 2016-2022 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
+
+import org.apache.http.client.utils.URIBuilder;
 
 import burp.HttpRequestResponse;
 import burp.IBurpExtenderCallbacks;
@@ -61,7 +64,7 @@ public class Loader {
 
       if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
         // File case
-        String openAPIasString = Files.readString(Paths.get(resource), StandardCharsets.US_ASCII);
+        String openAPIasString = Files.readString(Paths.get(resource), StandardCharsets.UTF_8);
         result = new OpenAPIParser().readContents(openAPIasString, null, null);
       } else {
         throw new InvalidPathException(resource, "File does not exist on the system or is not a file.");
@@ -108,13 +111,22 @@ public class Loader {
 
             try {
               URI uri = new URI(server.getUrl());
-              int port = uri.getScheme().equals("http") ? 80 : 443;
+
+              String scheme = Objects.requireNonNullElse(uri.getScheme(), "http");
+              String host = Objects.requireNonNullElse(uri.getHost(), "127.0.0.1");
+              int port = uri.getPort() == -1 ? (scheme.equals("http") ? 80 : 443) : 80;
+
+              URI newUri = new URIBuilder(uri).setScheme(scheme).setHost(host).setPort(port).build();
+
+              String path = newUri.getPath().equals("/") ? pathItem.getKey() : newUri.getPath() + pathItem.getKey();
 
               HttpRequestResponse httpRequestResponse = new HttpRequestResponse(
-                  this.callbacks.getHelpers().buildHttpService(uri.getHost(), port, port == 443), uri.getPort() == 443,
-                  this.extensionHelper.buildRequest(uri, uri.getPath() + pathItem.getKey(), openAPI, operation));
+                  this.callbacks.getHelpers().buildHttpService(newUri.getHost(), newUri.getPort(),
+                      newUri.getPort() == 443),
+                  newUri.getPort() == 443,
+                  this.extensionHelper.buildRequest(newUri, path, openAPI, operation));
 
-              logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), server.getUrl(), pathItem.getKey(),
+              logEntries.add(new LogEntry(httpRequestResponse, operation.getKey(), newUri.getHost(), path,
                   stringJoiner.toString(), operation.getValue().getDescription()));
             } catch (URISyntaxException e) {
               callbacks.printError(String.format("%s -> %s", this.getClass().getName(), e.getMessage()));

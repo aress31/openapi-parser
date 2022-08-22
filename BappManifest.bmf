@@ -6,7 +6,7 @@ ScreenVersion: 3.0a
 SerialVersion: 19
 MinPlatformVersion: 0
 ProOnly: False
-Author: Alexandre Teyar, Aegis Cyber (www.aegiscyber.co.uk)
+Author: Alexandre Teyar, Aegis Cyber <www.aegiscyber.co.uk>
 ShortDescription: OpenAPI parser fully compliant with OpenAPI 2.0/3.0 Specifications (OAS). Supports both JSON and YAML formats.
 EntryPoint: build/libs/openapi-parser-all.jar
 BuildCommand: gradle fatJar

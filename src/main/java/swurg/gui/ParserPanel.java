@@ -1,5 +1,5 @@
 /*
-#    Copyright (C) 2016-2021 Alexandre Teyar
+#    Copyright (C) 2016-2022 Alexandre Teyar
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -98,6 +98,7 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
     splitPane.setBottomComponent(tabbedPane);
 
     JPanel southPanel = new JPanel();
+    this.statusLabel.putClientProperty("html.disable", null);
     southPanel.add(this.statusLabel);
 
     this.add(resourcePanel, BorderLayout.NORTH);
