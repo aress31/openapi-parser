@@ -157,7 +157,7 @@ public class ParserPanel extends JPanel implements IMessageEditorController {
       @Override
       public void changeSelection(int row, int col, boolean toggle, boolean extend) {
         HttpRequestResponse selectedRow = model.getLogEntries().stream().map(LogEntry::getHttpRequestResponse)
-            .collect(Collectors.toList()).get(row);
+            .collect(Collectors.toList()).get(tableRowSorter.convertRowIndexToModel(row));
 
         requestViewer.setMessage(selectedRow.getRequest(), true);
         currentlyDisplayedItem = selectedRow;
