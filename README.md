@@ -23,7 +23,7 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 ## Features
 
 - `OpenAPI` documents can be parsed either from a supplied file or URL. The extension can fetch `OpenAPI` documents directly from a URL using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
-- Parse `OpenAPI` documents, formerly known as the `Swagger specification`, fully compliant with `OpenAPI` 2.0/3.0 Specifications (OAS).
+- Parse `OpenAPI` documents, formerly known as the `Swagger specification`, fully compliant with `OpenAPI` 2.0/3.0 Specifications (`OAS`).
 - Requests can be directly viewed/edited within the extension prior to sending them to other Burp tools.
 - Requests can be sent to the `Comparer, Intruder, Repeater, Scanner, Site map and Scope` Burp tools.
 - Requests matching specific criterias (detailed in the 'Parameters' tab) can be intercepted to automatically match and replace the parsed parameters default values defined in the 'Parameters' tab. This feature allows for fine-tuning of the requests prior to sending them to other Burp tools (e.g., scanner). Edited requests can be viewed within the 'Modified Request (`OpenAPI` Parser)' tab of Burp's message editor.
