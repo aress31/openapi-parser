@@ -53,9 +53,9 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 
 In `Burp Suite`, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jar file located in the `.\build\libs` folder.
 
-Alternatively, you can now directly install/load this extension from the `BApp Store`.
+Alternatively, you can now directly install/load this extension from the [BApp Store](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c).
 
-_Note: The version distributed on the `BApp Store` might be behind the version available on this repository._
+_Note: The version distributed on the [BApp Store](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c) might be lagging behind the version available on this repository._
 
 ## Roadmap
 
