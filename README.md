@@ -49,7 +49,7 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
    gradle fatJar
    ```
 
-### Loading the extension into the `Burp Suite`
+### Loading the Extension Into the `Burp Suite`
 
 In `Burp Suite`, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jar file located in the `.\build\libs` folder.
 
