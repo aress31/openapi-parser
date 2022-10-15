@@ -1,12 +1,9 @@
-<p align="center">
-  <img alt="logo" src="https://raw.githubusercontent.com/AresS31/swurg/dev/images/logo3.png" height="200">
-  <p align="center">
-      <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
-      <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
-      <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
-      <img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
-  </p>
-</p>
+# swurg
+
+<a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
+<a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
+<a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
+<img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
 
 ## Swurg is a `Burp Suite` extension designed for `OpenAPI` testing.
 
