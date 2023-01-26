@@ -77,9 +77,11 @@ public class ExtensionHelper {
 
       Map<String, Schema> properties = schema.getProperties();
 
-      for (Map.Entry<String, Schema> property : properties.entrySet()) {
-        httpMessage = parseParameter(httpMessage, property.getKey(), property.getValue(),
-            convertContentTypeToBurpCode(parseContentType(requestBody)));
+      if (properties != null) {
+        for (Map.Entry<String, Schema> property : properties.entrySet()) {
+          httpMessage = parseParameter(httpMessage, property.getKey(), property.getValue(),
+                  convertContentTypeToBurpCode(parseContentType(requestBody)));
+        }
       }
     }
 
@@ -89,7 +91,7 @@ public class ExtensionHelper {
   private String parseAccept(ApiResponses responses) {
     StringJoiner stringJoiner = new StringJoiner(",");
 
-    if (responses != null && responses.get("200") != null) {
+    if (responses != null && responses.get("200") != null && responses.get("200").getContent() != null) {
       for (Map.Entry<String, MediaType> response : responses.get("200").getContent().entrySet()) {
         stringJoiner.add(response.getKey());
       }
