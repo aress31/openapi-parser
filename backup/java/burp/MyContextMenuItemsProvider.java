@@ -3,6 +3,7 @@ package burp;
 import static burp.BurpExtender.COPYRIGHT;
 import static burp.BurpExtender.EXTENSION;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,29 +15,36 @@ import swurg.gui.ParserPanel;
 import swurg.process.Loader;
 import swurg.utilities.LogEntry;
 
-public class ContextMenuFactory implements IContextMenuFactory {
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
+import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
+import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 
-  private IBurpExtenderCallbacks callbacks;
+public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
+
+  private MontoyaApi montoyaApi;
   private ParserPanel tab;
+  private Logging logging;
 
-  ContextMenuFactory(IBurpExtenderCallbacks callbacks, ParserPanel tab) {
-    this.callbacks = callbacks;
+  MyContextMenuItemsProvider(MontoyaApi montoyaApi, ParserPanel tab) {
+    this.montoyaApi = montoyaApi;
+    this.logging = montoyaApi.logging();
     this.tab = tab;
   }
 
   @Override
-  public List<JMenuItem> createMenuItems(IContextMenuInvocation invocation) {
-    List<JMenuItem> jMenuItems = new ArrayList<>();
+  public List<Component> provideMenuItems(ContextMenuEvent contextMenuEvent) {
+    List<Component> jMenuItems = new ArrayList<>();
     JMenuItem sendToOpenAPIParser = new JMenuItem(String.format("Send to %s", EXTENSION));
 
     sendToOpenAPIParser.addActionListener(e -> {
-      for (IHttpRequestResponse selectedMessage : invocation.getSelectedMessages()) {
-        IRequestInfo requestInfo = this.callbacks.getHelpers().analyzeRequest(selectedMessage);
+      for (IHttpRequestResponse selectedMessage : contextMenuEvent.getSelectedMessages()) {
+        IRequestInfo requestInfo = this.montoyaApi.getHelpers().analyzeRequest(selectedMessage);
         String resource = requestInfo.getUrl().toString();
 
         // TODO: Redundant piece of code and buggy need to set 'logEntries'
         try {
-          Loader loader = new Loader(callbacks);
+          // Loader loader = new Loader(montoyaApi);
           List<LogEntry> logEntries = loader.parseOpenAPI(loader.processOpenAPI(resource));
 
           this.tab.setResourceTextField(resource);
@@ -52,7 +60,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
           this.tab.printStatus(COPYRIGHT,
               javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
         } catch (Exception e1) {
-          callbacks.printError(String.format("%s -> %s", this.getClass().getName(), e1.getMessage()));
+          this.logging.logToOutput(String.format("%s -> %s", this.getClass().getName(), e1.getMessage()));
           this.tab.printStatus(e1.getMessage(),
               javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpError"));
         }

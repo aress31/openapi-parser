@@ -1,19 +1,3 @@
-/*
-#    Copyright (C) 2016-2022 Alexandre Teyar
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copyToClipboard of the License at
-
-# http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-#    limitations under the License. 
-*/
-
 package swurg.gui;
 
 import java.awt.Color;
@@ -28,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -39,22 +24,20 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import burp.HttpRequestResponse;
-import burp.IBurpExtenderCallbacks;
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import swurg.utilities.LogEntry;
 
 class ContextMenu extends JPopupMenu {
 
-  private final Map<Integer, List<Color>> highlightedRows = new HashMap<>();
-
-  private transient IBurpExtenderCallbacks callbacks;
-
+  private transient Map<Integer, List<Color>> highlightedRows = new HashMap<>();
+  private MontoyaApi montoyaApi;
   private JTable table;
-
   private Model model;
 
-  ContextMenu(IBurpExtenderCallbacks callbacks, ParserPanel tab) {
-    this.callbacks = callbacks;
+  ContextMenu(MontoyaApi montoyaApi, ParserPanel tab) {
+    this.montoyaApi = montoyaApi;
     this.table = tab.getTable();
 
     initComponents();
@@ -65,182 +48,17 @@ class ContextMenu extends JPopupMenu {
   }
 
   private void initComponents() {
-    JMenuItem copyToClipboard = new JMenuItem();
+    JMenuItem copyToClipboard = createCopyToClipboardMenuItem();
 
-    this.table.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        JTable source = (JTable) e.getSource();
-        int row = source.rowAtPoint(e.getPoint());
-        int column = source.columnAtPoint(e.getPoint());
-
-        if (!source.isRowSelected(row))
-          source.changeSelection(row, column, false, false);
-
-        int index = table.getSelectedRow();
-        HttpRequestResponse httpRequestResponse = model.getLogEntries().stream().map(LogEntry::getHttpRequestResponse)
-            .collect(Collectors.toList()).get(index);
-
-        copyToClipboard.setText(callbacks.getHelpers()
-            .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl()
-            .toString());
-      }
-    });
-
-    copyToClipboard.addActionListener(e -> {
-      int index = this.table.getSelectedRow();
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(this.callbacks.getHelpers()
-          .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl().toString()),
-          null);
-    });
-
-    JMenuItem addToScope = new JMenuItem("Add to scope");
-    addToScope.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
-      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      this.callbacks.includeInScope(this.callbacks.getHelpers()
-          .analyzeRequest(httpRequestResponse.getHttpService(), httpRequestResponse.getRequest()).getUrl());
-    }));
-
-    JMenuItem addToSiteMap = new JMenuItem("Add to site map");
-    addToSiteMap.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
-      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      this.callbacks.addToSiteMap(httpRequestResponse);
-    }));
-
-    JMenuItem activeScan = new JMenuItem("Do an active scan");
-    activeScan.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
-      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      this.callbacks.doActiveScan(httpRequestResponse.getHttpService().getHost(),
-          httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
-          httpRequestResponse.getRequest());
-    }));
-
-    JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
-    sendToIntruder.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
-      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      this.callbacks.sendToIntruder(httpRequestResponse.getHttpService().getHost(),
-          httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
-          httpRequestResponse.getRequest());
-    }));
-
-    JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
-    sendToRepeater.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
-      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      this.callbacks.sendToRepeater(httpRequestResponse.getHttpService().getHost(),
-          httpRequestResponse.getHttpService().getPort(), httpRequestResponse.isUseHttps(),
-          httpRequestResponse.getRequest(),
-          String.format("%s -> %s %s", this.table.getValueAt(row, this.table.getColumn("Server").getModelIndex()),
-              this.table.getValueAt(row, this.table.getColumn("Method").getModelIndex()),
-              this.table.getValueAt(row, this.table.getColumn("Path").getModelIndex())));
-    }));
-
-    JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
-    sendToComparer.addActionListener(e -> IntStream.of(this.table.getSelectedRows()).forEach(row -> {
-      int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-      HttpRequestResponse httpRequestResponse = this.model.getLogEntries().stream()
-          .map(LogEntry::getHttpRequestResponse).collect(Collectors.toList()).get(index);
-
-      this.callbacks.sendToComparer(httpRequestResponse.getRequest());
-    }));
-
-    JMenu highlightMenu = new JMenu("Highlight");
-
-    // Add null
-    for (Color color : Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
-        Color.MAGENTA, Color.PINK, Color.GRAY)) {
-      final JMenuItem x = new JMenuItem();
-      x.setOpaque(true);
-      x.setBackground(color);
-      x.setForeground(color != null ? Color.BLACK : null);
-
-      highlightMenu.add(x);
-
-      x.addHierarchyListener(e -> x.setText(this.table
-          .getValueAt(this.table.getSelectedRow(), this.table.getColumn("Server").getModelIndex()).toString()));
-
-      x.addActionListener(e -> {
-        IntStream.of(this.table.getSelectedRows())
-            .forEach(row -> this.highlightedRows.put(row, color != null ? Arrays.asList(Color.BLACK, color) : null));
-
-        this.table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-          @Override
-          public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-              boolean hasFocus, int row, int column) {
-            final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
-                column);
-
-            if (highlightedRows.containsKey(row) && highlightedRows.get(row) != null) {
-              component.setForeground(
-                  isSelected ? highlightedRows.get(row).get(0).darker() : highlightedRows.get(row).get(0));
-              component.setBackground(
-                  isSelected ? highlightedRows.get(row).get(1).brighter() : highlightedRows.get(row).get(1));
-            } else {
-              if (row % 2 == 0) {
-                component.setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.background"));
-              } else {
-                component
-                    .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.alternateRowColor"));
-              }
-
-              component.setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.foreground"));
-            }
-
-            if (isSelected) {
-              component
-                  .setForeground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground"));
-              component
-                  .setBackground(javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground"));
-            }
-
-            return component;
-          }
-        });
-      });
-    }
-
-    JMenuItem clear = new JMenuItem("Clear item(s)");
-    clear.addActionListener(e -> {
-      // iterating the indices in de creasing order to not mess up the table shifting
-      IntStream.of(this.table.getSelectedRows()).boxed().map(row -> this.table.convertRowIndexToModel(row))
-          .sorted(Collections.reverseOrder()).forEach(row -> {
-            int index = (int) this.table.getValueAt(row, this.table.getColumn("#").getModelIndex());
-            this.model.getLogEntries().remove(index);
-            ((DefaultTableModel) this.table.getModel()).removeRow(row);
-          });
-
-      // Setting logEntries to the newly shrinked list in order to fire the associated
-      // events
-      this.model.setLogEntries(this.model.getLogEntries());
-
-      // updating the rows' index (reindexing table)
-      IntStream.rangeClosed(0, this.table.getRowCount())
-          .forEach(row -> this.table.getModel().setValueAt(row, row, this.table.getColumn("#").getModelIndex()));
-    });
-
-    JMenuItem clearAll = new JMenuItem("Clear all");
-    clearAll.addActionListener(e -> {
-      this.highlightedRows.clear();
-      this.model.setLogEntries(new ArrayList<LogEntry>());
-      ((DefaultTableModel) this.table.getModel()).setRowCount(0);
-    });
+    JMenuItem addToScope = createAddToScopeMenuItem();
+    JMenuItem addToSiteMap = createAddToSiteMapMenuItem();
+    JMenuItem activeScan = createActiveScanMenuItem();
+    JMenuItem sendToIntruder = createSendToIntruderMenuItem();
+    JMenuItem sendToRepeater = createSendToRepeaterMenuItem();
+    JMenuItem sendToComparer = createSendToComparerMenuItem();
+    JMenu highlightMenu = createHighlightMenu();
+    JMenuItem clearItems = createClearItemsMenuItem();
+    JMenuItem clearAll = createClearAllMenuItem();
 
     this.add(copyToClipboard);
     this.add(new JSeparator());
@@ -254,7 +72,233 @@ class ContextMenu extends JPopupMenu {
     this.add(new JSeparator());
     this.add(highlightMenu);
     this.add(new JSeparator());
-    this.add(clear);
+    this.add(clearItems);
     this.add(clearAll);
+  }
+
+  private JMenuItem createCopyToClipboardMenuItem() {
+    JMenuItem copyToClipboard = new JMenuItem();
+
+    table.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        JTable source = (JTable) e.getSource();
+        int row = source.rowAtPoint(e.getPoint());
+        int column = source.columnAtPoint(e.getPoint());
+
+        if (!source.isRowSelected(row))
+          source.changeSelection(row, column, false, false);
+
+        int index = table.getSelectedRow();
+        HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+
+        copyToClipboard.setText(httpRequest.url());
+      }
+    });
+
+    copyToClipboard.addActionListener(e -> {
+      int index = table.getSelectedRow();
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+
+      Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(httpRequest.url()), null);
+    });
+
+    return copyToClipboard;
+  }
+
+  private void processSelectedRows(Consumer<Integer> action) {
+    IntStream.of(table.getSelectedRows())
+        .forEach(row -> {
+          int index = (int) table.getValueAt(row, table.getColumn("#").getModelIndex());
+          action.accept(index);
+        });
+  }
+
+  private HttpRequest getHttpRequestFromSelectedIndex(int index) {
+    return model.getLogEntries().stream()
+        .map(LogEntry::getHttpRequest)
+        .collect(Collectors.toList())
+        .get(index);
+  }
+
+  private JMenuItem createAddToScopeMenuItem() {
+    JMenuItem addToScope = new JMenuItem("Add to scope");
+
+    addToScope.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.scope().includeInScope(httpRequest.url());
+    }));
+
+    return addToScope;
+  }
+
+  private JMenuItem createAddToSiteMapMenuItem() {
+    JMenuItem addToSiteMap = new JMenuItem("Add to site map");
+
+    addToSiteMap.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.siteMap().add(HttpRequestResponse.httpRequestResponse(httpRequest, null, null));
+    }));
+
+    return addToSiteMap;
+  }
+
+  private JMenuItem createActiveScanMenuItem() {
+    JMenuItem activeScan = new JMenuItem("Do an active scan");
+
+    activeScan.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.scanner().startAudit(null).addRequest(httpRequest);
+    }));
+
+    return activeScan;
+  }
+
+  private JMenuItem createSendToIntruderMenuItem() {
+    JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
+
+    sendToIntruder.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.intruder().sendToIntruder(httpRequest);
+    }));
+
+    return sendToIntruder;
+  }
+
+  private JMenuItem createSendToRepeaterMenuItem() {
+    JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
+
+    sendToRepeater.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.repeater().sendToRepeater(httpRequest,
+          String.format("%s -> %s %s",
+              table.getValueAt(index, table.getColumn("Server").getModelIndex()),
+              table.getValueAt(index, table.getColumn("Method").getModelIndex()),
+              table.getValueAt(index, table.getColumn("Path").getModelIndex())));
+    }));
+
+    return sendToRepeater;
+  }
+
+  private JMenuItem createSendToComparerMenuItem() {
+    JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
+    sendToComparer.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.comparer().sendToComparer(httpRequest.toByteArray());
+    }));
+
+    return sendToComparer;
+  }
+
+  private JMenu createHighlightMenu() {
+    JMenu highlightMenu = new JMenu("Highlight");
+
+    for (Color color : Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
+        Color.MAGENTA, Color.PINK, Color.GRAY)) {
+      JMenuItem x = createHighlightMenuItem(color);
+
+      highlightMenu.add(x);
+    }
+
+    return highlightMenu;
+  }
+
+  private void updateComponentColor(Component component, int viewRow, boolean isSelected) {
+    int modelRow = table.convertRowIndexToModel(viewRow);
+    Color foregroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.foreground");
+    Color backgroundColor;
+
+    if (modelRow % 2 == 0) {
+      backgroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.background");
+    } else {
+      backgroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.alternateRowColor");
+    }
+
+    if (highlightedRows.containsKey(modelRow)) {
+      List<Color> colors = highlightedRows.get(modelRow);
+      if (colors != null) {
+        foregroundColor = colors.get(0);
+        backgroundColor = colors.get(1);
+      }
+    }
+
+    if (isSelected) {
+      foregroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground");
+      backgroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground");
+    }
+
+    component.setForeground(foregroundColor);
+    component.setBackground(backgroundColor);
+  }
+
+  private JMenuItem createHighlightMenuItem(Color color) {
+    JMenuItem menuItem = new JMenuItem();
+
+    menuItem.setOpaque(true);
+    menuItem.setBackground(color);
+    menuItem.setForeground(color != null ? Color.BLACK : null);
+
+    menuItem.addActionListener(e -> {
+      IntStream.of(table.getSelectedRows())
+          .forEach(row -> highlightedRows.put(row, color != null ? Arrays.asList(Color.BLACK, color) : null));
+
+      table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+            int row, int column) {
+          final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+              column);
+
+          updateComponentColor(component, row, isSelected);
+
+          return component;
+        }
+      });
+    });
+
+    return menuItem;
+  }
+
+  private JMenuItem createClearItemsMenuItem() {
+    JMenuItem clear = new JMenuItem("Clear item(s)");
+    clear.addActionListener(e -> {
+      // Get the selected rows and sort them in reverse order
+      List<Integer> selectedRows = IntStream.of(table.getSelectedRows())
+          .boxed()
+          .sorted(Collections.reverseOrder())
+          .collect(Collectors.toList());
+
+      // Remove the rows one by one
+      for (Integer row : selectedRows) {
+        int modelRow = table.convertRowIndexToModel(row);
+        int index = (int) table.getModel().getValueAt(modelRow, table.getColumn("#").getModelIndex());
+        model.getLogEntries().remove(index);
+        ((DefaultTableModel) table.getModel()).removeRow(modelRow);
+        // Remove the highlighted rows that correspond to the removed rows
+        highlightedRows.remove(table.convertRowIndexToModel(row));
+      }
+
+      // Setting logEntries to the newly shrinked list in order to fire the associated
+      // events
+      model.setLogEntries(model.getLogEntries());
+
+      // Updating the rows' index (reindexing table)
+      IntStream.range(0, table.getRowCount())
+          .forEach(row -> table.getModel().setValueAt(row, row, table.getColumn("#").getModelIndex()));
+    });
+
+    return clear;
+  }
+
+  private JMenuItem createClearAllMenuItem() {
+    JMenuItem clearAll = new JMenuItem("Clear all");
+
+    clearAll.addActionListener(e -> {
+      highlightedRows.clear();
+      model.setLogEntries(new ArrayList<LogEntry>());
+      ((DefaultTableModel) table.getModel()).setRowCount(0);
+    });
+
+    return clearAll;
   }
 }
