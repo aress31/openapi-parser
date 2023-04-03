@@ -17,20 +17,21 @@ public class MyBurpExtension implements BurpExtension {
 
   @Override
   public void initialize(MontoyaApi montoyaApi) {
-    Logging logging = montoyaApi.logging();
-
     montoyaApi.extension().setName(EXTENSION);
 
-    montoyaApi.userInterface().registerSuiteTab(EXTENSION, new MainTabGroup(montoyaApi));
+    Logging logging = montoyaApi.logging();
+    MainTabGroup mainTabGroup = new MainTabGroup(montoyaApi);
+
+    montoyaApi.userInterface().registerSuiteTab(EXTENSION, mainTabGroup);
     logging.logToOutput(String.format("'%s' tab initialised", EXTENSION));
 
-    // montoyaApi.userInterface().registerContextMenuItemsProvider(new
-    // MyContextMenuItemsProvider(montoyaApi, mainTabGroup.getParserPanel()));
-    // logging.logToOutput(String.format("'Send to %s' option added to the context
-    // menu", EXTENSION));
+    montoyaApi.userInterface()
+        .registerContextMenuItemsProvider(new MyContextMenuItemsProvider(montoyaApi, mainTabGroup.getParserPanel()));
+    logging.logToOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
+
     // montoyaApi.registerHttpListener(mainTabGroup.getParametersPanel());
     // logging.logToOutput("'HTTPListener' registered");
-    // montoyaApi.registerMessageEditorTabFactory(mainTabGroup.getParametersPanel());
+    // montoyaApi.userInterface().registerHttpRequestEditorProvider(mainTabGroup.getParametersPanel());
     // logging.logToOutput("'MessageEditorTabFactory' registered");
   }
 }

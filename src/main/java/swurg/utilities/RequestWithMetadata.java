@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class LogEntry {
+public class RequestWithMetadata {
     private HttpRequest httpRequest;
     private String description;
     private String parameters;

@@ -19,7 +19,7 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.http.client.utils.URIBuilder;
-import swurg.utilities.LogEntry;
+import swurg.utilities.RequestWithMetadata;
 
 import java.io.IOException;
 import java.net.URI;
@@ -87,8 +87,8 @@ public class Loader {
     return result;
   }
 
-  public List<LogEntry> parseOpenAPI(OpenAPI openAPI) {
-    List<LogEntry> logEntries = new ArrayList<>();
+  public List<RequestWithMetadata> parseOpenAPI(OpenAPI openAPI) {
+    List<RequestWithMetadata> logEntries = new ArrayList<>();
 
     for (Server server : openAPI.getServers()) {
       for (Map.Entry<String, PathItem> pathItem : openAPI.getPaths().entrySet()) {
@@ -190,9 +190,6 @@ public class Loader {
             Object example = propertySchema.getExample();
             String type = example != null ? example.toString() : propertySchema.getType();
 
-            logging.logToOutput("getValue" + propertySchema.toString());
-            logging.logToOutput("example" + type);
-
             httpParameters.add(HttpParameter.bodyParameter(property.getKey(), type));
           }
         }
@@ -237,9 +234,9 @@ public class Loader {
         .build();
   }
 
-  private LogEntry createLogEntry(HttpRequest httpRequest, String parameters,
+  private RequestWithMetadata createLogEntry(HttpRequest httpRequest, String parameters,
       String description) {
 
-    return new LogEntry(httpRequest, parameters, description);
+    return new RequestWithMetadata(httpRequest, parameters, description);
   }
 }

@@ -1,17 +1,13 @@
 package swurg.gui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,30 +17,25 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.SwingUtilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import swurg.utilities.LogEntry;
+import swurg.gui.tables.models.ParserTableModel;
+
+import swurg.gui.tables.renderers.ParserTableCellRenderer;
 
 class ContextMenu extends JPopupMenu {
 
-  private transient Map<Integer, List<Color>> highlightedRows = new HashMap<>();
   private MontoyaApi montoyaApi;
   private JTable table;
-  private Model model;
 
   ContextMenu(MontoyaApi montoyaApi, ParserPanel tab) {
     this.montoyaApi = montoyaApi;
     this.table = tab.getTable();
 
     initComponents();
-  }
-
-  public void setModel(Model model) {
-    this.model = model;
   }
 
   private void initComponents() {
@@ -115,10 +106,8 @@ class ContextMenu extends JPopupMenu {
   }
 
   private HttpRequest getHttpRequestFromSelectedIndex(int index) {
-    return model.getLogEntries().stream()
-        .map(LogEntry::getHttpRequest)
-        .collect(Collectors.toList())
-        .get(index);
+    ParserTableModel parserTableModel = (ParserTableModel) table.getModel();
+    return parserTableModel.getHttpRequestAt(index);
   }
 
   private JMenuItem createAddToScopeMenuItem() {
@@ -195,40 +184,12 @@ class ContextMenu extends JPopupMenu {
 
     for (Color color : Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
         Color.MAGENTA, Color.PINK, Color.GRAY)) {
-      JMenuItem x = createHighlightMenuItem(color);
+      JMenuItem menuItem = createHighlightMenuItem(color);
 
-      highlightMenu.add(x);
+      highlightMenu.add(menuItem);
     }
 
     return highlightMenu;
-  }
-
-  private void updateComponentColor(Component component, int viewRow, boolean isSelected) {
-    int modelRow = table.convertRowIndexToModel(viewRow);
-    Color foregroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.foreground");
-    Color backgroundColor;
-
-    if (modelRow % 2 == 0) {
-      backgroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.background");
-    } else {
-      backgroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.alternateRowColor");
-    }
-
-    if (highlightedRows.containsKey(modelRow)) {
-      List<Color> colors = highlightedRows.get(modelRow);
-      if (colors != null) {
-        foregroundColor = colors.get(0);
-        backgroundColor = colors.get(1);
-      }
-    }
-
-    if (isSelected) {
-      foregroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionForeground");
-      backgroundColor = javax.swing.UIManager.getLookAndFeelDefaults().getColor("Table.selectionBackground");
-    }
-
-    component.setForeground(foregroundColor);
-    component.setBackground(backgroundColor);
   }
 
   private JMenuItem createHighlightMenuItem(Color color) {
@@ -236,24 +197,22 @@ class ContextMenu extends JPopupMenu {
 
     menuItem.setOpaque(true);
     menuItem.setBackground(color);
-    menuItem.setForeground(color != null ? Color.BLACK : null);
+    menuItem.setForeground(Color.BLACK);
+
+    ParserTableCellRenderer renderer = (ParserTableCellRenderer) table.getDefaultRenderer(Object.class);
 
     menuItem.addActionListener(e -> {
-      IntStream.of(table.getSelectedRows())
-          .forEach(row -> highlightedRows.put(row, color != null ? Arrays.asList(Color.BLACK, color) : null));
+      int[] selectedRows = table.getSelectedRows();
 
-      table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-            int row, int column) {
-          final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
-              column);
+      // Set the highlight color for each selected row
+      for (int row : selectedRows) {
+        // Mapping view row to model row using a unique identifier
+        Object rowId = table.getValueAt(row, table.getColumn("#").getModelIndex());
 
-          updateComponentColor(component, row, isSelected);
-
-          return component;
-        }
-      });
+        SwingUtilities.invokeLater(() -> {
+          renderer.setRowHighlightColor(rowId, color);
+        });
+      }
     });
 
     return menuItem;
@@ -261,6 +220,9 @@ class ContextMenu extends JPopupMenu {
 
   private JMenuItem createClearItemsMenuItem() {
     JMenuItem clear = new JMenuItem("Clear item(s)");
+
+    ParserTableCellRenderer renderer = (ParserTableCellRenderer) table.getDefaultRenderer(Object.class);
+
     clear.addActionListener(e -> {
       // Get the selected rows and sort them in reverse order
       List<Integer> selectedRows = IntStream.of(table.getSelectedRows())
@@ -268,19 +230,19 @@ class ContextMenu extends JPopupMenu {
           .sorted(Collections.reverseOrder())
           .collect(Collectors.toList());
 
-      // Remove the rows one by one
-      for (Integer row : selectedRows) {
-        int modelRow = table.convertRowIndexToModel(row);
-        int index = (int) table.getModel().getValueAt(modelRow, table.getColumn("#").getModelIndex());
-        model.getLogEntries().remove(index);
-        ((DefaultTableModel) table.getModel()).removeRow(modelRow);
-        // Remove the highlighted rows that correspond to the removed rows
-        highlightedRows.remove(table.convertRowIndexToModel(row));
-      }
+      // Remove the rows one by one from the table
+      SwingUtilities.invokeLater(() -> {
+        ParserTableModel tableModel = (ParserTableModel) table.getModel();
 
-      // Setting logEntries to the newly shrinked list in order to fire the associated
-      // events
-      model.setLogEntries(model.getLogEntries());
+        for (Integer row : selectedRows) {
+          int modelRow = table.convertRowIndexToModel(row);
+          // Mapping view row to model row using a unique identifier
+          Object rowId = table.getValueAt(row, table.getColumn("#").getModelIndex());
+
+          tableModel.removeRow(modelRow);
+          renderer.clearRowHighlightColor(rowId);
+        }
+      });
 
       // Updating the rows' index (reindexing table)
       IntStream.range(0, table.getRowCount())
@@ -293,10 +255,14 @@ class ContextMenu extends JPopupMenu {
   private JMenuItem createClearAllMenuItem() {
     JMenuItem clearAll = new JMenuItem("Clear all");
 
+    ParserTableCellRenderer renderer = (ParserTableCellRenderer) table.getDefaultRenderer(Object.class);
+
     clearAll.addActionListener(e -> {
-      highlightedRows.clear();
-      model.setLogEntries(new ArrayList<LogEntry>());
-      ((DefaultTableModel) table.getModel()).setRowCount(0);
+      SwingUtilities.invokeLater(() -> {
+        ParserTableModel tableModel = (ParserTableModel) table.getModel();
+        tableModel.clear();
+        renderer.clearAllRowHighlightColors();
+      });
     });
 
     return clearAll;

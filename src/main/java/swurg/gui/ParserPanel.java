@@ -16,13 +16,13 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.List;
 import java.util.prefs.Preferences;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -30,29 +30,32 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.UIManager;
 
 import burp.api.montoya.MontoyaApi;
-import swurg.process.Loader;
-import swurg.utilities.LogEntry;
-
 import burp.api.montoya.http.message.requests.HttpRequest;
+import swurg.gui.tables.models.ParserTableModel;
+import swurg.gui.tables.renderers.ParserTableCellRenderer;
+import swurg.process.Loader;
+import swurg.utilities.RequestWithMetadata;
+
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
+
+import swurg.utilities.DataModel;
 
 public class ParserPanel extends JPanel {
 
   private MontoyaApi montoyaApi;
   private Logging logging;
 
-  private Model model;
-  private HttpRequest currentlyDisplayedItem;
+  private DataModel dataModel;
 
   private HttpRequestEditor requestViewer;
 
@@ -60,12 +63,12 @@ public class ParserPanel extends JPanel {
   private JTable table;
   private TableRowSorter<TableModel> tableRowSorter;
   private JTextField filterTextField = new JTextField(32);
-  private JProgressBar progressBar;
   private JLabel statusLabel = new JLabel(COPYRIGHT);
 
-  public ParserPanel(MontoyaApi montoyaApi) {
+  public ParserPanel(MontoyaApi montoyaApi, DataModel dataModel) {
     this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
+    this.dataModel = dataModel;
 
     initComponents();
   }
@@ -73,55 +76,45 @@ public class ParserPanel extends JPanel {
   private void initComponents() {
     setLayout(new BorderLayout());
 
-    JPanel resourcePanel = initResourcePanel();
-    JPanel tablePanel = initTablePanel();
-
-    JTabbedPane tabbedPane = new JTabbedPane();
-    requestViewer = montoyaApi.userInterface()
-        .createHttpRequestEditor(burp.api.montoya.ui.editor.EditorOptions.READ_ONLY);
-    tabbedPane.addTab("Request", requestViewer.uiComponent());
-
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    splitPane.setTopComponent(tablePanel);
-    splitPane.setBottomComponent(tabbedPane);
-
-    JPanel southPanel = new JPanel();
-    statusLabel.putClientProperty("html.disable", null);
-    southPanel.add(statusLabel);
-
-    add(resourcePanel, BorderLayout.NORTH);
-    add(splitPane);
-    add(southPanel, BorderLayout.SOUTH);
+    add(initResourcePanel(), BorderLayout.NORTH);
+    add(initSplitPane(), BorderLayout.CENTER);
+    add(initSouthPanel(), BorderLayout.SOUTH);
   }
 
   private JPanel initResourcePanel() {
-    resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
-
-    JButton resourceButton = createResourceButton();
-
-    progressBar = new JProgressBar();
-    progressBar.setMinimum(0);
-    progressBar.setMaximum(100);
-    progressBar.setStringPainted(true);
-    progressBar.setVisible(false);
-
     JPanel resourcePanel = new JPanel();
     resourcePanel.setBorder(BorderFactory.createTitledBorder(""));
-    resourcePanel.add(new JLabel("Parse file/URL:"));
+    resourcePanel.add(new JLabel("Parse from local file or URL:"));
+    resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
     resourcePanel.add(resourceTextField);
-    resourcePanel.add(resourceButton);
-    resourcePanel.add(progressBar);
+    resourcePanel.add(createBrowseButton());
 
     return resourcePanel;
   }
 
-  private JButton createResourceButton() {
-    JButton resourceButton = new JButton("Browse/Load");
-    resourceButton.setBackground(UIManager.getColor("Burp.burpOrange"));
-    resourceButton.setFont(new Font(resourceButton.getFont().getName(), Font.BOLD, resourceButton.getFont().getSize()));
-    resourceButton.setForeground(UIManager.getColor("Burp.primaryButtonForeground"));
-    resourceButton.addActionListener(new LoadButtonListener());
-    return resourceButton;
+  private JButton createBrowseButton() {
+    JButton browseButton = new JButton("Browse/Load");
+    browseButton.setBackground(UIManager.getColor("Burp.burpOrange"));
+    browseButton.setFont(new Font(browseButton.getFont().getName(), Font.BOLD, browseButton.getFont().getSize()));
+    browseButton.setForeground(UIManager.getColor("Burp.primaryButtonForeground"));
+    browseButton.addActionListener(new browseButtonListener());
+    return browseButton;
+  }
+
+  private JSplitPane initSplitPane() {
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    splitPane.setTopComponent(initTablePanel());
+    splitPane.setBottomComponent(initTabbedPane());
+    splitPane.setResizeWeight(0.6); // set the resize weight to 0.6
+    return splitPane;
+  }
+
+  private JTabbedPane initTabbedPane() {
+    JTabbedPane tabbedPane = new JTabbedPane();
+    requestViewer = montoyaApi.userInterface()
+        .createHttpRequestEditor(burp.api.montoya.ui.editor.EditorOptions.READ_ONLY);
+    tabbedPane.addTab("Request", requestViewer.uiComponent());
+    return tabbedPane;
   }
 
   private JPanel initTablePanel() {
@@ -137,95 +130,11 @@ public class ParserPanel extends JPanel {
     return tablePanel;
   }
 
-  private void setUpFilterTextField() {
-    filterTextField.getDocument().addDocumentListener(new DocumentListener() {
-      private void updateFilter() {
-        String regex = filterTextField.getText();
-
-        if (regex == null || regex.isEmpty()) {
-          tableRowSorter.setRowFilter(null);
-        } else {
-          tableRowSorter.setRowFilter(RowFilter.regexFilter(regex));
-        }
-      }
-
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        updateFilter();
-      }
-
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        updateFilter();
-      }
-
-      @Override
-      public void changedUpdate(DocumentEvent e) {
-        // No action needed
-      }
-    });
-  }
-
-  private JTable createTable() {
-    JTable table = new JTable() {
-      @Override
-      public void changeSelection(int row, int col, boolean toggle, boolean extend) {
-        int modelIndex = tableRowSorter.convertRowIndexToModel(row);
-        HttpRequest selectedRow = model.getLogEntries().get(modelIndex).getHttpRequest();
-
-        requestViewer.setRequest(selectedRow);
-        currentlyDisplayedItem = selectedRow;
-        super.changeSelection(row, col, toggle, extend);
-      }
-    };
-
-    String[] columns = { "#", "Method", "Server", "Path", "Parameters (inHeader, inQuery & inPath)", "Description" };
-    Object[][] rows = {};
-    table.setModel(new DefaultTableModel(rows, columns) {
-      @Override
-      public Class<?> getColumnClass(int column) {
-        if (column == 0) {
-          return Integer.class;
-        }
-        return super.getColumnClass(column);
-      }
-
-      @Override
-      public boolean isCellEditable(int row, int column) {
-        return false;
-      }
-    });
-
-    table.setAutoCreateRowSorter(true);
-    tableRowSorter = new TableRowSorter<>(table.getModel());
-    table.setRowSorter(tableRowSorter);
-    return table;
-  }
-
-  private void setUpTableMouseListener(ContextMenu contextMenu) {
-    table.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        handleContextMenuEvent(e, contextMenu);
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-        handleContextMenuEvent(e, contextMenu);
-      }
-
-      private void handleContextMenuEvent(MouseEvent e, ContextMenu contextMenu) {
-        if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
-          int selectedRow = table.rowAtPoint(e.getPoint());
-          if ((selectedRow >= 0 && selectedRow < table.getRowCount())
-              && !table.getSelectionModel().isSelectedIndex(selectedRow)) {
-            table.setRowSelectionInterval(selectedRow, selectedRow);
-          }
-          contextMenu.show(e.getComponent(), e.getX(), e.getY());
-          contextMenu.setModel(model);
-        }
-      }
-    });
+  private JPanel initSouthPanel() {
+    JPanel southPanel = new JPanel();
+    statusLabel.putClientProperty("html.disable", null);
+    southPanel.add(statusLabel);
+    return southPanel;
   }
 
   private JPanel createFilterPanel() {
@@ -258,12 +167,103 @@ public class ParserPanel extends JPanel {
     return tablePanel;
   }
 
+  private void setUpFilterTextField() {
+    filterTextField.getDocument().addDocumentListener(new DocumentListener() {
+      private void updateFilter() {
+        String regex = filterTextField.getText();
+        try {
+          tableRowSorter.setRowFilter(regex.isEmpty() ? null : RowFilter.regexFilter(regex));
+        } catch (PatternSyntaxException e) {
+          // Display an error message if the regex pattern is invalid
+          printStatus("Invalid filter pattern: " + e.getMessage(),
+              UIManager.getLookAndFeelDefaults().getColor("BurpPalette.red1"));
+        }
+      }
+
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        updateFilter();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        updateFilter();
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+        // No action needed
+      }
+    });
+  }
+
+  private JTable createTable() {
+    // Instantiate your custom table dataModel with the column names and data
+    ParserTableModel tableModel = new ParserTableModel(dataModel.getRequestDataWithMetadatas());
+
+    // Create the JTable with your custom table dataModel
+    JTable table = new JTable(tableModel) {
+      @Override
+      public void changeSelection(int row, int col, boolean toggle, boolean extend) {
+        super.changeSelection(row, col, toggle, extend);
+
+        int modelIndex = tableRowSorter.convertRowIndexToModel(row);
+        HttpRequest selectedHttpRequest = ((ParserTableModel) tableModel).getHttpRequestAt(modelIndex);
+
+        SwingUtilities.invokeLater(() -> {
+          requestViewer.setRequest(selectedHttpRequest);
+        });
+      }
+    };
+
+    // Set the renderer for the table cells colouring support
+    table.setDefaultRenderer(Object.class, new ParserTableCellRenderer());
+
+    // Set up the table's row sorter
+    table.setAutoCreateRowSorter(true);
+    tableRowSorter = new TableRowSorter<>(table.getModel());
+    table.setRowSorter(tableRowSorter);
+
+    return table;
+  }
+
+  private void setUpTableMouseListener(ContextMenu contextMenu) {
+    MouseAdapter mouseAdapter = new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        handleContextMenuEvent(e);
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        handleContextMenuEvent(e);
+      }
+
+      private void handleContextMenuEvent(MouseEvent e) {
+        if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
+          int selectedRow = table.rowAtPoint(e.getPoint());
+
+          if (selectedRow >= 0 && selectedRow < table.getRowCount()
+              && !table.getSelectionModel().isSelectedIndex(selectedRow)) {
+            table.setRowSelectionInterval(selectedRow, selectedRow);
+          }
+
+          contextMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+    };
+
+    table.addMouseListener(mouseAdapter);
+  }
+
+  // Find a way to delete
   public JTable getTable() {
     return this.table;
   }
 
-  public void setModel(Model model) {
-    this.model = model;
+  // Find a way to delete
+  public void setModel(DataModel dataModel) {
+    this.dataModel = dataModel;
   }
 
   public void setResourceTextField(String resourceTextField) {
@@ -275,10 +275,7 @@ public class ParserPanel extends JPanel {
     this.statusLabel.setText(status);
   }
 
-  class LoadButtonListener implements ActionListener {
-    LoadButtonListener() {
-    }
-
+  class browseButtonListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
       if (!(e.getSource() instanceof JButton)) {
@@ -289,31 +286,29 @@ public class ParserPanel extends JPanel {
 
       if (resource == null || resource.isEmpty()) {
         printStatus("No file or URL selected.",
-            javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpError"));
+            UIManager.getLookAndFeelDefaults().getColor("BurpPalette.red1"));
         return;
       }
 
       Loader loader = new Loader(montoyaApi);
       try {
-        List<LogEntry> logEntries = loader.parseOpenAPI(loader.processOpenAPI(resource));
-        model.setLogEntries(logEntries);
-
-        updateTableModel(logEntries);
-        printStatus(COPYRIGHT, javax.swing.UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
+        List<RequestWithMetadata> requestWithMetadatas = loader.parseOpenAPI(loader.processOpenAPI(resource));
+        updateTableModel(requestWithMetadatas);
+        printStatus(COPYRIGHT, UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
       } catch (Exception ex) {
         logging.logToOutput(String.format("%s -> %s", this.getClass().getName(), ex.getMessage()));
-        printStatus(ex.getMessage(), javax.swing.UIManager.getLookAndFeelDefaults().getColor("Burp.burpError"));
+        printStatus(ex.getMessage(), UIManager.getLookAndFeelDefaults().getColor("BurpPalette.red1"));
       }
     }
 
-    private void updateTableModel(List<LogEntry> logEntries) {
-      DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+    private void updateTableModel(List<RequestWithMetadata> requestWithMetadatas) {
+      ParserTableModel tableModel = (ParserTableModel) table.getModel();
 
-      for (LogEntry entry : logEntries) {
-        tableModel.addRow(new Object[] { tableModel.getRowCount(), entry.getHttpRequest().method(),
-            entry.getHttpRequest().httpService().host(), entry.getHttpRequest().path(), entry.getParameters(),
-            entry.getDescription() != null ? entry.getDescription() : "N/A" });
-      }
+      SwingUtilities.invokeLater(() -> {
+        for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
+          tableModel.addRow(requestWithMetadata);
+        }
+      });
     }
 
     private String getResource(JButton button) {
