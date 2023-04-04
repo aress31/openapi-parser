@@ -7,7 +7,7 @@
 <img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
 
 > [!UPDATE]
-> This extension has been updated to use the latest Burp Montoya Java API. The extension has undergone a complete overhaul to improve both its UI/UX and performance. These changes ensure that the extension is modern and optimised for use.
+> This extension has been updated to use the latest [Burp Montoya Java API](https://portswigger.github.io/burp-extensions-montoya-api/javadoc/burp/api/montoya/package-summary.html). The extension has undergone a complete overhaul to improve both its UI/UX and performance. These changes ensure that the extension is modern and optimised for use.
 
 ## Swurg is a `Burp Suite` extension designed for `OpenAP
 
