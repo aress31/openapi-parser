@@ -1,4 +1,4 @@
-package swurg.process;
+package swurg.workers;
 
 import burp.api.montoya.http.HttpService;
 import burp.api.montoya.http.message.HttpHeader;
@@ -36,11 +36,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-public class Loader {
+public class Worker {
 
   private final Logging logging;
 
-  public Loader(MontoyaApi montoyaApi) {
+  public Worker(MontoyaApi montoyaApi) {
     this.logging = montoyaApi.logging();
   }
 

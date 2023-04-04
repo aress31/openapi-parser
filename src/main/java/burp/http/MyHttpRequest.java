@@ -1,15 +1,13 @@
-package swurg.utilities;
+package burp.http;
 
 import burp.api.montoya.http.message.requests.HttpRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@Data
+// Refactor the code to use this class instead of RequestWithMetadata
 @AllArgsConstructor
-public class RequestWithMetadata {
+@Data
+public class MyHttpRequest {
     private HttpRequest httpRequest;
     private String description;
-    // TODO: Remove this field as it is not needed
-    // parameters are already in the httpRequest
-    private String parameters;
 }

@@ -1,4 +1,4 @@
-package swurg.gui;
+package swurg.gui.views;
 
 import static burp.MyBurpExtension.COPYRIGHT;
 
@@ -33,29 +33,25 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.UIManager;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import swurg.gui.tables.models.ParserTableModel;
-import swurg.gui.tables.renderers.ParserTableCellRenderer;
-import swurg.process.Loader;
+import swurg.gui.ContextMenu;
+import swurg.gui.components.HistoryFileChooser;
+import swurg.gui.components.tables.models.ParserTableModel;
+import swurg.gui.components.tables.renderers.ParserTableCellRenderer;
 import swurg.utilities.RequestWithMetadata;
-
+import swurg.workers.Worker;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
-
-import swurg.utilities.DataModel;
 
 public class ParserPanel extends JPanel {
 
   private MontoyaApi montoyaApi;
   private Logging logging;
-
-  private DataModel dataModel;
 
   private HttpRequestEditor requestViewer;
 
@@ -65,12 +61,21 @@ public class ParserPanel extends JPanel {
   private JTextField filterTextField = new JTextField(32);
   private JLabel statusLabel = new JLabel(COPYRIGHT);
 
-  public ParserPanel(MontoyaApi montoyaApi, DataModel dataModel) {
+  private ParserTableModel parserTableModel;
+
+  public ParserPanel(MontoyaApi montoyaApi, List<RequestWithMetadata> requestWithMetadatas) {
     this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
-    this.dataModel = dataModel;
+
+    ParserTableModel parserTableModel = new ParserTableModel(requestWithMetadatas);
+    this.parserTableModel = parserTableModel;
 
     initComponents();
+  }
+
+  // Add this method to allow the MainTabGroup to register itself as an observer
+  public ParserTableModel getParserTableModel() {
+    return parserTableModel;
   }
 
   private void initComponents() {
@@ -88,17 +93,27 @@ public class ParserPanel extends JPanel {
     resourceTextField.setHorizontalAlignment(SwingConstants.CENTER);
     resourcePanel.add(resourceTextField);
     resourcePanel.add(createBrowseButton());
+    resourcePanel.add(createLoadButton());
 
     return resourcePanel;
   }
 
   private JButton createBrowseButton() {
-    JButton browseButton = new JButton("Browse/Load");
+    JButton browseButton = new JButton("Browse");
     browseButton.setBackground(UIManager.getColor("Burp.burpOrange"));
     browseButton.setFont(new Font(browseButton.getFont().getName(), Font.BOLD, browseButton.getFont().getSize()));
     browseButton.setForeground(UIManager.getColor("Burp.primaryButtonForeground"));
-    browseButton.addActionListener(new browseButtonListener());
+    browseButton.addActionListener(new BrowseButtonListener());
     return browseButton;
+  }
+
+  private JButton createLoadButton() {
+    JButton loadButton = new JButton("Load");
+    loadButton.setBackground(UIManager.getColor("Burp.burpOrange"));
+    loadButton.setFont(new Font(loadButton.getFont().getName(), Font.BOLD, loadButton.getFont().getSize()));
+    loadButton.setForeground(UIManager.getColor("Burp.primaryButtonForeground"));
+    loadButton.addActionListener(new LoadButtonListener());
+    return loadButton;
   }
 
   private JSplitPane initSplitPane() {
@@ -198,17 +213,14 @@ public class ParserPanel extends JPanel {
   }
 
   private JTable createTable() {
-    // Instantiate your custom table dataModel with the column names and data
-    ParserTableModel tableModel = new ParserTableModel(dataModel.getRequestDataWithMetadatas());
-
     // Create the JTable with your custom table dataModel
-    JTable table = new JTable(tableModel) {
+    JTable table = new JTable(parserTableModel) {
       @Override
       public void changeSelection(int row, int col, boolean toggle, boolean extend) {
         super.changeSelection(row, col, toggle, extend);
 
         int modelIndex = tableRowSorter.convertRowIndexToModel(row);
-        HttpRequest selectedHttpRequest = ((ParserTableModel) tableModel).getHttpRequestAt(modelIndex);
+        HttpRequest selectedHttpRequest = ((ParserTableModel) parserTableModel).getHttpRequestAt(modelIndex);
 
         SwingUtilities.invokeLater(() -> {
           requestViewer.setRequest(selectedHttpRequest);
@@ -261,11 +273,6 @@ public class ParserPanel extends JPanel {
     return this.table;
   }
 
-  // Find a way to delete
-  public void setModel(DataModel dataModel) {
-    this.dataModel = dataModel;
-  }
-
   public void setResourceTextField(String resourceTextField) {
     this.resourceTextField.setText(resourceTextField);
   }
@@ -275,14 +282,49 @@ public class ParserPanel extends JPanel {
     this.statusLabel.setText(status);
   }
 
-  class browseButtonListener implements ActionListener {
+  class BrowseButtonListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
       if (!(e.getSource() instanceof JButton)) {
         return;
       }
 
-      String resource = getResource((JButton) e.getSource());
+      String resource = browseForFile((JButton) e.getSource());
+
+      if (resource != null && !resource.isEmpty()) {
+        resourceTextField.setText(resource);
+      }
+    }
+
+    private String browseForFile(JButton button) {
+      Preferences prefs = Preferences.userRoot().node(getClass().getName());
+      HistoryFileChooser fileChooser = new HistoryFileChooser(
+          prefs.get("LAST_USED_FOLDER", new File(".").getAbsolutePath()));
+
+      // Add history to the file chooser
+      for (File file : fileChooser.getHistory()) {
+        fileChooser.addFileToHistory(file);
+      }
+
+      if (fileChooser.showOpenDialog(button.getParent()) == JFileChooser.APPROVE_OPTION) {
+        File file = fileChooser.getSelectedFile();
+        String resource = file.getAbsolutePath();
+        prefs.put("LAST_USED_FOLDER", file.getParent());
+
+        // Add the selected file to history
+        fileChooser.addFileToHistory(file);
+
+        return resource;
+      }
+
+      return null;
+    }
+  }
+
+  class LoadButtonListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      String resource = resourceTextField.getText();
 
       if (resource == null || resource.isEmpty()) {
         printStatus("No file or URL selected.",
@@ -290,9 +332,9 @@ public class ParserPanel extends JPanel {
         return;
       }
 
-      Loader loader = new Loader(montoyaApi);
+      Worker worker = new Worker(montoyaApi);
       try {
-        List<RequestWithMetadata> requestWithMetadatas = loader.parseOpenAPI(loader.processOpenAPI(resource));
+        List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(resource));
         updateTableModel(requestWithMetadatas);
         printStatus(COPYRIGHT, UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
       } catch (Exception ex) {
@@ -302,34 +344,11 @@ public class ParserPanel extends JPanel {
     }
 
     private void updateTableModel(List<RequestWithMetadata> requestWithMetadatas) {
-      ParserTableModel tableModel = (ParserTableModel) table.getModel();
-
       SwingUtilities.invokeLater(() -> {
         for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
-          tableModel.addRow(requestWithMetadata);
+          parserTableModel.addRow(requestWithMetadata);
         }
       });
-    }
-
-    private String getResource(JButton button) {
-      String resource = resourceTextField.getText();
-
-      if (resource.isEmpty()) {
-        Preferences prefs = Preferences.userRoot().node(getClass().getName());
-        JFileChooser fileChooser = new JFileChooser(prefs.get("LAST_USED_FOLDER", new File(".").getAbsolutePath()));
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("OpenAPI JSON File (*.json)", "json"));
-        fileChooser
-            .addChoosableFileFilter(new FileNameExtensionFilter("OpenAPI YAML File (*.yml, *.yaml)", "yaml", "yml"));
-
-        if (fileChooser.showOpenDialog(button.getParent()) == JFileChooser.APPROVE_OPTION) {
-          File file = fileChooser.getSelectedFile();
-          resource = file.getAbsolutePath();
-          resourceTextField.setText(resource);
-          prefs.put("LAST_USED_FOLDER", file.getParent());
-        }
-      }
-
-      return resource;
     }
   }
 }

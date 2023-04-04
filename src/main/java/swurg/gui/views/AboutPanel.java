@@ -1,4 +1,4 @@
-package swurg.gui;
+package swurg.gui.views;
 
 import static burp.MyBurpExtension.COPYRIGHT;
 import static burp.MyBurpExtension.EXTENSION;

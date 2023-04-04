@@ -22,16 +22,16 @@ import javax.swing.SwingUtilities;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import swurg.gui.tables.models.ParserTableModel;
+import swurg.gui.components.tables.models.ParserTableModel;
+import swurg.gui.components.tables.renderers.ParserTableCellRenderer;
+import swurg.gui.views.ParserPanel;
 
-import swurg.gui.tables.renderers.ParserTableCellRenderer;
-
-class ContextMenu extends JPopupMenu {
+public class ContextMenu extends JPopupMenu {
 
   private MontoyaApi montoyaApi;
   private JTable table;
 
-  ContextMenu(MontoyaApi montoyaApi, ParserPanel tab) {
+  public ContextMenu(MontoyaApi montoyaApi, ParserPanel tab) {
     this.montoyaApi = montoyaApi;
     this.table = tab.getTable();
 

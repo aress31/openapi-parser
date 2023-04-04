@@ -9,13 +9,12 @@ import java.util.List;
 
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.UIManager;
 
-import swurg.gui.ParserPanel;
-import swurg.process.Loader;
+import swurg.gui.components.tables.models.ParserTableModel;
+import swurg.gui.views.ParserPanel;
 import swurg.utilities.RequestWithMetadata;
-
+import swurg.workers.Worker;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
@@ -24,12 +23,11 @@ import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 
 public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
-
   private MontoyaApi montoyaApi;
   private ParserPanel parserPanel;
   private Logging logging;
 
-  MyContextMenuItemsProvider(MontoyaApi montoyaApi, ParserPanel parserPanel) {
+  public MyContextMenuItemsProvider(MontoyaApi montoyaApi, ParserPanel parserPanel) {
     this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
     this.parserPanel = parserPanel;
@@ -38,45 +36,36 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
   @Override
   public List<Component> provideMenuItems(ContextMenuEvent contextMenuEvent) {
     List<Component> menuItems = new ArrayList<>();
+
     JMenuItem openApiMenuItem = new JMenuItem(String.format("Send to %s", EXTENSION));
-
     openApiMenuItem.addActionListener(e -> {
-      List<HttpRequestResponse> selectedHttpRequestResponses = contextMenuEvent.selectedRequestResponses();
-      Loader loader = new Loader(montoyaApi);
+      try {
+        List<HttpRequestResponse> selectedHttpRequestResponses = contextMenuEvent.selectedRequestResponses();
+        Worker worker = new Worker(montoyaApi);
 
-      for (HttpRequestResponse selectedMessage : selectedHttpRequestResponses) {
-        try {
+        for (HttpRequestResponse selectedMessage : selectedHttpRequestResponses) {
           HttpRequest selectedRequest = selectedMessage.request();
           String url = selectedRequest.url();
 
           parserPanel.setResourceTextField(url);
 
-          List<RequestWithMetadata> requestWithMetadatas = loader.parseOpenAPI(loader.processOpenAPI(url));
-
-          // Update table dataModel
-          // Bug parameters are swapped on the table with description and impossible to
-          // left click on the table
-          DefaultTableModel tableModel = (DefaultTableModel) parserPanel.getTable().getModel();
-
-          for (int i = 0; i < tableModel.getColumnCount(); i++) {
-            logging.logToOutput(tableModel.getColumnName(i));
-          }
+          ParserTableModel tableModel = (ParserTableModel) parserPanel.getTable().getModel();
+          List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(url));
 
           SwingUtilities.invokeLater(() -> {
-            for (RequestWithMetadata entry : requestWithMetadatas) {
-              tableModel.addRow(new Object[] { tableModel.getRowCount(), entry.getHttpRequest().method(),
-                  entry.getHttpRequest().httpService().host(), entry.getHttpRequest().path(), entry.getParameters(),
-                  entry.getDescription() != null ? entry.getDescription() : "N/A" });
+            for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
+              tableModel.addRow(requestWithMetadata);
             }
           });
 
           parserPanel.printStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
-        } catch (Exception exception) {
-          String errorMessage = String.format("Failed to process request %s: %s", selectedMessage.request().url(),
-              exception.getMessage());
-          logging.logToOutput(String.format("%s -> %s", this.getClass().getName(), errorMessage));
-          parserPanel.printStatus(errorMessage, UIManager.getColor("BurpPalette.red1"));
         }
+      } catch (Exception exception) {
+        String errorMessage = String.format("Failed to process request %s: %s",
+            ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url(),
+            exception.getMessage());
+        logging.logToOutput(String.format("%s -> %s", this.getClass().getName(), errorMessage));
+        parserPanel.printStatus(errorMessage, UIManager.getColor("BurpPalette.red1"));
       }
     });
 

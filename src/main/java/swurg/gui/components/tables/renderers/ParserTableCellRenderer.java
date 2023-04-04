@@ -1,4 +1,4 @@
-package swurg.gui.tables.renderers;
+package swurg.gui.components.tables.renderers;
 
 import java.awt.Color;
 import java.awt.Component;

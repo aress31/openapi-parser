@@ -1,35 +1,81 @@
-package swurg.gui.tables.models;
+package swurg.gui.components.tables.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
 import burp.api.montoya.http.message.requests.HttpRequest;
+import lombok.Data;
+import swurg.observers.ParserTableModelObserver;
+import swurg.observers.ParametersPanelObserver;
 import swurg.utilities.RequestWithMetadata;
 
+@Data
 public class ParserTableModel extends AbstractTableModel {
 
     private List<RequestWithMetadata> requestWithMetadatas;
     private String[] columnNames = { "#", "Method", "Server", "Path", "Parameters (COOKIE, URL)", "Description" };
 
+    // Add a list to hold the observers
+    private List<ParserTableModelObserver> observers = new ArrayList<>();
+    private List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
+
+
     public ParserTableModel(List<RequestWithMetadata> requestWithMetadatas) {
         this.requestWithMetadatas = requestWithMetadatas;
     }
 
-    public void addRow(RequestWithMetadata logEntry) {
+    public void addRow(RequestWithMetadata requestWithMetadata) {
         int rowCount = getRowCount();
-        requestWithMetadatas.add(logEntry);
+        requestWithMetadatas.add(requestWithMetadata);
         fireTableRowsInserted(rowCount, rowCount);
+        notifyObservers();
     }
 
     public void removeRow(int rowIndex) {
         requestWithMetadatas.remove(rowIndex);
         fireTableRowsDeleted(rowIndex, rowIndex);
+        notifyObservers();
     }
 
     public void clear() {
         requestWithMetadatas.clear();
         fireTableDataChanged();
+        notifyObservers();
+    }
+
+    // Add a method to register observers
+    public void registerObserver(ParserTableModelObserver observer) {
+        observers.add(observer);
+    }
+
+    // Add a method to unregister observers
+    public void unregisterObserver(ParserTableModelObserver observer) {
+        observers.remove(observer);
+    }
+
+    // Add a method to notify the observers
+    private void notifyObservers() {
+        for (ParserTableModelObserver observer : observers) {
+            observer.onRequestWithMetadatasUpdate();
+        }
+        notifyParametersPanelObservers();
+    }
+
+    // Add methods to register, unregister, and notify ParametersPanel observers
+    public void registerParametersPanelObserver(ParametersPanelObserver observer) {
+        parametersPanelObservers.add(observer);
+    }
+
+    public void unregisterParametersPanelObserver(ParametersPanelObserver observer) {
+        parametersPanelObservers.remove(observer);
+    }
+
+    private void notifyParametersPanelObservers() {
+        for (ParametersPanelObserver observer : parametersPanelObservers) {
+            observer.onRequestWithMetadatasUpdate();
+        }
     }
 
     public HttpRequest getHttpRequestAt(int rowIndex) {

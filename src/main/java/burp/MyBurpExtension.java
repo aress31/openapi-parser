@@ -29,7 +29,7 @@ public class MyBurpExtension implements BurpExtension {
         .registerContextMenuItemsProvider(new MyContextMenuItemsProvider(montoyaApi, mainTabGroup.getParserPanel()));
     logging.logToOutput(String.format("'Send to %s' option added to the context menu", EXTENSION));
 
-    // montoyaApi.registerHttpListener(mainTabGroup.getParametersPanel());
+    montoyaApi.http().registerHttpHandler(mainTabGroup.getParametersPanel());
     // logging.logToOutput("'HTTPListener' registered");
     // montoyaApi.userInterface().registerHttpRequestEditorProvider(mainTabGroup.getParametersPanel());
     // logging.logToOutput("'MessageEditorTabFactory' registered");

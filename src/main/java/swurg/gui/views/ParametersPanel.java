@@ -1,4 +1,4 @@
-package swurg.gui;
+package swurg.gui.views;
 
 import static burp.MyBurpExtension.COPYRIGHT;
 
@@ -9,11 +9,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,18 +23,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.RowFilter;
-import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import com.google.common.base.Strings;
-
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.logging.Logging;
+import burp.http.MyHttpParameter;
 import burp.api.montoya.http.handler.HttpHandler;
 import burp.api.montoya.http.handler.HttpRequestToBeSent;
 import burp.api.montoya.http.handler.HttpResponseReceived;
@@ -46,24 +37,25 @@ import burp.api.montoya.http.handler.ResponseReceivedAction;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.core.Annotations;
 import burp.api.montoya.core.ToolType;
-import swurg.utilities.DataModel;
 
 import burp.api.montoya.MontoyaApi;
-
+import swurg.gui.components.CustomTextFieldEditor;
+import swurg.gui.components.tables.models.ParametersTableModel;
+import swurg.observers.ParametersPanelObserver;
 import swurg.utilities.RequestWithMetadata;
 
 public class ParametersPanel extends JPanel
-        implements HttpHandler {
+        implements HttpHandler, ParametersPanelObserver {
 
     private Logging logging;
 
-    private transient List<HttpParameter> editedParameters = new ArrayList<>();
-    private transient List<HttpParameter> parameters = new ArrayList<>();
     private transient List<ToolType> toolsInScope = new ArrayList<>();
     private transient TableRowSorter<TableModel> tableRowSorter;
 
     private JTable table;
     private JTextField filterTextField = new JTextField(null, 32);
+
+    private ParametersTableModel parametersTableModel;
 
     private Map<String, ToolType> toolsMap = Map.of("Extensions", ToolType.EXTENSIONS, "Intruder",
             ToolType.INTRUDER, "Proxy", ToolType.PROXY, "Repeater",
@@ -71,70 +63,24 @@ public class ParametersPanel extends JPanel
             ToolType.SEQUENCER, "Target",
             ToolType.TARGET);
 
-    private DataModel parserModel;
+    private List<RequestWithMetadata> requestWithMetadatas;
 
-    public ParametersPanel(MontoyaApi montoyaApi, DataModel parserModel) {
+    public ParametersPanel(MontoyaApi montoyaApi, List<RequestWithMetadata> requestWithMetadatas) {
         this.logging = montoyaApi.logging();
+        this.requestWithMetadatas = requestWithMetadatas;
+
+        parametersTableModel = ParametersTableModel.fromRequestWithMetadataList(requestWithMetadatas);
 
         initComponents();
-
-        // parserModel.addPropertyChangeListener(new PropertyChangeListener() {
-        // @Override
-        // public void propertyChange(PropertyChangeEvent evt) {
-        // logging.logToOutput("public void propertyChange(PropertyChangeEvent evt)");
-
-        // resetParametersList((DefaultTableModel) table.getModel());
-
-        // if (!parserModel.getLogEntries().isEmpty()) {
-        // populateTableWithData((DefaultTableModel) table.getModel(),
-        // parserModel.getLogEntries());
-        // }
-        // }
-        // });
-
-        this.parserModel = parserModel;
     }
 
-    public void updateParserModel(DataModel dataModel) {
-        this.parserModel = dataModel;
-        // Perform any necessary updates to the UI based on the new dataModel
-    }
+    // Implement the onRequestWithMetadatasUpdate() method from the
+    // ParserTableModelObserver interface
+    @Override
+    public void onRequestWithMetadatasUpdate() {
+        // Update the table model in ParametersPanel
+        parametersTableModel.updateData(requestWithMetadatas);
 
-    // Clear the parameters list and reset the table dataModel
-    private void resetParametersList(DefaultTableModel tableModel) {
-        parameters.clear();
-        editedParameters.clear();
-
-        SwingUtilities.invokeLater(() -> {
-            tableModel.setRowCount(0);
-        });
-    }
-
-    private void populateTableWithData(DefaultTableModel tableModel, List<RequestWithMetadata> logEntries) {
-        for (RequestWithMetadata logEntry : logEntries) {
-            HttpRequest httpRequest = logEntry.getHttpRequest();
-
-            for (HttpParameter httpParameter : httpRequest.parameters()) {
-                if (!rowExists(tableModel, httpParameter)) {
-                    SwingUtilities.invokeLater(() -> {
-                        tableModel.addRow(new Object[] { tableModel.getRowCount(), httpParameter.name(),
-                                httpParameter.type().name(),
-                                httpParameter.value(), "" });
-                    });
-                }
-            }
-        }
-    }
-
-    private boolean rowExists(DefaultTableModel tableModel, HttpParameter httpParameter) {
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            if (tableModel.getValueAt(i, 1).equals(httpParameter.type().name()) &&
-                    tableModel.getValueAt(i, 2).equals(httpParameter.value())) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void initComponents() {
@@ -213,6 +159,7 @@ public class ParametersPanel extends JPanel
                 + "<p><u>Known bugs <b>(PRs are welcome)</b>:</u></p>" + "<ul>"
                 + "<li>Body parameters can only be formatted as 'application/x-www-form-urlencoded' due to current Burp Extender API limitations.</li>"
                 + "<li>Editing the 'Edited Value' column in the 'Parameters' tab while filtering the table may result in the edited value being set to 'null'.</li>"
+                + "<li>To register a change made in the 'Edited Value' column, you should press the Enter key first and then press the Escape key.</li>"
                 + "<li>Deep/recursive parsing of OpenAPI Schema fields is not supported.</li>" + "</ul>"
                 + "</body>" + "</html>");
         howToLabel.putClientProperty("html.disable", null);
@@ -233,68 +180,8 @@ public class ParametersPanel extends JPanel
     }
 
     public JPanel initTablePanel() {
-        this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
-            private void process() {
-                String regex = filterTextField.getText();
-
-                if (Strings.isNullOrEmpty(regex)) {
-                    tableRowSorter.setRowFilter(null);
-                } else {
-                    tableRowSorter.setRowFilter(RowFilter.regexFilter(regex));
-                }
-            }
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                process();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                process();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                // Dummy comment
-            }
-        });
-
-        this.table = new JTable();
-
-        Object[] columns = { "#", "Parameter", "Type",
-                "Parsed Value (Data type or Example Value)", "Edited Value" };
-        Object[][] rows = {};
-
-        this.table.setModel(new DefaultTableModel(rows, columns) {
-            @Override
-            public boolean isCellEditable(int rows, int columns) {
-                return columns == 4;
-            }
-        });
-
-        // this.table.getModel().addTableModelListener((TableModelListener) new
-        // TableModelListener() {
-        // @Override
-        // public void tableChanged(TableModelEvent e) {
-        // if (e.getType() == TableModelEvent.UPDATE) {
-        // String name = table.getValueAt(e.getFirstRow(), 1).toString();
-        // String type = table.getValueAt(e.getFirstRow(), 2).toString();
-        // String value = table.getValueAt(e.getFirstRow(), 3).toString();
-
-        // if (value != null && !value.isBlank()) {
-        // editedParameters.removeIf(x -> x.name().equals(name) && x.getType() == (byte)
-        // type);
-        // editedParameters.add(callbacks.getHelpers().buildParameter(name, value,
-        // (byte) type));
-        // } else {
-        // editedParameters.removeIf(x -> x.getName().equals(name) && x.getType() ==
-        // (byte) type);
-        // }
-        // }
-        // }
-        // });
-
+        this.table = new JTable(parametersTableModel);
+        this.table.getColumnModel().getColumn(4).setCellEditor(new CustomTextFieldEditor());
         this.table.setAutoCreateRowSorter(true);
         this.tableRowSorter = new TableRowSorter<>(this.table.getModel());
         this.table.setRowSorter(this.tableRowSorter);
@@ -346,17 +233,18 @@ public class ParametersPanel extends JPanel
         HttpRequest updatedHttpRequest = httpRequestToBeSent;
 
         for (HttpParameter httpParameterToBeSent : httpRequestToBeSent.parameters()) {
-            logging.logToOutput(
-                    "[*] Processing: " + httpParameterToBeSent.name() + " " + httpParameterToBeSent.type() + " "
-                            + httpParameterToBeSent.value());
+            for (MyHttpParameter httpParameter : this.parametersTableModel.getHttpParameters()) {
+                if (shouldProcessParameter(httpParameterToBeSent, httpParameter)) {
+                    // logging.logToOutput(
+                    // "[+] shouldProcessParameter: " + httpParameter.toString() + " MATCHES with "
+                    // +
+                    // httpParameterToBeSent.toString());
 
-            for (HttpParameter httpParameter : this.parameters) {
-                if (isMatchingParameter(httpParameterToBeSent, httpParameter)) {
-                    logging.logToOutput("[+] Match: " + httpParameter.name() + " " + httpParameter.type() + " "
-                            + httpParameter.value());
+                    MyHttpParameter editedParameter = new MyHttpParameter(httpParameterToBeSent);
+                    editedParameter.setValue(httpParameter.getEditedValue());
 
                     // Modify the request by adding url param.
-                    updatedHttpRequest = httpRequestToBeSent.withUpdatedParameters(httpParameter);
+                    updatedHttpRequest = updatedHttpRequest.withUpdatedParameters(editedParameter);
                     break;
                 }
             }
@@ -365,10 +253,8 @@ public class ParametersPanel extends JPanel
         return updatedHttpRequest;
     }
 
-    private boolean isMatchingParameter(HttpParameter httpParameterToBeSent, HttpParameter httpParameter) {
-        return httpParameterToBeSent.name().equals(httpParameter.name())
-                && httpParameterToBeSent.type().name() == httpParameter.type().name()
-                && httpParameterToBeSent.value().equals(httpParameter.value());
+    private boolean shouldProcessParameter(HttpParameter httpParameterToBeSent, MyHttpParameter httpParameter) {
+        return httpParameter.equals(httpParameterToBeSent) && httpParameter.getEditedValue() != null;
     }
 
     @Override
