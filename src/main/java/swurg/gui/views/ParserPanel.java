@@ -26,8 +26,8 @@ import javax.swing.UIManager;
 import burp.api.montoya.MontoyaApi;
 import swurg.gui.components.HistoryFileChooser;
 import swurg.gui.components.StatusPanel;
-import swurg.gui.components.TablePanel;
 import swurg.gui.components.menus.ParserContextMenu;
+import swurg.gui.components.tables.TablePanel;
 import swurg.gui.components.tables.models.ParserTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 import swurg.utilities.RequestWithMetadata;
@@ -72,7 +72,7 @@ public class ParserPanel extends JPanel {
   public void setResourceTextField(String text) {
     resourceTextField.setText(text);
   }
-  
+
   public JPanel createNorthPanel() {
     JPanel resourcePanel = new JPanel();
     resourcePanel.setBorder(BorderFactory.createTitledBorder(""));

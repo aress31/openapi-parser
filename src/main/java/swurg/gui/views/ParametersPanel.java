@@ -28,8 +28,8 @@ import burp.api.montoya.core.ToolType;
 
 import burp.api.montoya.MontoyaApi;
 import swurg.gui.components.StatusPanel;
-import swurg.gui.components.TablePanel;
 import swurg.gui.components.menus.ParametersContextMenu;
+import swurg.gui.components.tables.TablePanel;
 import swurg.gui.components.tables.models.ParametersTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 import swurg.observers.ParametersPanelObserver;

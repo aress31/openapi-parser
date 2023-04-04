@@ -1,4 +1,4 @@
-package swurg.gui.components;
+package swurg.gui.components.tables;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -18,6 +18,7 @@ import javax.swing.table.TableRowSorter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import lombok.Data;
+import swurg.gui.components.FilterPanel;
 import swurg.gui.components.tables.models.ParserTableModel;
 
 @Data
