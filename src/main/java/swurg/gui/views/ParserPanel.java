@@ -3,6 +3,7 @@ package swurg.gui.views;
 import static burp.MyBurpExtension.COPYRIGHT;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -137,7 +138,10 @@ public class ParserPanel extends JPanel {
         fileChooser.addFileToHistory(file);
       }
 
-      if (fileChooser.showOpenDialog(button.getParent()) == JFileChooser.APPROVE_OPTION) {
+      // Find the top-level window (JFrame or JDialog) containing the button
+      Component topLevelWindow = SwingUtilities.getWindowAncestor(button);
+
+      if (fileChooser.showOpenDialog(topLevelWindow) == JFileChooser.APPROVE_OPTION) {
         File file = fileChooser.getSelectedFile();
         String resource = file.getAbsolutePath();
         prefs.put("LAST_USED_FOLDER", file.getParent());
