@@ -8,8 +8,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class RequestWithMetadata {
     private HttpRequest httpRequest;
-    private String description;
     // TODO: Remove this field as it is not needed
     // parameters are already in the httpRequest
     private String parameters;
+    private String description;
 }

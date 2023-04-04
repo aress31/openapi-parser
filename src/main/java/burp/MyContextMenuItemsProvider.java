@@ -47,8 +47,6 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
           HttpRequest selectedRequest = selectedMessage.request();
           String url = selectedRequest.url();
 
-          parserPanel.setResourceTextField(url);
-
           ParserTableModel tableModel = (ParserTableModel) parserPanel.getTable().getModel();
           List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(url));
 
@@ -56,16 +54,19 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
             for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
               tableModel.addRow(requestWithMetadata);
             }
-          });
 
-          parserPanel.printStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
+            parserPanel.setResourceTextField(url);
+            parserPanel.getStatusPanel().updateStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
+          });
         }
       } catch (Exception exception) {
         String errorMessage = String.format("Failed to process request %s: %s",
             ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url(),
             exception.getMessage());
-        logging.logToOutput(String.format("%s -> %s", this.getClass().getName(), errorMessage));
-        parserPanel.printStatus(errorMessage, UIManager.getColor("BurpPalette.red1"));
+        logging.logToOutput(errorMessage);
+        SwingUtilities.invokeLater(() -> {
+          parserPanel.getStatusPanel().updateStatus(errorMessage, UIManager.getColor("BurpPalette.red1"));
+        });
       }
     });
 

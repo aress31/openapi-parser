@@ -31,7 +31,6 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
 
         initComponents();
 
-        // Register this as an observer with the ParserTableModel
         parserPanel.getParserTableModel().registerObserver(this);
         parserPanel.getParserTableModel().registerParametersPanelObserver(parametersPanel);
 
@@ -46,12 +45,8 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
         addTab("About", aboutPanel);
     }
 
-    // Implement the onRequestWithMetadatasUpdate() method from the
-    // ParserTableModelObserver interface
     @Override
     public void onRequestWithMetadatasUpdate() {
-        // Check if ParametersPanel is not already added and requestWithMetadatas not
-        // null
         if (indexOfComponent(parametersPanel) == -1 && !requestWithMetadatas.isEmpty()) {
             addTab("Parameters", parametersPanel);
         } else {

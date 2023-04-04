@@ -5,7 +5,10 @@
 <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
 <img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
 
-## Swurg is a `Burp Suite` extension designed for `OpenAPI` testing.
+> [!UPDATE]
+> This extension has been updated to use the latest Burp Montoya Java API. The extension has undergone a complete overhaul to improve both its UI/UX and performance. These changes ensure that the extension is modern and optimised for use.
+
+## Swurg is a `Burp Suite` extension designed for `OpenAP
 
 > The `OpenAPI` Specification (`OAS`) defines a standard, programming language-agnostic interface description for `REST` `APIs`, which allows both humans and computers to discover and understand the capabilities of a service without requiring access to source code, additional documentation, or inspection of network traffic. When properly defined via `OpenAPI`, a consumer can understand and interact with the remote service with a minimal amount of implementation logic. Similar to what interface descriptions have done for lower-level programming, the `OpenAPI` Specification removes guesswork in calling a service.
 >
@@ -43,7 +46,7 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 3. Create the standalone `jar`:
 
    ```bash
-   gradle fatJar
+   gradle clean fatJar
    ```
 
 ### Loading the Extension Into the `Burp Suite`
@@ -59,7 +62,9 @@ _Note: The version distributed on the [BApp Store](https://portswigger.net/bapps
 - [ ] Beautify the graphical user interface.
 - [ ] Deep parsing of `OpenAPI` schemas to collect all nested parameters along with their example/type.
 - [ ] Code simplification/refactoring.
+  - [ ] Use `MyHttpRequest` instead of `RequestWithMetadata`.
 - [x] Enable cells editing to change `API` calls directly from the `GUI`.
+- [ ] Fix the custom request editor tab to work properly with intercepted requests based on the match and replace rulesets.
 - [x] Further optimise the source code.
 - [ ] Implement support for authenticated testing (via user-supplied `API`-keys).
 - [x] Improve the `Param` column by adding parameters type (e.g. `inquery`, `inbody`).

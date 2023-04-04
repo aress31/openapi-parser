@@ -9,7 +9,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.UIManager;
 
-public class ParserTableCellRenderer extends DefaultTableCellRenderer {
+public class CustomTableCellRenderer extends DefaultTableCellRenderer {
 
   private Map<Object, Color> rowHighlightColors = new HashMap<>();
 

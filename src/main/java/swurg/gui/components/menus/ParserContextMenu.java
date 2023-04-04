@@ -1,4 +1,4 @@
-package swurg.gui;
+package swurg.gui.components.menus;
 
 import java.awt.Color;
 import java.awt.Toolkit;
@@ -23,17 +23,16 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import swurg.gui.components.tables.models.ParserTableModel;
-import swurg.gui.components.tables.renderers.ParserTableCellRenderer;
-import swurg.gui.views.ParserPanel;
+import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 
-public class ContextMenu extends JPopupMenu {
+public class ParserContextMenu extends JPopupMenu {
 
   private MontoyaApi montoyaApi;
   private JTable table;
 
-  public ContextMenu(MontoyaApi montoyaApi, ParserPanel tab) {
+  public ParserContextMenu(MontoyaApi montoyaApi, JTable table) {
     this.montoyaApi = montoyaApi;
-    this.table = tab.getTable();
+    this.table = table;
 
     initComponents();
   }
@@ -199,7 +198,7 @@ public class ContextMenu extends JPopupMenu {
     menuItem.setBackground(color);
     menuItem.setForeground(Color.BLACK);
 
-    ParserTableCellRenderer renderer = (ParserTableCellRenderer) table.getDefaultRenderer(Object.class);
+    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
     menuItem.addActionListener(e -> {
       int[] selectedRows = table.getSelectedRows();
@@ -221,7 +220,7 @@ public class ContextMenu extends JPopupMenu {
   private JMenuItem createClearItemsMenuItem() {
     JMenuItem clear = new JMenuItem("Clear item(s)");
 
-    ParserTableCellRenderer renderer = (ParserTableCellRenderer) table.getDefaultRenderer(Object.class);
+    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
     clear.addActionListener(e -> {
       // Get the selected rows and sort them in reverse order
@@ -255,7 +254,7 @@ public class ContextMenu extends JPopupMenu {
   private JMenuItem createClearAllMenuItem() {
     JMenuItem clearAll = new JMenuItem("Clear all");
 
-    ParserTableCellRenderer renderer = (ParserTableCellRenderer) table.getDefaultRenderer(Object.class);
+    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
     clearAll.addActionListener(e -> {
       SwingUtilities.invokeLater(() -> {

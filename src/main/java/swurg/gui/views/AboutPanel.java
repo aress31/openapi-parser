@@ -1,6 +1,5 @@
 package swurg.gui.views;
 
-import static burp.MyBurpExtension.COPYRIGHT;
 import static burp.MyBurpExtension.EXTENSION;
 import static burp.MyBurpExtension.VERSION;
 
@@ -14,13 +13,17 @@ import java.awt.Insets;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Map;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.apache.batik.swing.JSVGCanvas;
+
+import swurg.gui.components.StatusPanel;
+import swurg.utilities.HtmlResourceLoader;
 
 public class AboutPanel extends JPanel {
 
@@ -29,31 +32,30 @@ public class AboutPanel extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        setLayout(new BorderLayout());
 
-        gbc.gridy = 0;
-        gbc.gridx = 0;
-        gbc.weighty = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
+        JPanel centerPanel = createCenterPanel();
+
+        add(centerPanel, BorderLayout.CENTER);
+        add(new StatusPanel(), BorderLayout.SOUTH);
+    }
+
+    private JPanel createCenterPanel() {
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
 
         JPanel svgCanvas = createSvgCanvas();
-        add(svgCanvas, gbc);
+        centerPanel.add(svgCanvas);
 
-        gbc.gridy = 1;
-        gbc.gridheight = GridBagConstraints.REMAINDER;
-        gbc.weighty = 1;
-        gbc.anchor = GridBagConstraints.NORTH;
+        JPanel mainPanel = createContentPanel();
+        centerPanel.add(mainPanel);
 
-        JPanel mainPanel = createMainPanel();
-        add(mainPanel, gbc);
+        JPanel centerContainer = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.CENTER;
+        centerContainer.add(centerPanel, gbc);
 
-        gbc.gridy = 2;
-        gbc.weighty = 0;
-        gbc.anchor = GridBagConstraints.SOUTH;
-
-        JPanel southPanel = createSouthPanel();
-        add(southPanel, gbc);
+        return centerContainer;
     }
 
     private JPanel createSvgCanvas() {
@@ -77,7 +79,7 @@ public class AboutPanel extends JPanel {
         return svgContainer;
     }
 
-    private JPanel createMainPanel() {
+    private JPanel createContentPanel() {
         JPanel mainPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -99,24 +101,14 @@ public class AboutPanel extends JPanel {
     }
 
     private JLabel createTextLabel() {
-        String formattedText = String.format(
-                "<html>"
-                        + "<body style='text-align: justify; text-justify: inter-word; font-family: Arial, sans-serif;'>"
-                        + "<ul><li>Current version:</b> <em>%s</em></li></ul>"
-                        + "<br/>"
-                        + "<p>%s is a handy tool for testing OpenAPI-based APIs using Burp Suite. The developer behind this project is <b>Alexandre Teyar</b>, Managing Director at <b>Aegis Cyber</b>.</p>"
-                        + "<br/>"
-                        + "<p>Your feedback matters to us! If you have suggestions for new features, enhancements, or improvements, feel free to submit a ticket and share your thoughts. If you'd like to contribute, <b>pull requests are always welcome!</b></p>"
-                        + "<br/>"
-                        + "<p>If you've used %s and found it helpful for testing OpenAPI-based APIs, please consider showing your support by giving the repository a star and rating it on the BApp Store. We appreciate your support!</p>"
-                        + "<br/>"
-                        + "<p>We'd like to express our gratitude to all GitHub contributors who have dedicated their time and expertise to making %s a better tool for the community!</p>"
-                        + "</body>"
-                        + "</html>",
-                VERSION, EXTENSION, EXTENSION, EXTENSION);
-        JLabel textLabel = new JLabel(formattedText);
-        textLabel.putClientProperty("html.disable", null);
-        return textLabel;
+        String htmlContent = HtmlResourceLoader.loadHtmlContent("howToText.html");
+
+        String formattedHtmlContent = MessageFormat.format(htmlContent, VERSION, EXTENSION);
+
+        JLabel label = new JLabel(formattedHtmlContent);
+        label.putClientProperty("html.disable", null);
+
+        return label;
     }
 
     private JPanel createButtonPanel() {
@@ -156,18 +148,5 @@ public class AboutPanel extends JPanel {
         }
 
         return buttonPanel;
-    }
-
-    private JPanel createSouthPanel() {
-        JPanel southPanel = new JPanel();
-        JLabel copyrightLabel = createCopyrightLabel();
-        southPanel.add(copyrightLabel);
-        return southPanel;
-    }
-
-    private JLabel createCopyrightLabel() {
-        JLabel copyrightLabel = new JLabel(COPYRIGHT);
-        copyrightLabel.putClientProperty("html.disable", null);
-        return copyrightLabel;
     }
 }
