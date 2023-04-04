@@ -1,12 +1,13 @@
 # swurg
 
+[![Java CI with Gradle](https://github.com/aress31/swurg/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/aress31/swurg/actions/workflows/gradle-build.yml)
 <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
 <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
 <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
 <img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
 
 > [!UPDATE]
-> This extension has been updated to use the latest Burp Montoya Java API. The extension has undergone a complete overhaul to improve both its UI/UX and performance. These changes ensure that the extension is modern and optimised for use.
+> This extension has been updated to use the latest [Burp Montoya Java API](https://portswigger.github.io/burp-extensions-montoya-api/javadoc/burp/api/montoya/package-summary.html). The extension has undergone a complete overhaul to improve both its UI/UX and performance. These changes ensure that the extension is modern and optimised for use.
 
 ## Swurg is a `Burp Suite` extension designed for `OpenAP
 
