@@ -17,18 +17,13 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.http.client.utils.URIBuilder;
 import swurg.utilities.RequestWithMetadata;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,52 +40,43 @@ public class Worker {
   }
 
   public OpenAPI processOpenAPI(String resource) {
-    SwaggerParseResult result = readOpenAPI(resource);
-
-    if (result.getMessages() != null && !result.getMessages().isEmpty()) {
-      logging.logToError(String.format("%s -> %s", getClass().getName(), result.getMessages()));
-      throw new IllegalArgumentException(result.getMessages().toString());
+    try {
+      return readOpenAPI(resource).getOpenAPI();
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(ex);
     }
-
-    return result.getOpenAPI();
   }
 
   private SwaggerParseResult readOpenAPI(String resource) {
-    SwaggerParseResult result = null;
-
     try {
-      Path filePath = Paths.get(resource);
+      ParseOptions parseOptions = new ParseOptions();
+      parseOptions.setResolve(true);
+      parseOptions.setResolveFully(true);
+      SwaggerParseResult result = new OpenAPIParser().readLocation(resource, null, parseOptions);
 
-      if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
-        String openAPIAsString = Files.readString(filePath, StandardCharsets.UTF_8);
-        result = new OpenAPIParser().readContents(openAPIAsString, null, null);
-      } else {
-        throw new InvalidPathException(resource, "File does not exist or is not a file.");
+      if (result.getOpenAPI() == null) {
+        throw new IllegalArgumentException(
+            String.format("%s -> Unable to parse OpenAPI specification", this.getClass().getName()));
       }
-    } catch (InvalidPathException e) {
-      try {
-        result = new OpenAPIParser().readLocation(resource, null, null);
-      } catch (Exception urlEx) {
-        logging.logToError(String.format("%s -> Failed to read the resource as a URL: %s",
-            getClass().getName(), urlEx.getMessage()));
-      }
-    } catch (IOException e) {
-      logging.logToError(String.format("%s -> Failed to read the resource as a file: %s",
-          getClass().getName(), e.getMessage()));
-    }
 
-    if (result == null) {
-      logging.logToError(String.format("%s -> Unable to read OpenAPI resource: %s", getClass().getName(), resource));
-      result = new SwaggerParseResult();
+      return result;
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(ex);
     }
-
-    return result;
   }
 
   public List<RequestWithMetadata> parseOpenAPI(OpenAPI openAPI) {
     List<RequestWithMetadata> logEntries = new ArrayList<>();
 
     for (Server server : openAPI.getServers()) {
+      String serverUrl = server.getUrl();
+      // Set a default protocol and host if they are missing
+      // which can occur when loading files locally
+      if (!serverUrl.startsWith("http://") && !serverUrl.startsWith("https://")) {
+        serverUrl = "https://example.com" + serverUrl; // Use the appropriate default protocol and host
+      }
+      final String finalServerUrl = serverUrl;
+
       for (Map.Entry<String, PathItem> pathItem : openAPI.getPaths().entrySet()) {
         Map<String, Operation> operationMap = new HashMap<>();
         operationMap.put("DELETE", pathItem.getValue().getDelete());
@@ -103,8 +89,6 @@ public class Worker {
 
         operationMap.forEach((method, operation) -> {
           if (operation != null) {
-            // List<Parameter> parameters = operation.getParameters();
-
             StringJoiner stringJoiner = new StringJoiner(", ");
 
             if (operation.getParameters() != null) {
@@ -112,7 +96,7 @@ public class Worker {
             }
 
             try {
-              URI fullUri = constructFullRequestUri(new URI(server.getUrl()), pathItem.getKey());
+              URI fullUri = constructFullRequestUri(new URI(finalServerUrl), pathItem.getKey());
 
               HttpService httpService = HttpService.httpService(fullUri.getHost(), fullUri.getPort(),
                   fullUri.getPort() == 443);
@@ -221,15 +205,19 @@ public class Worker {
   }
 
   private URI constructFullRequestUri(URI baseUri, String path) throws URISyntaxException {
-    String basePath = baseUri.getPath().endsWith("/") ? baseUri.getPath() : baseUri.getPath() + "/";
+    String basePath = baseUri.getPath();
+    if (!basePath.endsWith("/")) {
+      basePath += "/";
+    }
     String formattedPath = path.startsWith("/") ? path.substring(1) : path;
+    String scheme = baseUri.getScheme();
+    int defaultPort = scheme.equals("http") ? 80 : 443;
+    int port = baseUri.getPort() == -1 ? defaultPort : baseUri.getPort();
 
     return new URIBuilder()
-        .setScheme(baseUri.getScheme())
+        .setScheme(scheme)
         .setHost(baseUri.getHost())
-        .setPort(baseUri.getPort() == -1
-            ? (baseUri.getScheme().equals("http") ? 80 : 443)
-            : baseUri.getPort())
+        .setPort(port)
         .setPath(basePath + formattedPath)
         .build();
   }

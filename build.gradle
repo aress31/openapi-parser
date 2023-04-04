@@ -16,6 +16,7 @@ dependencies {
 
     // Runtime dependencies
     implementation "io.swagger.parser.v3:swagger-parser:2.1.0"
+    implementation 'io.swagger.core.v3:swagger-models:2.1.11'
     implementation "net.portswigger.burp.extensions:montoya-api:2023.3"
     implementation "org.apache.commons:commons-collections4:4.4"
     implementation "org.apache.xmlgraphics:batik-swing:1.14"
