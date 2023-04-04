@@ -1,5 +1,6 @@
 # swurg
 
+[![Java CI with Gradle](https://github.com/aress31/swurg/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/aress31/swurg/actions/workflows/gradle-build.yml)
 <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
 <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
 <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
