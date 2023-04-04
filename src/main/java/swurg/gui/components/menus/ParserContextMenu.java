@@ -22,6 +22,9 @@ import javax.swing.SwingUtilities;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
+import burp.api.montoya.scanner.AuditConfiguration;
+import burp.api.montoya.scanner.BuiltInAuditConfiguration;
 import swurg.gui.components.tables.models.ParserTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 
@@ -42,7 +45,8 @@ public class ParserContextMenu extends JPopupMenu {
 
     JMenuItem addToScope = createAddToScopeMenuItem();
     JMenuItem addToSiteMap = createAddToSiteMapMenuItem();
-    JMenuItem activeScan = createActiveScanMenuItem();
+    JMenuItem sendToActiveScan = createSendToActiveScanMenuItem();
+    JMenuItem sendToPassiveScan = createSendToPassiveScanMenuItem();
     JMenuItem sendToIntruder = createSendToIntruderMenuItem();
     JMenuItem sendToRepeater = createSendToRepeaterMenuItem();
     JMenuItem sendToComparer = createSendToComparerMenuItem();
@@ -53,17 +57,19 @@ public class ParserContextMenu extends JPopupMenu {
     this.add(copyToClipboard);
     this.add(new JSeparator());
     this.add(addToScope);
-    this.add(addToSiteMap);
     this.add(new JSeparator());
-    this.add(activeScan);
+    this.add(sendToPassiveScan);
+    this.add(sendToActiveScan);
+    this.add(new JSeparator());
     this.add(sendToIntruder);
     this.add(sendToRepeater);
     this.add(sendToComparer);
     this.add(new JSeparator());
     this.add(highlightMenu);
-    this.add(new JSeparator());
     this.add(clearItems);
     this.add(clearAll);
+    this.add(new JSeparator());
+    this.add(addToSiteMap);
   }
 
   private JMenuItem createCopyToClipboardMenuItem() {
@@ -120,26 +126,30 @@ public class ParserContextMenu extends JPopupMenu {
     return addToScope;
   }
 
-  private JMenuItem createAddToSiteMapMenuItem() {
-    JMenuItem addToSiteMap = new JMenuItem("Add to site map");
+  private JMenuItem createSendToPassiveScanMenuItem() {
+    JMenuItem sendToScanner = new JMenuItem("Do passive scan");
 
-    addToSiteMap.addActionListener(e -> processSelectedRows(index -> {
+    sendToScanner.addActionListener(e -> processSelectedRows(index -> {
       HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
-      montoyaApi.siteMap().add(HttpRequestResponse.httpRequestResponse(httpRequest, null, null));
+      montoyaApi.scanner()
+          .startAudit(AuditConfiguration.auditConfiguration(BuiltInAuditConfiguration.LEGACY_PASSIVE_AUDIT_CHECKS))
+          .addRequest(httpRequest);
     }));
 
-    return addToSiteMap;
+    return sendToScanner;
   }
 
-  private JMenuItem createActiveScanMenuItem() {
-    JMenuItem activeScan = new JMenuItem("Do an active scan");
+  private JMenuItem createSendToActiveScanMenuItem() {
+    JMenuItem sendToScanner = new JMenuItem("Do active scan");
 
-    activeScan.addActionListener(e -> processSelectedRows(index -> {
+    sendToScanner.addActionListener(e -> processSelectedRows(index -> {
       HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
-      montoyaApi.scanner().startAudit(null).addRequest(httpRequest);
+      montoyaApi.scanner()
+          .startAudit(AuditConfiguration.auditConfiguration(BuiltInAuditConfiguration.LEGACY_ACTIVE_AUDIT_CHECKS))
+          .addRequest(httpRequest);
     }));
 
-    return activeScan;
+    return sendToScanner;
   }
 
   private JMenuItem createSendToIntruderMenuItem() {
@@ -169,7 +179,7 @@ public class ParserContextMenu extends JPopupMenu {
   }
 
   private JMenuItem createSendToComparerMenuItem() {
-    JMenuItem sendToComparer = new JMenuItem("Send to Comparer");
+    JMenuItem sendToComparer = new JMenuItem("Send to Comparer (request)");
     sendToComparer.addActionListener(e -> processSelectedRows(index -> {
       HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
       montoyaApi.comparer().sendToComparer(httpRequest.toByteArray());
@@ -218,7 +228,7 @@ public class ParserContextMenu extends JPopupMenu {
   }
 
   private JMenuItem createClearItemsMenuItem() {
-    JMenuItem clear = new JMenuItem("Clear item(s)");
+    JMenuItem clear = new JMenuItem("Delete item");
 
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
@@ -252,7 +262,7 @@ public class ParserContextMenu extends JPopupMenu {
   }
 
   private JMenuItem createClearAllMenuItem() {
-    JMenuItem clearAll = new JMenuItem("Clear all");
+    JMenuItem clearAll = new JMenuItem("Clear log");
 
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
@@ -265,5 +275,16 @@ public class ParserContextMenu extends JPopupMenu {
     });
 
     return clearAll;
+  }
+
+  private JMenuItem createAddToSiteMapMenuItem() {
+    JMenuItem addToSiteMap = new JMenuItem("Add to site map");
+
+    addToSiteMap.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.siteMap().add(HttpRequestResponse.httpRequestResponse(httpRequest, HttpResponse.httpResponse()));
+    }));
+
+    return addToSiteMap;
   }
 }
