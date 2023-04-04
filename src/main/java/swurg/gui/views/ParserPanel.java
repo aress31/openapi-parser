@@ -169,11 +169,10 @@ public class ParserPanel extends JPanel {
         updateTableModel(requestWithMetadatas);
         statusPanel.updateStatus(COPYRIGHT, UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
       } catch (Exception ex) {
-        String errorMessage = String.format("%s -> %s", this.getClass().getName(), ex.getMessage());
         String statusMessage = String.format(
-            "%s -> Check the extension's error log for the stack trace -> Unable to read the OpenAPI resource: %s",
-            getClass().getName(), resource);
-        logging.logToError(errorMessage);
+            "Unable to read the OpenAPI resource: %s. Check the extension's error log for the stack trace and report the issue.",
+            resource);
+        logging.logToError(ex.getMessage());
         statusPanel.updateStatus(statusMessage, UIManager.getLookAndFeelDefaults().getColor("BurpPalette.red1"));
       }
     }

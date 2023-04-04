@@ -17,7 +17,6 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
-import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.http.client.utils.URIBuilder;
 import swurg.utilities.RequestWithMetadata;
@@ -49,14 +48,10 @@ public class Worker {
 
   private SwaggerParseResult readOpenAPI(String resource) {
     try {
-      ParseOptions parseOptions = new ParseOptions();
-      parseOptions.setResolve(true);
-      parseOptions.setResolveFully(true);
-      SwaggerParseResult result = new OpenAPIParser().readLocation(resource, null, parseOptions);
+      SwaggerParseResult result = new OpenAPIParser().readLocation(resource, null, null);
 
       if (result.getOpenAPI() == null) {
-        throw new IllegalArgumentException(
-            String.format("%s -> Unable to parse OpenAPI specification", this.getClass().getName()));
+        throw new IllegalArgumentException(result.getMessages().toString());
       }
 
       return result;
@@ -91,19 +86,21 @@ public class Worker {
           if (operation != null) {
             StringJoiner stringJoiner = new StringJoiner(", ");
 
+            List<Parameter> parameters = operation.getParameters();
             if (operation.getParameters() != null) {
-              operation.getParameters().forEach(parameter -> stringJoiner.add(parameter.getName()));
+              parameters.forEach(parameter -> stringJoiner.add(parameter.getName()));
             }
+            RequestBody requestBody = operation.getRequestBody();
 
             try {
               URI fullUri = constructFullRequestUri(new URI(finalServerUrl), pathItem.getKey());
 
               HttpService httpService = HttpService.httpService(fullUri.getHost(), fullUri.getPort(),
                   fullUri.getPort() == 443);
-              List<HttpHeader> httpHeaders = constructRequestHeaders(httpService, fullUri, operation.getRequestBody(),
+              List<HttpHeader> httpHeaders = constructRequestHeaders(httpService, fullUri, requestBody,
                   operation.getResponses());
-              List<HttpParameter> httpParameters = constructRequestParameters(operation.getParameters(),
-                  operation.getRequestBody(), openAPI.getComponents().getSchemas());
+              List<HttpParameter> httpParameters = constructRequestParameters(parameters,
+                  requestBody, openAPI.getComponents().getSchemas());
 
               // Content-lentgh is missing
               HttpRequest httpRequest = HttpRequest.http2Request(
@@ -116,7 +113,6 @@ public class Worker {
                   createLogEntry(httpRequest, stringJoiner.toString(),
                       operation.getDescription()));
             } catch (URISyntaxException e) {
-              logging.logToError(String.format("%s -> %s", this.getClass().getName(), e.getMessage()));
               throw new RuntimeException(e);
             }
           }

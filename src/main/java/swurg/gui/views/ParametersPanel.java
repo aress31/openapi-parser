@@ -193,6 +193,6 @@ public class ParametersPanel extends JPanel
 
     @Override
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
-        throw new UnsupportedOperationException("Unimplemented method 'handleHttpResponseReceived'");
+        return ResponseReceivedAction.continueWith(responseReceived);
     }
 }
