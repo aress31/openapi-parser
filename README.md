@@ -29,11 +29,12 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 - Requests can be sent to the `Comparer, Intruder, Repeater, Scanner, Site map and Scope` Burp tools.
 - Requests matching specific criterias (detailed in the 'Parameters' tab) can be intercepted to automatically match and replace the parsed parameters default values defined in the 'Parameters' tab. This feature allows for fine-tuning of the requests prior to sending them to other Burp tools (e.g., scanner). Edited requests can be viewed within the 'Modified Request (`OpenAPI` Parser)' tab of Burp's message editor.
 - Row highlighting allowing pentesters to highlight "interesting" `API` calls and/or colour code them for reporting purposes.
+- Includes an export to `CSV` feature, allowing users to easily export selected `API` requests in `CSV` format for further analysis or reporting.
 - Supports both `JSON` and `YAML` formats.
 
 ## Installation
 
-### Compilation
+### 1. Compilation
 
 1. Install and configure [Gradle](https://gradle.org/).
 
@@ -50,7 +51,7 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
    gradle clean fatJar
    ```
 
-### Loading the Extension Into the `Burp Suite`
+### 2. Loading the Extension Into the `Burp Suite`
 
 In `Burp Suite`, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jar file located in the `.\build\libs` folder.
 
@@ -69,7 +70,7 @@ _Note: The version distributed on the [BApp Store](https://portswigger.net/bapps
 - [x] Further optimise the source code.
 - [ ] Implement support for authenticated testing (via user-supplied `API`-keys).
 - [x] Improve the `Param` column by adding parameters type (e.g. `inquery`, `inbody`).
-- [ ] Implement the tables and context menus.
+- [ ] Improve the tables and context menus.
 - [x] Increase the extension verbosity (via the bottom panel).
 
 ## Dependencies
