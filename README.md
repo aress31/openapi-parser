@@ -77,7 +77,7 @@ _Note: The version distributed on the [BApp Store](https://portswigger.net/bapps
 
 The [Swagger Parser](https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser) library is required and automatically imported in this project.
 
-## Project information
+## Project Information
 
 In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the initiative and to implement a solution myself.
 
