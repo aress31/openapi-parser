@@ -3,8 +3,17 @@ name: Report a bug
 about: Report an issue to help us enhance the project.
 title: "[BUG] Brief description of the issue"
 labels: bug
-assignees: ""
+assignees: aress31
 ---
+
+# Prerequisites Checklist
+
+Before submitting the issue, please make sure you have:
+
+- [ ] Thoroughly read the [README file](https://github.com/aress31/swurg/blob/main/README.md).
+- [ ] Checked the [project requirements](https://github.com/aress31/swurg#requirements) and ensured they are met.
+- [ ] Searched for existing issues that may address the problem.
+- [ ] Performed basic troubleshooting steps.
 
 # Description
 

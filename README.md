@@ -32,30 +32,51 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 - Includes an export to `CSV` feature, allowing users to easily export selected `API` requests in `CSV` format for further analysis or reporting.
 - Supports both `JSON` and `YAML` formats.
 
+## Requirements
+
+1. System requirements:
+
+- Operating System: Compatible with `Linux`, `macOS`, and `Windows` operating systems.
+- Java Development Kit (JDK): `Version 11` or later.
+- Burp Suite Professional or Community Edition: `Version 2023.3.2` or later.
+
+  > [!IMPORTANT]
+  > Please note that using any version lower than `2023.3.2` may result in a [java.lang.NoSuchMethodError](https://forum.portswigger.net/thread/montoya-api-nosuchmethoderror-275048be). It is crucial to use the specified version or a more recent one to avoid this issue.
+
+2. Build tool:
+
+- Gradle: `Version 6.9` or later (recommended). The [build.gradle](https://github.com/aress31/swurg/blob/main/lib/build.gradle) file is provided in the project repository.
+
+3. Environment variables:
+
+- Set up the `JAVA_HOME` environment variable to point to the JDK installation directory.
+
+Please ensure that all system requirements, including a compatible version of `Burp Suite`, are met before building and running the project. Note that the project's external dependencies will be automatically managed and installed by `Gradle` during the build process. Adhering to the requirements will help avoid potential issues and reduce the need for opening new issues in the project repository.
+
 ## Installation
 
 ### 1. Compilation
 
-1. Install and configure [Gradle](https://gradle.org/).
+1. Ensure you have [Gradle](https://gradle.org/) installed and configured.
 
-2. Download this repository.
+2. Download the `swurg` repository:
 
    ```bash
    git clone https://github.com/aress31/swurg
    cd .\swurg\
    ```
 
-3. Create the standalone `jar`:
+3. Build the standalone `jar`:
 
    ```bash
-   gradle clean fatJar
+   ./gradlew build
    ```
 
-### 2. Loading the Extension Into the `Burp Suite`
+### 2. Loading the Extension Into `Burp Suite`
 
-In `Burp Suite`, under the `Extender/Options` tab, click on the `Add` button and load the `swurg-all` jar file located in the `.\build\libs` folder.
+To install `swurg` in `Burp Suite`, first go to the `Extensions` tab and click on the `Add` button. Then, select the `swurg-all` jar file located in the `.\build\libs` folder to load the extension.
 
-Alternatively, you can now directly install/load this extension from the [BApp Store](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c).
+Alternatively, you can skip the [Compilation](#1-compilation) step entirely and download the extension directly from the [BApp Store](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c).
 
 _Note: The version distributed on the [BApp Store](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c) might be lagging behind the version available on this repository._
 
@@ -73,11 +94,7 @@ _Note: The version distributed on the [BApp Store](https://portswigger.net/bapps
 - [ ] Improve the tables and context menus.
 - [x] Increase the extension verbosity (via the bottom panel).
 
-## Dependencies
-
-The [Swagger Parser](https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser) library is required and automatically imported in this project.
-
-## Project information
+## Project Information
 
 In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the initiative and to implement a solution myself.
 
@@ -85,21 +102,19 @@ The extension is still in development, feedback, comments and contributions are 
 
 ## Sponsor 💖
 
-If you want to support this project and appreciate the time invested in developping, maintening and extending it; consider donating toward my next cup of coffee. ☕
-
-It is easy, all you got to do is press the `Sponsor` button at the top of this page or alternatively [click this link](https://github.com/sponsors/aress31). 💸
+If this extension has saved you time and hassle during a security assessment, consider showing some love by sponsoring a cup of coffee ☕ for the developer. It's the fuel that powers development, after all. Just hit that shiny `Sponsor` button at the top of the page or [click here](https://github.com/sponsors/aress31) to contribute and keep the caffeine flowing. 💸
 
 ## Reporting Issues
 
-Found a bug? I would love to squash it! 🐛
+Did you find a bug? Well, don't just let it crawl around! Let's squash it together like a couple of bug whisperers! 🐛💪
 
-Please report all issues on the GitHub [issues tracker](https://github.com/aress31/swurg/issues).
+Please report any issues on the [GitHub issues tracker](https://github.com/aress31/swurg/issues). Together, we'll make this extension as reliable as a cockroach surviving a nuclear apocalypse! 🚀
 
 ## Contributing
 
-You would like to contribute to better this project? 🤩
+Looking to make a splash with your mad coding skills? 💻
 
-Please submit all `PRs` on the GitHub [pull requests tracker](https://github.com/aress31/swurg/pulls).
+Awesome! Contributions are welcome and greatly appreciated. Please submit all PRs on the [GitHub pull requests tracker](https://github.com/aress31/swurg/pulls). Together we can make this extension even more amazing! 🚀
 
 ## License
 

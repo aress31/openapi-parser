@@ -3,8 +3,12 @@ name: Java CI with Gradle
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
 
 jobs:
   build:
@@ -28,7 +32,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew shadowJar
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v2
