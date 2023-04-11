@@ -7,7 +7,7 @@
 <img alt="version" src="https://img.shields.io/badge/Version-2.3-green.svg">
 
 > [!UPDATE]
-> This extension has been updated to use the latest [Burp Montoya Java API](https://portswigger.github.io/burp-extensions-montoya-api/javadoc/burp/api/montoya/package-summary.html). The extension has undergone a complete overhaul to improve both its UI/UX and performance. These changes ensure that the extension is modern and optimised for use.
+> This extension has been updated to use the latest [Burp Montoya Java API](https://portswigger.github.io/burp-extensions-montoya-api/javadoc/burp/api/montoya/package-summary.html). The extension has undergone a complete overhaul to improve both its `UI`/`UX` and performance. These changes ensure that the extension is modern and optimised for use.
 
 ## Swurg is a `Burp Suite` extension designed for `OpenAPI`-based `API` testing
 
@@ -94,13 +94,6 @@ _Note: The version distributed on the [BApp Store](https://portswigger.net/bapps
 - [ ] Improve the tables and context menus.
 - [x] Increase the extension verbosity (via the bottom panel).
 
-<<<<<<< HEAD
-=======
-## Dependencies
-
-The [Swagger Parser](https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser) library is required and automatically imported in this project.
-
->>>>>>> 18620915f80469c8a39edcc875f5ca19af49258c
 ## Project Information
 
 In July 2016, after posting a request for improvement on the [PortSwigger support forum](https://support.portswigger.net/customer/portal/questions/16358278-swagger-parser-and-wsdler-improvement), I decided to take the initiative and to implement a solution myself.
