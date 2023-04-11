@@ -69,7 +69,7 @@ Please ensure that all system requirements, including a compatible version of `B
 3. Build the standalone `jar`:
 
    ```bash
-   ./gradlew build
+   ./gradlew fatJar
    ```
 
 ### 2. Loading the Extension Into `Burp Suite`
