@@ -10,22 +10,25 @@ sourceCompatibility = '1.8'
 */
 
 dependencies {
-    // https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser
-    implementation group: 'io.swagger.parser.v3', name: 'swagger-parser', version: '2.1.0'
-    // https://mvnrepository.com/artifact/net.portswigger.burp.extender/burp-extender-api
-    implementation group: 'net.portswigger.burp.extender', name: 'burp-extender-api', version: '2.3'
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
-    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    // Compile-time only dependencies
+    compileOnly "org.projectlombok:lombok:1.18.20"
+    annotationProcessor "org.projectlombok:lombok:1.18.20"
 
-    // https://mvnrepository.com/artifact/junit/junit
-    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-    // https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-    testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.0-alpha5'
+    // Runtime dependencies
+    implementation "io.swagger.parser.v3:swagger-parser:2.1.0"
+    implementation 'io.swagger.core.v3:swagger-models:2.1.11'
+    implementation "net.portswigger.burp.extensions:montoya-api:2023.3"
+    implementation "org.apache.commons:commons-collections4:4.4"
+    implementation "org.apache.xmlgraphics:batik-swing:1.14"
+
+    // Test dependencies
+    testImplementation "junit:junit:4.13.2"
+    testImplementation "org.slf4j:slf4j-simple:2.0.0-alpha5"
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 

@@ -1,118 +1,58 @@
-/*
-#    Copyright (C) 2016-2022 Alexandre Teyar
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-# http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-#    limitations under the License. 
-*/
-
 package swurg.gui;
 
-import static burp.BurpExtender.EXTENSION;
-
-import java.awt.Component;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.swing.JTabbedPane;
-import javax.swing.event.SwingPropertyChangeSupport;
 
-import burp.IBurpExtenderCallbacks;
-import burp.ITab;
-import swurg.utilities.LogEntry;
+import burp.api.montoya.MontoyaApi;
+import swurg.gui.views.AboutPanel;
+import swurg.gui.views.ParametersPanel;
+import swurg.gui.views.ParserPanel;
+import swurg.observers.ParserTableModelObserver;
+import swurg.utilities.RequestWithMetadata;
 
-public class MainTabGroup extends JTabbedPane implements ITab {
+import lombok.Data;
 
-    private transient IBurpExtenderCallbacks callbacks;
+@Data
+public class MainTabGroup extends JTabbedPane implements ParserTableModelObserver {
 
-    private ParametersPanel parametersPanel;
+    private final transient MontoyaApi montoyaApi;
+
     private ParserPanel parserPanel;
+    private ParametersPanel parametersPanel;
+    private AboutPanel aboutPanel;
 
-    public MainTabGroup(IBurpExtenderCallbacks callbacks) {
-        this.callbacks = callbacks;
+    List<RequestWithMetadata> requestWithMetadatas;
+
+    public MainTabGroup(MontoyaApi montoyaApi) {
+        this.montoyaApi = montoyaApi;
+        this.requestWithMetadatas = new ArrayList<>();
 
         initComponents();
-    }
 
-    public ParametersPanel getParametersPanel() {
-        return this.parametersPanel;
-    }
+        parserPanel.getParserTableModel().registerObserver(this);
+        parserPanel.getParserTableModel().registerParametersPanelObserver(parametersPanel);
 
-    public ParserPanel getParserPanel() {
-        return this.parserPanel;
     }
 
     private void initComponents() {
-        this.parserPanel = new ParserPanel(callbacks);
-        this.parametersPanel = new ParametersPanel(callbacks);
-        AboutPanel aboutPanel = new AboutPanel();
+        parserPanel = new ParserPanel(montoyaApi, requestWithMetadatas);
+        aboutPanel = new AboutPanel();
+        parametersPanel = new ParametersPanel(montoyaApi, requestWithMetadatas);
 
-        Model model = new Model();
+        addTab("Parser", parserPanel);
+        addTab("About", aboutPanel);
+    }
 
-        this.parserPanel.setModel(model);
-        parametersPanel.setModel(model);
-
-        this.addTab("Parser", parserPanel);
-
-        model.addPropertyChangeListener(new PropertyChangeListener() {
-            // Reorder the tabs whenever ParameterPanel is mounted
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (!model.getLogEntries().isEmpty()) {
-                    removeTabAt(1);
-                    addTab("Parameters", parametersPanel);
-                    addTab("About", aboutPanel);
-                } else {
-                    removeTabAt(1);
-                }
+    @Override
+    public void onRequestWithMetadatasUpdate() {
+        if (indexOfComponent(parametersPanel) == -1 && !requestWithMetadatas.isEmpty()) {
+            addTab("Parameters", parametersPanel);
+        } else {
+            if (indexOfComponent(parametersPanel) != -1 && requestWithMetadatas.isEmpty()) {
+                removeTabAt(indexOfComponent(parametersPanel));
             }
-        });
-
-        this.addTab("About", aboutPanel);
-    }
-
-    @Override
-    public Component getUiComponent() {
-        return this;
-    }
-
-    @Override
-    public String getTabCaption() {
-        return EXTENSION;
-    }
-}
-
-class Model {
-
-    private List<LogEntry> logEntries = new ArrayList<>();
-    private SwingPropertyChangeSupport swingPropertyChangeSupport = new SwingPropertyChangeSupport(this);
-
-    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-        swingPropertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-        swingPropertyChangeSupport.removePropertyChangeListener(propertyChangeListener);
-    }
-
-    public List<LogEntry> getLogEntries() {
-        return this.logEntries;
-    }
-
-    public void setLogEntries(List<LogEntry> logEntries) {
-        this.logEntries = logEntries;
-        swingPropertyChangeSupport.firePropertyChange("logEntries", UUID.randomUUID().toString(),
-                UUID.randomUUID().toString());
+        }
     }
 }

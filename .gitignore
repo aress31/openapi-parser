@@ -1,10 +1,25 @@
-build/
-*.swp
-.classpath
+# Compiled class files
+bin/
+
+# Gradle generated files
 .gradle/
-.idea/workspace.xml
+
+# IntelliJ IDEA project files
+.idea/
+
+# Eclipse project files
+.classpath
 .project
 .settings/
+
+# Visual Studio Code configuration files
 .vscode/
-bin/
-.idea/
+
+# Temporary files
+*.swp
+*~
+
+# Build output
+build/
+out/
+*.jar
