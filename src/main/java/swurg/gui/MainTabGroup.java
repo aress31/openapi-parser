@@ -48,7 +48,9 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
     @Override
     public void onRequestWithMetadatasUpdate() {
         if (indexOfComponent(parametersPanel) == -1 && !requestWithMetadatas.isEmpty()) {
+            removeTabAt(indexOfComponent(aboutPanel));
             addTab("Parameters", parametersPanel);
+            addTab("About", aboutPanel);
         } else {
             if (indexOfComponent(parametersPanel) != -1 && requestWithMetadatas.isEmpty()) {
                 removeTabAt(indexOfComponent(parametersPanel));
