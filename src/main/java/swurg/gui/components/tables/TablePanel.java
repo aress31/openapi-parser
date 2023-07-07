@@ -165,6 +165,11 @@ public class TablePanel extends JPanel {
             handleContextMenuEvent(e);
         }
 
+        @Override
+        public void mousePressed(MouseEvent e) {
+            handleContextMenuEvent(e);
+        }
+
         private void handleContextMenuEvent(MouseEvent e) {
             if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
                 int selectedRow = table.rowAtPoint(e.getPoint());
