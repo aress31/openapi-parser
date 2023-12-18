@@ -42,11 +42,11 @@ public class AboutPanel extends JPanel {
         svgPanel.setPreferredSize(new Dimension(192, 192)); // Set fixed size
         svgPanel.setBorder(new EmptyBorder(16, 16, 0, 16));
 
-        JPanel contentPanel = createContentPanel();
-        contentPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
+        JScrollPane contentScrollPane = new JScrollPane(createContentPanel());
+        contentScrollPane.setBorder(new EmptyBorder(0, 16, 0, 16));
 
         add(svgPanel, BorderLayout.NORTH);
-        add(contentPanel, BorderLayout.CENTER);
+        add(contentScrollPane, BorderLayout.CENTER);
         add(new StatusPanel(), BorderLayout.SOUTH);
     }
 

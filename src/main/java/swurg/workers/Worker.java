@@ -97,17 +97,17 @@ public class Worker {
 
               HttpService httpService = HttpService.httpService(fullUri.getHost(), fullUri.getPort(),
                   fullUri.getPort() == 443);
-              List<HttpHeader> httpHeaders = constructRequestHeaders(httpService, fullUri, requestBody,
+              List<HttpHeader> httpHeaders = constructHttp2RequestHeaders(method, fullUri, requestBody,
                   operation.getResponses());
-              List<HttpParameter> httpParameters = constructRequestParameters(parameters,
+              List<HttpParameter> httpParameters = constructHttpRequestParameters(parameters,
                   requestBody, openAPI.getComponents().getSchemas());
+              logging.logToOutput(httpHeaders.toString());
 
               // Content-lentgh is missing
               HttpRequest httpRequest = HttpRequest.http2Request(
                   httpService,
                   httpHeaders,
-                  ByteArray.byteArray(new byte[0])).withMethod(method).withPath(fullUri.getPath())
-                  .withAddedParameters(httpParameters);
+                  ByteArray.byteArray(new byte[0])).withAddedParameters(httpParameters);
 
               logEntries.add(
                   createLogEntry(httpRequest, stringJoiner.toString(),
@@ -135,7 +135,7 @@ public class Worker {
     return stringJoiner.toString();
   }
 
-  private List<HttpParameter> constructRequestParameters(List<Parameter> parameters, RequestBody requestBody,
+  private List<HttpParameter> constructHttpRequestParameters(List<Parameter> parameters, RequestBody requestBody,
       Map<String, Schema> schemas) {
     List<HttpParameter> httpParameters = new ArrayList<>();
 
@@ -179,22 +179,25 @@ public class Worker {
     return httpParameters;
   }
 
-  private List<HttpHeader> constructRequestHeaders(HttpService httpService, URI uri, RequestBody requestBody,
+  private List<HttpHeader> constructHttp2RequestHeaders(String method, URI uri, RequestBody requestBody,
       ApiResponses apiResponses) {
     List<HttpHeader> httpHeaders = new ArrayList<>();
 
-    httpHeaders.add(HttpHeader.httpHeader("Host", uri.getHost()));
+    httpHeaders.add(HttpHeader.httpHeader(":scheme", uri.getScheme()));
+    httpHeaders.add(HttpHeader.httpHeader(":method", method));
+    httpHeaders.add(HttpHeader.httpHeader(":path", uri.getPath()));
+    httpHeaders.add(HttpHeader.httpHeader(":authority", uri.getHost()));
 
     // Set Accept header
     String acceptHeaderValue = parseAccept(apiResponses);
     if (!acceptHeaderValue.isEmpty()) {
-      httpHeaders.add(HttpHeader.httpHeader("Accept", acceptHeaderValue));
+      httpHeaders.add(HttpHeader.httpHeader("accept", acceptHeaderValue));
     }
 
     // Set Content-Type header
     if (requestBody != null && requestBody.getContent() != null) {
       Optional<String> contentType = requestBody.getContent().keySet().stream().findFirst();
-      contentType.ifPresent(value -> httpHeaders.add(HttpHeader.httpHeader("Content-Type", value)));
+      contentType.ifPresent(value -> httpHeaders.add(HttpHeader.httpHeader("content-type", value)));
     }
 
     return httpHeaders;

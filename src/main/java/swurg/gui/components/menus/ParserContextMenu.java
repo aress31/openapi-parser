@@ -49,6 +49,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToPassiveScan = createSendToPassiveScanMenuItem();
     JMenuItem sendToIntruder = createSendToIntruderMenuItem();
     JMenuItem sendToRepeater = createSendToRepeaterMenuItem();
+    JMenuItem sendToOrganizer = createSendToOrganizerMenuItem();
     JMenuItem sendToComparer = createSendToComparerMenuItem();
     JMenu highlightMenu = createHighlightMenu();
     JMenuItem clearItems = createClearItemsMenuItem();
@@ -63,6 +64,7 @@ public class ParserContextMenu extends JPopupMenu {
     this.add(new JSeparator());
     this.add(sendToIntruder);
     this.add(sendToRepeater);
+    this.add(sendToOrganizer);
     this.add(sendToComparer);
     this.add(new JSeparator());
     this.add(highlightMenu);
@@ -176,6 +178,17 @@ public class ParserContextMenu extends JPopupMenu {
     }));
 
     return sendToRepeater;
+  }
+
+  private JMenuItem createSendToOrganizerMenuItem() {
+    JMenuItem sendToOrganizer = new JMenuItem("Send to Organizer");
+
+    sendToOrganizer.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      montoyaApi.organizer().sendToOrganizer(httpRequest);
+    }));
+
+    return sendToOrganizer;
   }
 
   private JMenuItem createSendToComparerMenuItem() {
