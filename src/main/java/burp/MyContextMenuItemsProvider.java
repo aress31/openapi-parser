@@ -60,12 +60,12 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
           });
         }
       } catch (Exception exception) {
-        String errorMessage = String.format("Failed to process request %s: %s",
-            ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url(),
-            exception.getMessage());
-        logging.logToOutput(errorMessage);
+        logging.logToError(exception);
+        String message = String.format(
+            "Failed to process request %s. Check the extension's error log for the stack trace and report the issue.",
+            ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url());
         SwingUtilities.invokeLater(() -> {
-          parserPanel.getStatusPanel().updateStatus(errorMessage, UIManager.getColor("BurpPalette.red1"));
+          parserPanel.getStatusPanel().updateStatus(message, UIManager.getColor("BurpPalette.red1"));
         });
       }
     });

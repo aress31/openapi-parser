@@ -36,18 +36,18 @@ public class AboutPanel extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel svgPanel = createSvgCanvas();
-        svgPanel.setPreferredSize(new Dimension(192, 192)); // Set fixed size
-        svgPanel.setBorder(new EmptyBorder(16, 16, 0, 16));
+        svgPanel.setPreferredSize(new Dimension(192, 192));
 
         JScrollPane contentScrollPane = new JScrollPane(createContentPanel());
-        contentScrollPane.setBorder(new EmptyBorder(0, 16, 0, 16));
 
-        add(svgPanel, BorderLayout.NORTH);
-        add(contentScrollPane, BorderLayout.CENTER);
-        add(new StatusPanel(), BorderLayout.SOUTH);
+        JPanel statusPanel = new StatusPanel();
+
+        add(svgPanel);
+        add(contentScrollPane);
+        add(statusPanel);
     }
 
     private JPanel createSvgCanvas() {

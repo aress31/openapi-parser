@@ -101,7 +101,6 @@ public class Worker {
                   operation.getResponses());
               List<HttpParameter> httpParameters = constructHttpRequestParameters(parameters,
                   requestBody, openAPI.getComponents().getSchemas());
-              logging.logToOutput(httpHeaders.toString());
 
               // Content-lentgh is missing
               HttpRequest httpRequest = HttpRequest.http2Request(
