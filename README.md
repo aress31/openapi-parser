@@ -26,7 +26,7 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 - `OpenAPI` documents can be parsed either from a supplied file or URL. The extension can fetch `OpenAPI` documents directly from a URL using the `Send to Swagger Parser` feature under the `Target -> Site map` context menu.
 - Parse `OpenAPI` documents, formerly known as the `Swagger specification`, fully compliant with `OpenAPI` 2.0/3.0 Specifications (`OAS`).
 - Requests can be directly viewed/edited within the extension prior to sending them to other Burp tools.
-- Requests can be sent to the `Comparer, Intruder, Repeater, Scanner, Site map and Scope` Burp tools.
+- Requests can be sent to the `Comparer`, `Intruder`, `Organizer`, `Repeater`, `Scanner`, `Site map` and `Scope` Burp tools.
 - Requests matching specific criterias (detailed in the 'Parameters' tab) can be intercepted to automatically match and replace the parsed parameters default values defined in the 'Parameters' tab. This feature allows for fine-tuning of the requests prior to sending them to other Burp tools (e.g., scanner). Edited requests can be viewed within the 'Modified Request (`OpenAPI` Parser)' tab of Burp's message editor.
 - Row highlighting allowing pentesters to highlight "interesting" `API` calls and/or colour code them for reporting purposes.
 - Includes an export to `CSV` feature, allowing users to easily export selected `API` requests in `CSV` format for further analysis or reporting.
@@ -38,18 +38,18 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 
 - Operating System: Compatible with `Linux`, `macOS`, and `Windows` operating systems.
 - Java Development Kit (JDK): `Version 11` or later.
-- Burp Suite Professional or Community Edition: `Version 2023.3.2` or later.
+- Burp Suite Professional or Community Edition: `Version 2023.11.1.3` or later.
 
   > [!IMPORTANT]
   > Please note that using any version lower than `2023.3.2` may result in a [java.lang.NoSuchMethodError](https://forum.portswigger.net/thread/montoya-api-nosuchmethoderror-275048be). It is crucial to use the specified version or a more recent one to avoid this issue.
 
 ### 2. Build tool
 
-- Gradle: `Version 6.9` or later (recommended). The [build.gradle](https://github.com/aress31/swurg/blob/main/lib/build.gradle) file is provided in the project repository.
+- Gradle: `Version 8.5` or later (recommended). The [build.gradle](https://github.com/aress31/swurg/blob/main/lib/build.gradle) file is provided in the project repository.
 
 ### 3. Environment variables
 
-- Set up the `JAVA_HOME` environment variable to point to the JDK installation directory.
+- Set up the `JAVA_HOME` environment variable to point to the `JDK` installation directory.
 
 Please ensure that all system requirements, including a compatible version of `Burp Suite`, are met before building and running the project. Note that the project's external dependencies will be automatically managed and installed by `Gradle` during the build process. Adhering to the requirements will help avoid potential issues and reduce the need for opening new issues in the project repository.
 

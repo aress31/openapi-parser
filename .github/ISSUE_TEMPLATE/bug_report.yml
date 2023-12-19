@@ -52,7 +52,7 @@ body:
       value: |
         - OS: [e.g. Windows, macOS, Linux]
         - Java version: [e.g. 8, 11, 16, 17]
-        - Burp Suite version: [e.g. Professional 2023.12, Community 2023.12]
+        - Burp Suite version: [e.g. Professional 2023.11.1.3, Community 2023.11.1.3]
         - OpenAPI Specification version: [e.g., 1.0, 2.0, 3.0]
     validations:
       required: true
@@ -61,7 +61,7 @@ body:
       label: Error Message
       description: |
         1. Navigate to the `Dashboard` -> `Event Log` to see if there are any relevant error messages available.
-        2. Additionally, go to `Extensions` -> `Installed` -> `Swurg`, and check the `Output` and `Error` tabs for any error messages.
+        2. Additionally, go to `Extensions` -> `Installed` -> `OpenAPI Parser`, and check the `Output` and `Error` tabs for any error messages.
     validations:
       required: false
   - type: textarea
