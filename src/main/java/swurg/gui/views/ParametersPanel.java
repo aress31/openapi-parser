@@ -115,16 +115,14 @@ public class ParametersPanel extends JPanel
             JCheckBox checkBox = new JCheckBox(tool.name());
             checkBox.setSelected(tool.equals(ToolType.PROXY) || tool.equals(ToolType.REPEATER));
 
-            if (checkBox.isSelected()) {
+            if (checkBox.isSelected())
                 toolsInScope.add(tool);
-            }
 
             checkBox.addItemListener(e -> {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
+                if (e.getStateChange() == ItemEvent.SELECTED)
                     toolsInScope.add(tool);
-                } else {
+                else
                     toolsInScope.remove(tool);
-                }
             });
 
             northPanel.add(checkBox);

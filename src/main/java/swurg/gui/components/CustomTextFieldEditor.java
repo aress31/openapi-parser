@@ -25,10 +25,8 @@ public class CustomTextFieldEditor extends AbstractCellEditor implements TableCe
             @Override
             public void mouseClicked(MouseEvent e) {
                 // Check if left button was clicked
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    // Select all text when clicked
-                    textField.selectAll();
-                }
+                if (SwingUtilities.isLeftMouseButton(e))
+                    textField.selectAll(); // Select all text when clicked
             }
         });
         textField.addFocusListener(new FocusAdapter() {

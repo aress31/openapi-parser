@@ -50,9 +50,8 @@ public class Worker {
     try {
       SwaggerParseResult result = new OpenAPIParser().readLocation(resource, null, null);
 
-      if (result.getOpenAPI() == null) {
+      if (result.getOpenAPI() == null)
         throw new IllegalArgumentException(result.getMessages().toString());
-      }
 
       return result;
     } catch (Exception ex) {
@@ -85,11 +84,11 @@ public class Worker {
         operationMap.forEach((method, operation) -> {
           if (operation != null) {
             StringJoiner stringJoiner = new StringJoiner(", ");
-
             List<Parameter> parameters = operation.getParameters();
-            if (operation.getParameters() != null) {
+
+            if (operation.getParameters() != null)
               parameters.forEach(parameter -> stringJoiner.add(parameter.getName()));
-            }
+
             RequestBody requestBody = operation.getRequestBody();
 
             try {
@@ -102,11 +101,16 @@ public class Worker {
               List<HttpParameter> httpParameters = constructHttpRequestParameters(parameters,
                   requestBody, openAPI.getComponents().getSchemas());
 
-              // Content-lentgh is missing
               HttpRequest httpRequest = HttpRequest.http2Request(
                   httpService,
                   httpHeaders,
                   ByteArray.byteArray(new byte[0])).withAddedParameters(httpParameters);
+
+              int contentLength = httpRequest.body().length();
+
+              if (contentLength > 0)
+                httpRequest = httpRequest.withAddedHeader(HttpHeader
+                    .httpHeader("content-length", String.valueOf(contentLength)));
 
               logEntries.add(
                   createLogEntry(httpRequest, stringJoiner.toString(),
@@ -189,9 +193,8 @@ public class Worker {
 
     // Set Accept header
     String acceptHeaderValue = parseAccept(apiResponses);
-    if (!acceptHeaderValue.isEmpty()) {
+    if (!acceptHeaderValue.isEmpty())
       httpHeaders.add(HttpHeader.httpHeader("accept", acceptHeaderValue));
-    }
 
     // Set Content-Type header
     if (requestBody != null && requestBody.getContent() != null) {
@@ -204,9 +207,9 @@ public class Worker {
 
   private URI constructFullRequestUri(URI baseUri, String path) throws URISyntaxException {
     String basePath = baseUri.getPath();
-    if (!basePath.endsWith("/")) {
+    if (!basePath.endsWith("/"))
       basePath += "/";
-    }
+
     String formattedPath = path.startsWith("/") ? path.substring(1) : path;
     String scheme = baseUri.getScheme();
     int defaultPort = scheme.equals("http") ? 80 : 443;

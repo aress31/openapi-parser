@@ -51,10 +51,8 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
             removeTabAt(indexOfComponent(aboutPanel));
             addTab("Parameters", parametersPanel);
             addTab("About", aboutPanel);
-        } else {
-            if (indexOfComponent(parametersPanel) != -1 && requestWithMetadatas.isEmpty()) {
-                removeTabAt(indexOfComponent(parametersPanel));
-            }
-        }
+        } else if (indexOfComponent(parametersPanel) != -1 && requestWithMetadatas.isEmpty())
+            removeTabAt(indexOfComponent(parametersPanel));
+
     }
 }

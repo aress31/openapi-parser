@@ -21,7 +21,6 @@ public class ParserTableModel extends AbstractTableModel {
     private List<ParserTableModelObserver> observers = new ArrayList<>();
     private List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
 
-
     public ParserTableModel(List<RequestWithMetadata> requestWithMetadatas) {
         this.requestWithMetadatas = requestWithMetadatas;
     }
@@ -99,9 +98,9 @@ public class ParserTableModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(int column) {
-        if (column == 0) {
+        if (column == 0)
             return Integer.class;
-        }
+
         return super.getColumnClass(column);
     }
 

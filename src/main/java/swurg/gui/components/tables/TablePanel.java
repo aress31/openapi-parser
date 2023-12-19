@@ -129,9 +129,8 @@ public class TablePanel extends JPanel {
                 // Write column headers
                 for (int col = 0; col < columnCount; col++) {
                     writer.write(model.getColumnName(col));
-                    if (col < columnCount - 1) {
+                    if (col < columnCount - 1)
                         writer.write(",");
-                    }
                 }
                 writer.write("\n");
 
@@ -142,9 +141,8 @@ public class TablePanel extends JPanel {
                     for (int col = 0; col < columnCount; col++) {
                         Object value = model.getValueAt(modelRowIndex, col);
                         writer.write(value != null ? value.toString() : "");
-                        if (col < columnCount - 1) {
+                        if (col < columnCount - 1)
                             writer.write(",");
-                        }
                     }
                     writer.write("\n");
                 }
@@ -170,9 +168,8 @@ public class TablePanel extends JPanel {
                 int selectedRow = table.rowAtPoint(e.getPoint());
 
                 if (selectedRow >= 0 && selectedRow < table.getRowCount()
-                        && !table.getSelectionModel().isSelectedIndex(selectedRow)) {
+                        && !table.getSelectionModel().isSelectedIndex(selectedRow))
                     table.setRowSelectionInterval(selectedRow, selectedRow);
-                }
 
                 contextMenu.show(e.getComponent(), e.getX(), e.getY());
             }

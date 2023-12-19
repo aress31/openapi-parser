@@ -117,15 +117,13 @@ public class ParserPanel extends JPanel {
   class BrowseButtonListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      if (!(e.getSource() instanceof JButton)) {
+      if (!(e.getSource() instanceof JButton))
         return;
-      }
 
       String resource = browseForFile((JButton) e.getSource());
 
-      if (resource != null && !resource.isEmpty()) {
+      if (resource != null && !resource.isEmpty())
         resourceTextField.setText(resource);
-      }
     }
 
     private String browseForFile(JButton button) {

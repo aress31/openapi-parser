@@ -41,12 +41,12 @@ public class MyHttpParameter implements HttpParameter {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) {
+        if (obj == this)
             return true;
-        }
-        if (!(obj instanceof HttpParameter)) {
+
+        if (!(obj instanceof HttpParameter))
             return false;
-        }
+
         HttpParameter other = (HttpParameter) obj;
         return Objects.equals(name, other.name()) && Objects.equals(value, other.value())
                 && Objects.equals(type, other.type());

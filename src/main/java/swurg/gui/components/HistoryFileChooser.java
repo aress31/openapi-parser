@@ -32,9 +32,8 @@ public class HistoryFileChooser extends JFileChooser {
     public void addFileToHistory(File file) {
         if (!fileHistory.contains(file)) {
             fileHistory.add(0, file);
-            if (fileHistory.size() > MAX_HISTORY_SIZE) {
+            if (fileHistory.size() > MAX_HISTORY_SIZE)
                 fileHistory.remove(fileHistory.size() - 1);
-            }
             saveFileHistory();
         }
     }
@@ -64,9 +63,8 @@ public class HistoryFileChooser extends JFileChooser {
     private void loadFileHistory() {
         String[] fileHistoryPaths = preferences.get(FILE_HISTORY_KEY, "").split("\n");
         for (String filePath : fileHistoryPaths) {
-            if (!filePath.isEmpty()) {
+            if (!filePath.isEmpty())
                 fileHistory.add(new File(filePath));
-            }
         }
     }
 
