@@ -14,7 +14,6 @@ import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -36,22 +35,22 @@ public class AboutPanel extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BorderLayout());
 
         JPanel svgPanel = createSvgCanvas();
         svgPanel.setPreferredSize(new Dimension(192, 192));
+        svgPanel.setBorder(new EmptyBorder(16, 16, 0, 16));
 
-        JScrollPane contentScrollPane = new JScrollPane(createContentPanel());
+        JPanel contentPanel = createContentPanel();
+        contentPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
 
-        JPanel statusPanel = new StatusPanel();
-
-        add(svgPanel);
-        add(contentScrollPane);
-        add(statusPanel);
+        add(svgPanel, BorderLayout.NORTH);
+        add(contentPanel, BorderLayout.CENTER);
+        add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
     private JPanel createSvgCanvas() {
-        JPanel svgContainer = new JPanel(new BorderLayout());
+        JPanel svgPanel = new JPanel(new BorderLayout());
         JSVGCanvas svgCanvas = new JSVGCanvas();
 
         try {
@@ -64,31 +63,27 @@ public class AboutPanel extends JPanel {
         svgCanvas.setOpaque(false);
         svgCanvas.setBackground(new Color(0, 0, 0, 0));
 
-        svgContainer.add(svgCanvas, BorderLayout.CENTER);
+        svgPanel.add(svgCanvas, BorderLayout.CENTER);
 
-        return svgContainer;
+        return svgPanel;
     }
 
     private JPanel createContentPanel() {
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
         JEditorPane editorPane = createTextLabel();
         JScrollPane scrollPane = new JScrollPane(editorPane);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder()); // Set empty border
-        centerPanel.add(scrollPane);
 
-        centerPanel.add(Box.createVerticalStrut(16));
-        centerPanel.add(Box.createVerticalGlue());
+        contentPanel.add(scrollPane);
+        contentPanel.add(Box.createVerticalStrut(16));
+        contentPanel.add(createButtonPanel());
 
-        centerPanel.add(createButtonPanel());
-
-        return centerPanel;
+        return contentPanel;
     }
 
     private JEditorPane createTextLabel() {
         String htmlContent = HtmlResourceLoader.loadHtmlContent("aboutText.html");
-
         String formattedHtmlContent = MessageFormat.format(htmlContent, VERSION, EXTENSION);
 
         JEditorPane editorPane = new JEditorPane();
