@@ -2,9 +2,12 @@ package swurg.gui.components.tables.models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.table.AbstractTableModel;
 
+import burp.api.montoya.http.message.params.HttpParameterType;
+import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import lombok.Data;
 import swurg.observers.ParserTableModelObserver;
@@ -15,7 +18,8 @@ import swurg.utilities.RequestWithMetadata;
 public class ParserTableModel extends AbstractTableModel {
 
     private List<RequestWithMetadata> requestWithMetadatas;
-    private String[] columnNames = { "#", "Method", "Server", "Path", "Parameters (COOKIE, URL)", "Description" };
+    private String[] columnNames = { "#", "Scheme", "Method", "Server", "Path", "Parameters (COOKIE, URL)",
+            "Description" };
 
     // Add a list to hold the observers
     private List<ParserTableModelObserver> observers = new ArrayList<>();
@@ -112,14 +116,21 @@ public class ParserTableModel extends AbstractTableModel {
             case 0:
                 return row;
             case 1:
-                return requestWithMetadata.getHttpRequest().method();
+                return requestWithMetadata.getHttpRequest().httpService().secure() ? "HTTPS" : "HTTP";
             case 2:
-                return requestWithMetadata.getHttpRequest().httpService().host();
+                return requestWithMetadata.getHttpRequest().method();
             case 3:
-                return requestWithMetadata.getHttpRequest().path();
+                return requestWithMetadata.getHttpRequest().httpService().host();
             case 4:
-                return requestWithMetadata.getParameters();
+                return requestWithMetadata.getHttpRequest().path();
             case 5:
+                return requestWithMetadata.getHttpRequest().parameters()
+                        .stream()
+                        .filter(parameter -> parameter.type() == HttpParameterType.COOKIE
+                                || parameter.type() == HttpParameterType.URL)
+                        .map(ParsedHttpParameter::name)
+                        .collect(Collectors.joining(", "));
+            case 6:
                 return requestWithMetadata.getDescription() != null ? requestWithMetadata.getDescription() : "N/A";
             default:
                 throw new IllegalArgumentException("Invalid column index");

@@ -4,10 +4,11 @@ import burp.api.montoya.http.message.requests.HttpRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-// Refactor the code to use this class instead of RequestWithMetadata
 @AllArgsConstructor
 @Data
 public class MyHttpRequest {
     private HttpRequest httpRequest;
+    // TODO: Monitor the future integration of metadata or notes support to
+    // eliminate the necessity of this redundant helper class.
     private String description;
 }

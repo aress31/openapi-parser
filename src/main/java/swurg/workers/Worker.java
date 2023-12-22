@@ -146,11 +146,10 @@ public class Worker {
       for (Parameter parameter : parameters) {
         String in = parameter.getIn();
 
-        if ("header".equals(in)) {
+        if ("header".equals(in))
           httpParameters.add(HttpParameter.cookieParameter(parameter.getName(), parameter.getSchema().getType()));
-        } else if ("query".equals(in)) {
+        else if ("query".equals(in))
           httpParameters.add(HttpParameter.urlParameter(parameter.getName(), parameter.getSchema().getType()));
-        }
       }
     }
 
@@ -226,6 +225,6 @@ public class Worker {
   private RequestWithMetadata createLogEntry(HttpRequest httpRequest, String parameters,
       String description) {
 
-    return new RequestWithMetadata(httpRequest, parameters, description);
+    return new RequestWithMetadata(httpRequest, description);
   }
 }
