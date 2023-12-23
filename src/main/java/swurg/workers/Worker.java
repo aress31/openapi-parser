@@ -11,13 +11,11 @@ import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.http.client.utils.URIBuilder;
 import swurg.utilities.RequestWithMetadata;
@@ -62,58 +60,59 @@ public class Worker {
   public List<RequestWithMetadata> parseOpenAPI(OpenAPI openAPI) {
     List<RequestWithMetadata> logEntries = new ArrayList<>();
 
-    for (Server server : openAPI.getServers()) {
-      String serverUrl = server.getUrl();
-      if (!serverUrl.startsWith("http://") && !serverUrl.startsWith("https://")) {
-        serverUrl = "https://example.com";
-      }
-      final String finalServerUrl = serverUrl;
+    openAPI.getServers().forEach(server -> {
+      String serverUrl = Optional.ofNullable(server.getUrl())
+          .filter(url -> url.startsWith("http://") || url.startsWith("https://"))
+          .orElse("https://example.com");
 
-      for (Map.Entry<String, PathItem> pathItem : openAPI.getPaths().entrySet()) {
-        Map<String, Operation> operationMap = new HashMap<>();
-        operationMap.put("DELETE", pathItem.getValue().getDelete());
-        operationMap.put("GET", pathItem.getValue().getGet());
-        operationMap.put("HEAD", pathItem.getValue().getHead());
-        operationMap.put("PATCH", pathItem.getValue().getPatch());
-        operationMap.put("POST", pathItem.getValue().getPost());
-        operationMap.put("PUT", pathItem.getValue().getPut());
-        operationMap.put("TRACE", pathItem.getValue().getTrace());
+      openAPI.getPaths().forEach(
+          (path, pathItem) -> getOperationMap(pathItem).forEach((method, operation) -> Optional.ofNullable(operation)
+              .ifPresent(op -> {
+                try {
+                  URI baseUrl = new URIBuilder(serverUrl).setPath(path).build();
+                  HttpService httpService = HttpService.httpService(baseUrl.toString());
 
-        operationMap.forEach((method, operation) -> {
-          if (operation != null) {
-            List<Parameter> parameters = operation.getParameters();
-            RequestBody requestBody = operation.getRequestBody();
+                  List<HttpHeader> httpHeaders = buildHttp2RequestHeaders(
+                      method, baseUrl, op.getRequestBody(), op.getResponses());
 
-            try {
-              URI baseUrl = new URIBuilder(finalServerUrl).setPath(pathItem.getKey()).build();
+                  List<HttpParameter> httpParameters = buildHttpRequestParameters(
+                      op.getParameters(), op.getRequestBody(),
+                      openAPI.getComponents().getSchemas());
 
-              HttpService httpService = HttpService.httpService(baseUrl.toString());
-              List<HttpHeader> httpHeaders = buildHttp2RequestHeaders(method, baseUrl, requestBody,
-                  operation.getResponses());
-              List<HttpParameter> httpParameters = buildHttpRequestParameters(parameters, requestBody,
-                  openAPI.getComponents().getSchemas());
+                  HttpRequest httpRequest = HttpRequest.http2Request(
+                      httpService, httpHeaders, ByteArray.byteArray(new byte[0]))
+                      .withAddedParameters(httpParameters);
 
-              HttpRequest httpRequest = HttpRequest.http2Request(
-                  httpService,
-                  httpHeaders,
-                  ByteArray.byteArray(new byte[0])).withAddedParameters(httpParameters);
+                  int contentLength = httpRequest.body().length();
+                  if (contentLength > 0) {
+                    httpRequest = httpRequest.withAddedHeader(HttpHeader
+                        .httpHeader("content-length", String.valueOf(contentLength)));
+                  }
 
-              int contentLength = httpRequest.body().length();
-
-              if (contentLength > 0)
-                httpRequest = httpRequest.withAddedHeader(HttpHeader
-                    .httpHeader("content-length", String.valueOf(contentLength)));
-
-              logEntries.add(new RequestWithMetadata(httpRequest, operation.getDescription()));
-            } catch (URISyntaxException e) {
-              throw new RuntimeException(e);
-            }
-          }
-        });
-      }
-    }
+                  logEntries.add(new RequestWithMetadata(httpRequest, op.getDescription()));
+                } catch (URISyntaxException e) {
+                  throw new RuntimeException(e);
+                }
+              })));
+    });
 
     return logEntries;
+  }
+
+  private Map<String, Operation> getOperationMap(PathItem pathItem) {
+    Map<String, Operation> operationMap = new HashMap<>();
+
+    if (pathItem != null) {
+      operationMap.put("DELETE", pathItem.getDelete());
+      operationMap.put("GET", pathItem.getGet());
+      operationMap.put("HEAD", pathItem.getHead());
+      operationMap.put("PATCH", pathItem.getPatch());
+      operationMap.put("POST", pathItem.getPost());
+      operationMap.put("PUT", pathItem.getPut());
+      operationMap.put("TRACE", pathItem.getTrace());
+    }
+
+    return operationMap;
   }
 
   private List<HttpHeader> buildHttp2RequestHeaders(String method, URI uri, RequestBody requestBody,
