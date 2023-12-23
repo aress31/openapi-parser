@@ -142,47 +142,47 @@ public class Worker {
       Map<String, Schema> schemas) {
     List<HttpParameter> httpParameters = new ArrayList<>();
 
-    if (parameters != null)
-      parameters.forEach(parameter -> {
-        String in = parameter.getIn();
-        String name = parameter.getName();
-        Schema schema = parameter.getSchema();
-        String value = Optional.ofNullable(schema)
-            .map(Schema::getType)
-            .orElse(null);
+    Optional.ofNullable(parameters)
+        .ifPresent(parameterList -> parameterList.forEach(parameter -> {
+          String in = parameter.getIn();
+          String name = parameter.getName();
+          Schema schema = parameter.getSchema();
+          String value = Optional.ofNullable(schema)
+              .map(Schema::getType)
+              .orElse(null);
 
-        if ("header".equals(in))
-          httpParameters.add(HttpParameter.cookieParameter(name, value));
-        else if ("query".equals(in))
-          httpParameters.add(HttpParameter.urlParameter(name, value));
-      });
+          if ("header".equals(in)) {
+            httpParameters.add(HttpParameter.cookieParameter(name, value));
+          } else if ("query".equals(in)) {
+            httpParameters.add(HttpParameter.urlParameter(name, value));
+          }
+        }));
 
-    if (requestBody != null) {
-      requestBody.getContent().entrySet().stream()
-          .findFirst()
-          .map(Map.Entry::getValue)
-          .ifPresent(mediaType -> {
-            if (mediaType.getSchema().get$ref() != null) {
-              String href = mediaType.getSchema().get$ref();
-              String formattedHref = href.substring(href.lastIndexOf("/") + 1);
+    Optional.ofNullable(requestBody)
+        .map(RequestBody::getContent)
+        .flatMap(content -> content.entrySet().stream().findFirst())
+        .map(Map.Entry::getValue)
+        .ifPresent(mediaType -> {
+          if (mediaType.getSchema().get$ref() != null) {
+            String href = mediaType.getSchema().get$ref();
+            String formattedHref = href.substring(href.lastIndexOf("/") + 1);
 
-              Schema schema = schemas.get(formattedHref);
-              Map<String, Schema> properties = schema.getProperties();
+            Schema schema = schemas.get(formattedHref);
+            Map<String, Schema> properties = schema.getProperties();
 
-              if (properties != null) {
-                properties.forEach((name, propertySchema) -> {
-                  Object example = propertySchema.getExample();
-                  String type = propertySchema.getType();
-                  String value = Optional.ofNullable(example)
-                      .map(Object::toString)
-                      .orElse(type);
+            if (properties != null) {
+              properties.forEach((name, propertySchema) -> {
+                Object example = propertySchema.getExample();
+                String type = propertySchema.getType();
+                String value = Optional.ofNullable(example)
+                    .map(Object::toString)
+                    .orElse(type);
 
-                  httpParameters.add(HttpParameter.bodyParameter(name, value));
-                });
-              }
+                httpParameters.add(HttpParameter.bodyParameter(name, value));
+              });
             }
-          });
-    }
+          }
+        });
 
     return httpParameters;
   }
