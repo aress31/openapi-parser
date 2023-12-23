@@ -43,7 +43,7 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
         List<HttpRequestResponse> selectedHttpRequestResponses = contextMenuEvent.selectedRequestResponses();
         Worker worker = new Worker(montoyaApi);
 
-        for (HttpRequestResponse selectedMessage : selectedHttpRequestResponses) {
+        selectedHttpRequestResponses.forEach(selectedMessage -> {
           HttpRequest selectedRequest = selectedMessage.request();
           String url = selectedRequest.url();
 
@@ -51,14 +51,12 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
           List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(url));
 
           SwingUtilities.invokeLater(() -> {
-            for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
-              tableModel.addRow(requestWithMetadata);
-            }
+            requestWithMetadatas.forEach(requestWithMetadata -> tableModel.addRow(requestWithMetadata));
 
             parserPanel.setResourceTextField(url);
             parserPanel.getStatusPanel().updateStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
           });
-        }
+        });
       } catch (Exception exception) {
         logging.logToError(exception);
         String message = String.format(

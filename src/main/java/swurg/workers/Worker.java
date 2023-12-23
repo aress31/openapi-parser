@@ -11,6 +11,7 @@ import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
@@ -162,27 +163,19 @@ public class Worker {
         .map(RequestBody::getContent)
         .flatMap(content -> content.entrySet().stream().findFirst())
         .map(Map.Entry::getValue)
-        .ifPresent(mediaType -> {
-          String schemaRef = mediaType.getSchema().get$ref();
+        .map(MediaType::getSchema)
+        .map(Schema::get$ref)
+        .ifPresent(ref -> {
+          Schema schema = schemas.get(ref.substring(ref.lastIndexOf("/") + 1));
+          Map<String, Schema> properties = schema.getProperties();
 
-          if (schemaRef != null) {
-            schemaRef = schemaRef.substring(schemaRef.lastIndexOf("/") + 1);
-
-            Schema schema = schemas.get(schemaRef);
-            Map<String, Schema> properties = schema.getProperties();
-
-            if (properties != null) {
-              properties.forEach((name, propertySchema) -> {
+          Optional.ofNullable(properties)
+              .ifPresent(props -> props.forEach((name, propertySchema) -> {
                 Object example = propertySchema.getExample();
-                String type = propertySchema.getType();
-                String value = Optional.ofNullable(example)
-                    .map(Object::toString)
-                    .orElse(type);
+                String value = Optional.ofNullable(example).map(Object::toString).orElse(propertySchema.getType());
 
                 httpParameters.add(HttpParameter.bodyParameter(name, value));
-              });
-            }
-          }
+              }));
         });
 
     return httpParameters;

@@ -181,9 +181,7 @@ public class ParserPanel extends JPanel {
 
     private void updateTableModel(List<RequestWithMetadata> requestWithMetadatas) {
       SwingUtilities.invokeLater(() -> {
-        for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
-          parserTableModel.addRow(requestWithMetadata);
-        }
+        requestWithMetadatas.forEach(parserTableModel::addRow);
       });
     }
   }

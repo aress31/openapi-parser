@@ -6,7 +6,6 @@ import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
-import burp.api.montoya.http.message.params.HttpParameter;
 import burp.http.MyHttpParameter;
 import lombok.Data;
 import swurg.utilities.RequestWithMetadata;
@@ -16,7 +15,7 @@ public class ParametersTableModel extends AbstractTableModel {
 
     private Set<MyHttpParameter> httpParameters;
     private String[] columnNames = { "#", "Parameter", "Type (BODY, COOKIE, URL)",
-            "Parsed Value (Data type or Example Value)", "Edited Value" };
+            "Parsed Value (Example Value or Data type)", "Edited Value" };
 
     public ParametersTableModel(Set<MyHttpParameter> httpParameters) {
         this.httpParameters = httpParameters;
@@ -25,11 +24,9 @@ public class ParametersTableModel extends AbstractTableModel {
     public static ParametersTableModel fromRequestWithMetadataList(List<RequestWithMetadata> requestWithMetadatas) {
         Set<MyHttpParameter> httpParameters = new LinkedHashSet<>();
 
-        for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
-            for (HttpParameter httpParameter : requestWithMetadata.getHttpRequest().parameters()) {
-                httpParameters.add(new MyHttpParameter(httpParameter));
-            }
-        }
+        requestWithMetadatas.forEach(requestWithMetadata -> requestWithMetadata.getHttpRequest().parameters()
+                .forEach(httpParameter -> httpParameters
+                        .add(MyHttpParameter.builder().httpParameter(httpParameter).build())));
 
         return new ParametersTableModel(httpParameters);
     }
@@ -37,11 +34,9 @@ public class ParametersTableModel extends AbstractTableModel {
     public void updateData(List<RequestWithMetadata> requestWithMetadatas) {
         Set<MyHttpParameter> httpParameters = new LinkedHashSet<>();
 
-        for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
-            for (HttpParameter httpParameter : requestWithMetadata.getHttpRequest().parameters()) {
-                httpParameters.add(new MyHttpParameter(httpParameter));
-            }
-        }
+        requestWithMetadatas.forEach(requestWithMetadata -> requestWithMetadata.getHttpRequest().parameters()
+                .forEach(httpParameter -> httpParameters
+                        .add(MyHttpParameter.builder().httpParameter(httpParameter).build())));
 
         this.httpParameters = httpParameters;
     }
@@ -93,11 +88,11 @@ public class ParametersTableModel extends AbstractTableModel {
             case 0:
                 return row;
             case 1:
-                return httpParameter.name();
+                return httpParameter.getHttpParameter().name();
             case 2:
-                return httpParameter.type().toString();
+                return httpParameter.getHttpParameter().type().toString();
             case 3:
-                return httpParameter.value();
+                return httpParameter.getHttpParameter().value();
             case 4:
                 return httpParameter.getEditedValue();
             default:

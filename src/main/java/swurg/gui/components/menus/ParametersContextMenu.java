@@ -2,6 +2,8 @@ package swurg.gui.components.menus;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -26,15 +28,20 @@ public class ParametersContextMenu extends JPopupMenu {
     this.add(highlightMenu);
   }
 
+  private void processSelectedRows(Consumer<Integer> action) {
+    IntStream.of(table.getSelectedRows())
+        .forEach(row -> {
+          int index = (int) table.getValueAt(row, table.getColumn("#").getModelIndex());
+          action.accept(index);
+        });
+  }
+
   private JMenu createHighlightMenu() {
     JMenu highlightMenu = new JMenu("Highlight");
 
-    for (Color color : Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
-        Color.MAGENTA, Color.PINK, Color.GRAY)) {
-      JMenuItem menuItem = createHighlightMenuItem(color);
-
-      highlightMenu.add(menuItem);
-    }
+    Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
+        Color.MAGENTA, Color.PINK, Color.GRAY)
+        .forEach(color -> highlightMenu.add(createHighlightMenuItem(color)));
 
     return highlightMenu;
   }
@@ -48,19 +55,11 @@ public class ParametersContextMenu extends JPopupMenu {
 
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
-    menuItem.addActionListener(e -> {
-      int[] selectedRows = table.getSelectedRows();
-
-      // Set the highlight color for each selected row
-      for (int row : selectedRows) {
-        // Mapping view row to model row using a unique identifier
-        Object rowId = table.getValueAt(row, table.getColumn("#").getModelIndex());
-
-        SwingUtilities.invokeLater(() -> {
-          renderer.setRowHighlightColor(rowId, color);
-        });
-      }
-    });
+    menuItem.addActionListener(e -> processSelectedRows(index -> {
+      SwingUtilities.invokeLater(() -> {
+        renderer.setRowHighlightColor(index, color);
+      });
+    }));
 
     return menuItem;
   }

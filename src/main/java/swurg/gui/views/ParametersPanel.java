@@ -9,12 +9,13 @@ import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import burp.api.montoya.http.message.requests.HttpRequest;
+
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.logging.Logging;
 import burp.http.MyHttpParameter;
 import burp.api.montoya.http.handler.HttpHandler;
@@ -111,7 +112,7 @@ public class ParametersPanel extends JPanel
         JPanel northPanel = new JPanel();
         northPanel.setBorder(BorderFactory.createTitledBorder("Match/Replace Scope"));
 
-        for (ToolType tool : toolsMap) {
+        toolsMap.forEach(tool -> {
             JCheckBox checkBox = new JCheckBox(tool.name());
             checkBox.setSelected(tool.equals(ToolType.PROXY) || tool.equals(ToolType.REPEATER));
 
@@ -126,7 +127,7 @@ public class ParametersPanel extends JPanel
             });
 
             northPanel.add(checkBox);
-        }
+        });
 
         return northPanel;
     }
@@ -154,39 +155,34 @@ public class ParametersPanel extends JPanel
     @Override
     public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent httpRequestToBeSent) {
         Annotations annotations = httpRequestToBeSent.annotations();
-        HttpRequest updatedHttpRequest = httpRequestToBeSent;
 
-        for (ToolType toolInScope : toolsInScope) {
-            if (httpRequestToBeSent.toolSource().isFromTool(toolInScope)) {
-                updatedHttpRequest = updateRequestParameters(httpRequestToBeSent);
-            }
-        }
-
-        // Return the modified request to Burp with updated annotations.
-        return RequestToBeSentAction.continueWith(updatedHttpRequest, annotations);
+        return toolsInScope.stream()
+                .filter(toolInScope -> httpRequestToBeSent.toolSource().isFromTool(toolInScope))
+                .findFirst()
+                .map(toolInScope -> RequestToBeSentAction.continueWith(updateRequestParameters(httpRequestToBeSent),
+                        annotations))
+                .orElse(RequestToBeSentAction.continueWith(httpRequestToBeSent, annotations));
     }
 
     private HttpRequest updateRequestParameters(HttpRequestToBeSent httpRequestToBeSent) {
-        HttpRequest updatedHttpRequest = httpRequestToBeSent;
+        List<HttpParameter> updatedParameters = new ArrayList<>();
 
-        for (HttpParameter httpParameterToBeSent : httpRequestToBeSent.parameters()) {
-            for (MyHttpParameter httpParameter : this.parametersTableModel.getHttpParameters()) {
-                if (shouldProcessParameter(httpParameterToBeSent, httpParameter)) {
+        httpRequestToBeSent.parameters().forEach(requestTobeSentParameter -> {
+            this.parametersTableModel.getHttpParameters().stream()
+                    .filter(tableParameter -> shouldProcessParameter(requestTobeSentParameter, tableParameter))
+                    .forEach(tableParameter -> {
+                        updatedParameters.add(HttpParameter.parameter(requestTobeSentParameter.name(),
+                                tableParameter.getEditedValue(),
+                                requestTobeSentParameter.type()));
+                    });
+        });
 
-                    MyHttpParameter editedParameter = new MyHttpParameter(httpParameterToBeSent);
-                    editedParameter.setValue(httpParameter.getEditedValue());
-
-                    updatedHttpRequest = updatedHttpRequest.withUpdatedParameters(editedParameter);
-                    break;
-                }
-            }
-        }
-
-        return updatedHttpRequest;
+        return httpRequestToBeSent.withUpdatedParameters(updatedParameters);
     }
 
     private boolean shouldProcessParameter(HttpParameter httpParameterToBeSent, MyHttpParameter httpParameter) {
-        return httpParameter.equals(httpParameterToBeSent) && httpParameter.getEditedValue() != null;
+        return httpParameterToBeSent.equals(httpParameter.getHttpParameter())
+                && !httpParameterToBeSent.value().equals(httpParameter.getEditedValue());
     }
 
     @Override
