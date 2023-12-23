@@ -163,11 +163,12 @@ public class Worker {
         .flatMap(content -> content.entrySet().stream().findFirst())
         .map(Map.Entry::getValue)
         .ifPresent(mediaType -> {
-          if (mediaType.getSchema().get$ref() != null) {
-            String href = mediaType.getSchema().get$ref();
-            String formattedHref = href.substring(href.lastIndexOf("/") + 1);
+          String schemaRef = mediaType.getSchema().get$ref();
 
-            Schema schema = schemas.get(formattedHref);
+          if (schemaRef != null) {
+            schemaRef = schemaRef.substring(schemaRef.lastIndexOf("/") + 1);
+
+            Schema schema = schemas.get(schemaRef);
             Map<String, Schema> properties = schema.getProperties();
 
             if (properties != null) {
