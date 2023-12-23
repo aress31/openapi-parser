@@ -28,9 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.StringJoiner;
 
 public class Worker {
 
@@ -149,35 +147,42 @@ public class Worker {
       parameters.forEach(parameter -> {
         String in = parameter.getIn();
         String name = parameter.getName();
+        Schema schema = parameter.getSchema();
+        String value = Optional.ofNullable(schema)
+            .map(Schema::getType)
+            .orElse(null);
 
         if ("header".equals(in))
-          httpParameters.add(HttpParameter.cookieParameter(name, parameter.getSchema().getType()));
+          httpParameters.add(HttpParameter.cookieParameter(name, value));
         else if ("query".equals(in))
-          httpParameters.add(HttpParameter.urlParameter(name, parameter.getSchema().getType()));
+          httpParameters.add(HttpParameter.urlParameter(name, value));
       });
 
     if (requestBody != null) {
-      MediaType mediaType = requestBody.getContent().entrySet().stream().findFirst().get().getValue();
+      requestBody.getContent().entrySet().stream()
+          .findFirst()
+          .map(Map.Entry::getValue)
+          .ifPresent(mediaType -> {
+            if (mediaType.getSchema().get$ref() != null) {
+              String href = mediaType.getSchema().get$ref();
+              String formattedHref = href.substring(href.lastIndexOf("/") + 1);
 
-      if (mediaType.getSchema().get$ref() != null) {
-        String href = mediaType.getSchema().get$ref();
-        String[] deconstructedHref = href.split("/");
-        String formattedHref = deconstructedHref[deconstructedHref.length - 1];
+              Schema schema = schemas.get(formattedHref);
+              Map<String, Schema> properties = schema.getProperties();
 
-        Schema schema = schemas.get(formattedHref);
+              if (properties != null) {
+                properties.forEach((name, propertySchema) -> {
+                  Object example = propertySchema.getExample();
+                  String type = propertySchema.getType();
+                  String value = Optional.ofNullable(example)
+                      .map(Object::toString)
+                      .orElse(type);
 
-        Map<String, Schema> properties = schema.getProperties();
-
-        if (properties != null) {
-          for (Map.Entry<String, Schema> property : properties.entrySet()) {
-            Schema propertySchema = property.getValue();
-            Object example = propertySchema.getExample();
-            String type = example != null ? example.toString() : propertySchema.getType();
-
-            httpParameters.add(HttpParameter.bodyParameter(property.getKey(), type));
-          }
-        }
-      }
+                  httpParameters.add(HttpParameter.bodyParameter(name, value));
+                });
+              }
+            }
+          });
     }
 
     return httpParameters;
