@@ -14,7 +14,7 @@ public class MyBurpExtension implements BurpExtension {
       "<html>Copyright \u00a9 2016 - %s Alexandre Teyar, Aegis Cyber &lt;<a href=\"https://aegiscyber.co.uk\">www.aegiscyber.co.uk</a>&gt;. All Rights Reserved.</html>",
       Calendar.getInstance().get(Calendar.YEAR));
   public static final String EXTENSION = "OpenAPI Parser";
-  public static final String VERSION = "4.0";
+  public static final String VERSION = "4.1";
 
   @Override
   public void initialize(MontoyaApi montoyaApi) {
