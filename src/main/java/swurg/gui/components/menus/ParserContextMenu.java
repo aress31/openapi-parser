@@ -74,6 +74,14 @@ public class ParserContextMenu extends JPopupMenu {
     this.add(addToSiteMap);
   }
 
+  private void processSelectedRows(Consumer<Integer> action) {
+    IntStream.of(table.getSelectedRows())
+        .forEach(row -> {
+          int index = (int) table.getValueAt(row, table.getColumn("#").getModelIndex());
+          action.accept(index);
+        });
+  }
+
   private JMenuItem createCopyToClipboardMenuItem() {
     JMenuItem copyToClipboard = new JMenuItem();
 
@@ -102,14 +110,6 @@ public class ParserContextMenu extends JPopupMenu {
     });
 
     return copyToClipboard;
-  }
-
-  private void processSelectedRows(Consumer<Integer> action) {
-    IntStream.of(table.getSelectedRows())
-        .forEach(row -> {
-          int index = (int) table.getValueAt(row, table.getColumn("#").getModelIndex());
-          action.accept(index);
-        });
   }
 
   private HttpRequest getHttpRequestFromSelectedIndex(int index) {
