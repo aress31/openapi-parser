@@ -37,5 +37,9 @@ public class MyBurpExtension implements BurpExtension {
 
     montoyaApi.http().registerHttpHandler(mainTabGroup.getParametersPanel());
     logging.logToOutput("HTTPListener registered");
+
+    // TODO: Complete the implementation of this feature.
+    // montoyaApi.userInterface().registerHttpRequestEditorProvider(mainTabGroup.getParametersPanel());
+    // logging.logToOutput("'MessageEditorTabFactory' registered");
   }
 }

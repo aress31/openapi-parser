@@ -132,9 +132,7 @@ public class ParserPanel extends JPanel {
           prefs.get("LAST_USED_FOLDER", new File(".").getAbsolutePath()));
 
       // Add history to the file chooser
-      for (File file : fileChooser.getHistory()) {
-        fileChooser.addFileToHistory(file);
-      }
+      fileChooser.getHistory().forEach(file -> fileChooser.addFileToHistory(file));
 
       // Find the top-level window (JFrame or JDialog) containing the button
       Component topLevelWindow = SwingUtilities.getWindowAncestor(button);
@@ -180,9 +178,7 @@ public class ParserPanel extends JPanel {
     }
 
     private void updateTableModel(List<RequestWithMetadata> requestWithMetadatas) {
-      SwingUtilities.invokeLater(() -> {
-        requestWithMetadatas.forEach(parserTableModel::addRow);
-      });
+      SwingUtilities.invokeLater(() -> requestWithMetadatas.forEach(parserTableModel::addRow));
     }
   }
 }

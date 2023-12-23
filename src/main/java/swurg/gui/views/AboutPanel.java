@@ -104,19 +104,20 @@ public class AboutPanel extends JPanel {
                 "<html>Follow me on <b>GitHub</b></html>", "https://github.com/aress31",
                 "<html>Submit a <b>pull request</b> or report a <b>bug</b></html>", "https://github.com/aress31/swurg");
 
-        for (Map.Entry<String, String> entry : buttonMap.entrySet()) {
-            JButton button = new JButton(entry.getKey());
+        buttonMap.forEach((key, value) -> {
+            JButton button = new JButton(key);
             button.putClientProperty("html.disable", null);
             button.setAlignmentX(CENTER_ALIGNMENT);
+
             button.addActionListener(e -> {
                 try {
-                    Desktop.getDesktop().browse(new URI(entry.getValue()));
+                    Desktop.getDesktop().browse(new URI(value));
                 } catch (IOException | URISyntaxException ex) {
                     // Do nothing
                 }
             });
 
-            if (entry.getKey().equals(buttonMap.keySet().iterator().next())) {
+            if (key.equals(buttonMap.keySet().iterator().next())) {
                 button.setBackground(UIManager.getColor("Burp.burpOrange"));
                 button.setFont(new Font(button.getFont().getName(), Font.BOLD, button.getFont().getSize()));
                 button.setForeground(UIManager.getColor("Burp.primaryButtonForeground"));
@@ -124,7 +125,7 @@ public class AboutPanel extends JPanel {
 
             buttonPanel.add(button);
             buttonPanel.add(Box.createVerticalStrut(4));
-        }
+        });
 
         return buttonPanel;
     }

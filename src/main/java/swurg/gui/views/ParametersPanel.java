@@ -9,7 +9,6 @@ import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import burp.api.montoya.http.message.requests.HttpRequest;
 
@@ -27,7 +26,6 @@ import burp.api.montoya.http.handler.RequestToBeSentAction;
 import burp.api.montoya.http.handler.ResponseReceivedAction;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
-import burp.api.montoya.core.Annotations;
 import burp.api.montoya.core.ToolType;
 
 import burp.api.montoya.MontoyaApi;
