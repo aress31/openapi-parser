@@ -15,6 +15,7 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -65,7 +67,7 @@ public class Worker {
     for (Server server : openAPI.getServers()) {
       String serverUrl = server.getUrl();
       if (!serverUrl.startsWith("http://") && !serverUrl.startsWith("https://")) {
-        serverUrl = "https://example.com" + serverUrl;
+        serverUrl = "https://example.com";
       }
       final String finalServerUrl = serverUrl;
 
@@ -104,8 +106,7 @@ public class Worker {
                 httpRequest = httpRequest.withAddedHeader(HttpHeader
                     .httpHeader("content-length", String.valueOf(contentLength)));
 
-              logEntries.add(
-                  createLogEntry(httpRequest, operation.getDescription()));
+              logEntries.add(new RequestWithMetadata(httpRequest, operation.getDescription()));
             } catch (URISyntaxException e) {
               throw new RuntimeException(e);
             }
@@ -117,32 +118,43 @@ public class Worker {
     return logEntries;
   }
 
-  private String parseAccept(ApiResponses apiResponses) {
-    StringJoiner stringJoiner = new StringJoiner(",");
+  private List<HttpHeader> buildHttp2RequestHeaders(String method, URI uri, RequestBody requestBody,
+      ApiResponses apiResponses) {
+    List<HttpHeader> httpHeaders = new ArrayList<>();
 
-    if (apiResponses != null && apiResponses.get("200") != null && apiResponses.get("200").getContent() != null) {
-      for (Map.Entry<String, MediaType> response : apiResponses.get("200").getContent().entrySet()) {
-        stringJoiner.add(response.getKey());
-      }
-    }
+    httpHeaders.add(HttpHeader.httpHeader(":scheme", uri.getScheme()));
+    httpHeaders.add(HttpHeader.httpHeader(":method", method));
+    httpHeaders.add(HttpHeader.httpHeader(":path", uri.getPath()));
+    httpHeaders.add(HttpHeader.httpHeader(":authority", uri.getHost()));
 
-    return stringJoiner.toString();
+    Optional.ofNullable(apiResponses)
+        .map(responses -> responses.get("200"))
+        .map(ApiResponse::getContent)
+        .map(contentMap -> String.join(",", contentMap.keySet()))
+        .ifPresent(acceptHeaderValue -> httpHeaders.add(HttpHeader.httpHeader("accept", acceptHeaderValue)));
+
+    Optional.ofNullable(requestBody)
+        .map(RequestBody::getContent)
+        .flatMap(contentMap -> contentMap.keySet().stream().findFirst())
+        .ifPresent(contentType -> httpHeaders.add(HttpHeader.httpHeader("content-type", contentType)));
+
+    return httpHeaders;
   }
 
   private List<HttpParameter> buildHttpRequestParameters(List<Parameter> parameters, RequestBody requestBody,
       Map<String, Schema> schemas) {
     List<HttpParameter> httpParameters = new ArrayList<>();
 
-    if (parameters != null) {
-      for (Parameter parameter : parameters) {
+    if (parameters != null)
+      parameters.forEach(parameter -> {
         String in = parameter.getIn();
+        String name = parameter.getName();
 
         if ("header".equals(in))
-          httpParameters.add(HttpParameter.cookieParameter(parameter.getName(), parameter.getSchema().getType()));
+          httpParameters.add(HttpParameter.cookieParameter(name, parameter.getSchema().getType()));
         else if ("query".equals(in))
-          httpParameters.add(HttpParameter.urlParameter(parameter.getName(), parameter.getSchema().getType()));
-      }
-    }
+          httpParameters.add(HttpParameter.urlParameter(name, parameter.getSchema().getType()));
+      });
 
     if (requestBody != null) {
       MediaType mediaType = requestBody.getContent().entrySet().stream().findFirst().get().getValue();
@@ -169,30 +181,5 @@ public class Worker {
     }
 
     return httpParameters;
-  }
-
-  private List<HttpHeader> buildHttp2RequestHeaders(String method, URI uri, RequestBody requestBody,
-      ApiResponses apiResponses) {
-    List<HttpHeader> httpHeaders = new ArrayList<>();
-
-    httpHeaders.add(HttpHeader.httpHeader(":scheme", uri.getScheme()));
-    httpHeaders.add(HttpHeader.httpHeader(":method", method));
-    httpHeaders.add(HttpHeader.httpHeader(":path", uri.getPath()));
-    httpHeaders.add(HttpHeader.httpHeader(":authority", uri.getHost()));
-
-    String acceptHeaderValue = parseAccept(apiResponses);
-    if (!acceptHeaderValue.isEmpty())
-      httpHeaders.add(HttpHeader.httpHeader("accept", acceptHeaderValue));
-
-    if (requestBody != null && requestBody.getContent() != null) {
-      Optional<String> contentType = requestBody.getContent().keySet().stream().findFirst();
-      contentType.ifPresent(value -> httpHeaders.add(HttpHeader.httpHeader("content-type", value)));
-    }
-
-    return httpHeaders;
-  }
-
-  private RequestWithMetadata createLogEntry(HttpRequest httpRequest, String description) {
-    return new RequestWithMetadata(httpRequest, description);
   }
 }
