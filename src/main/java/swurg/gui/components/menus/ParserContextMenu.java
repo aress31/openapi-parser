@@ -235,27 +235,24 @@ public class ParserContextMenu extends JPopupMenu {
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
     clear.addActionListener(e -> {
-      // Get the selected rows and sort them in reverse order
+      // Retrieve the selected rows and arrange them in descending order.
       List<Integer> selectedRows = IntStream.of(table.getSelectedRows())
           .boxed()
           .sorted(Collections.reverseOrder())
           .collect(Collectors.toList());
 
-      // Remove the rows one by one from the table
+      // Remove rows individually from the table.
       SwingUtilities.invokeLater(() -> {
         ParserTableModel tableModel = (ParserTableModel) table.getModel();
 
-        for (Integer row : selectedRows) {
-          int modelRow = table.convertRowIndexToModel(row);
-          // Mapping view row to model row using a unique identifier
-          Object rowId = table.getValueAt(row, table.getColumn("#").getModelIndex());
-
+        selectedRows.forEach(index -> {
+          int modelRow = table.convertRowIndexToModel(index);
           tableModel.removeRow(modelRow);
-          renderer.clearRowHighlightColor(rowId);
-        }
+          renderer.clearRowHighlightColor(index);
+        });
       });
 
-      // Updating the rows' index (reindexing table)
+      // Reindexing the table by updating the rows' indices.
       IntStream.range(0, table.getRowCount())
           .forEach(row -> table.getModel().setValueAt(row, row, table.getColumn("#").getModelIndex()));
     });
