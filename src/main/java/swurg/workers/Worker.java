@@ -64,10 +64,8 @@ public class Worker {
 
     for (Server server : openAPI.getServers()) {
       String serverUrl = server.getUrl();
-      // Set a default protocol and host if they are missing
-      // which can occur when loading files locally
       if (!serverUrl.startsWith("http://") && !serverUrl.startsWith("https://")) {
-        serverUrl = "https://example.com" + serverUrl; // Use the appropriate default protocol and host
+        serverUrl = "https://example.com" + serverUrl;
       }
       final String finalServerUrl = serverUrl;
 
@@ -83,23 +81,17 @@ public class Worker {
 
         operationMap.forEach((method, operation) -> {
           if (operation != null) {
-            StringJoiner stringJoiner = new StringJoiner(", ");
             List<Parameter> parameters = operation.getParameters();
-
-            if (operation.getParameters() != null)
-              parameters.forEach(parameter -> stringJoiner.add(parameter.getName()));
-
             RequestBody requestBody = operation.getRequestBody();
 
             try {
-              URI fullUri = constructFullRequestUri(new URI(finalServerUrl), pathItem.getKey());
+              URI baseUrl = new URIBuilder(finalServerUrl).setPath(pathItem.getKey()).build();
 
-              HttpService httpService = HttpService.httpService(fullUri.getHost(), fullUri.getPort(),
-                  fullUri.getPort() == 443);
-              List<HttpHeader> httpHeaders = constructHttp2RequestHeaders(method, fullUri, requestBody,
+              HttpService httpService = HttpService.httpService(baseUrl.toString());
+              List<HttpHeader> httpHeaders = buildHttp2RequestHeaders(method, baseUrl, requestBody,
                   operation.getResponses());
-              List<HttpParameter> httpParameters = constructHttpRequestParameters(parameters,
-                  requestBody, openAPI.getComponents().getSchemas());
+              List<HttpParameter> httpParameters = buildHttpRequestParameters(parameters, requestBody,
+                  openAPI.getComponents().getSchemas());
 
               HttpRequest httpRequest = HttpRequest.http2Request(
                   httpService,
@@ -113,8 +105,7 @@ public class Worker {
                     .httpHeader("content-length", String.valueOf(contentLength)));
 
               logEntries.add(
-                  createLogEntry(httpRequest, stringJoiner.toString(),
-                      operation.getDescription()));
+                  createLogEntry(httpRequest, operation.getDescription()));
             } catch (URISyntaxException e) {
               throw new RuntimeException(e);
             }
@@ -138,7 +129,7 @@ public class Worker {
     return stringJoiner.toString();
   }
 
-  private List<HttpParameter> constructHttpRequestParameters(List<Parameter> parameters, RequestBody requestBody,
+  private List<HttpParameter> buildHttpRequestParameters(List<Parameter> parameters, RequestBody requestBody,
       Map<String, Schema> schemas) {
     List<HttpParameter> httpParameters = new ArrayList<>();
 
@@ -153,7 +144,6 @@ public class Worker {
       }
     }
 
-    // Add request body parameters
     if (requestBody != null) {
       MediaType mediaType = requestBody.getContent().entrySet().stream().findFirst().get().getValue();
 
@@ -181,7 +171,7 @@ public class Worker {
     return httpParameters;
   }
 
-  private List<HttpHeader> constructHttp2RequestHeaders(String method, URI uri, RequestBody requestBody,
+  private List<HttpHeader> buildHttp2RequestHeaders(String method, URI uri, RequestBody requestBody,
       ApiResponses apiResponses) {
     List<HttpHeader> httpHeaders = new ArrayList<>();
 
@@ -190,12 +180,10 @@ public class Worker {
     httpHeaders.add(HttpHeader.httpHeader(":path", uri.getPath()));
     httpHeaders.add(HttpHeader.httpHeader(":authority", uri.getHost()));
 
-    // Set Accept header
     String acceptHeaderValue = parseAccept(apiResponses);
     if (!acceptHeaderValue.isEmpty())
       httpHeaders.add(HttpHeader.httpHeader("accept", acceptHeaderValue));
 
-    // Set Content-Type header
     if (requestBody != null && requestBody.getContent() != null) {
       Optional<String> contentType = requestBody.getContent().keySet().stream().findFirst();
       contentType.ifPresent(value -> httpHeaders.add(HttpHeader.httpHeader("content-type", value)));
@@ -204,27 +192,7 @@ public class Worker {
     return httpHeaders;
   }
 
-  private URI constructFullRequestUri(URI baseUri, String path) throws URISyntaxException {
-    String basePath = baseUri.getPath();
-    if (!basePath.endsWith("/"))
-      basePath += "/";
-
-    String formattedPath = path.startsWith("/") ? path.substring(1) : path;
-    String scheme = baseUri.getScheme();
-    int defaultPort = scheme.equals("http") ? 80 : 443;
-    int port = baseUri.getPort() == -1 ? defaultPort : baseUri.getPort();
-
-    return new URIBuilder()
-        .setScheme(scheme)
-        .setHost(baseUri.getHost())
-        .setPort(port)
-        .setPath(basePath + formattedPath)
-        .build();
-  }
-
-  private RequestWithMetadata createLogEntry(HttpRequest httpRequest, String parameters,
-      String description) {
-
+  private RequestWithMetadata createLogEntry(HttpRequest httpRequest, String description) {
     return new RequestWithMetadata(httpRequest, description);
   }
 }
