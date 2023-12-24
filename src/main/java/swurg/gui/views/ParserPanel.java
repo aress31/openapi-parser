@@ -135,7 +135,8 @@ public class ParserPanel extends JPanel {
 
     Icon icon = resizeIcon(UIManager.getIcon("OptionPane.informationIcon"), 26);
     metadataLabel.setIcon(icon);
-    metadataLabel.setToolTipText("Parse an OpenAPI specification to inspect its associated metadata.");
+    metadataLabel.setToolTipText(
+        "You need to parse an OpenAPI specification to see its metadata within this tooltip.");
 
     JPanel eastPanel = new JPanel();
     eastPanel.add(metadataLabel);
