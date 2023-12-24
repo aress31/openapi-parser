@@ -1,10 +1,10 @@
 package swurg.gui.views;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
+import java.awt.Frame;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +14,9 @@ import burp.api.montoya.http.message.requests.HttpRequest;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import burp.api.montoya.logging.Logging;
 import burp.http.MyHttpParameter;
@@ -41,12 +42,12 @@ import swurg.utilities.HtmlResourceLoader;
 public class ParametersPanel extends JPanel
         implements HttpHandler, ParametersPanelObserver {
 
+    private MontoyaApi montoyaApi;
     private Logging logging;
-
-    private transient List<ToolType> toolsInScope = new ArrayList<>();
 
     private ParametersTableModel parametersTableModel;
 
+    private transient List<ToolType> toolsInScope = new ArrayList<>();
     private List<ToolType> toolsMap = List.of(
             ToolType.EXTENSIONS,
             ToolType.INTRUDER,
@@ -55,10 +56,10 @@ public class ParametersPanel extends JPanel
             ToolType.SCANNER,
             ToolType.SEQUENCER,
             ToolType.TARGET);
-
     private List<MyHttpRequest> myHttpRequests;
 
     public ParametersPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
+        this.montoyaApi = montoyaApi;
         this.logging = montoyaApi.logging();
         this.myHttpRequests = myHttpRequests;
 
@@ -70,43 +71,27 @@ public class ParametersPanel extends JPanel
     @Override
     public void onRequestWithMetadatasUpdate() {
         parametersTableModel.updateData(myHttpRequests);
-
     }
 
     private void initComponents() {
         this.setLayout(new BorderLayout());
 
         JPanel northPanel = createNorthPanel();
+
         TablePanel tablePanel = new TablePanel(parametersTableModel, new CustomTableCellRenderer());
         ParametersContextMenu contextMenu = new ParametersContextMenu(tablePanel.getTable());
         tablePanel.setContextMenu(contextMenu);
+
         JPanel eastPanel = createEastPanel();
         JPanel southPanel = new StatusPanel();
 
-        this.add(northPanel, BorderLayout.NORTH);
-        this.add(southPanel, BorderLayout.SOUTH);
-
-        // add a nested JPanel with a GridBagLayout to the CENTER of the main container
         JPanel centerContainer = new JPanel(new GridBagLayout());
-        this.add(centerContainer, BorderLayout.CENTER);
+        centerContainer.setBackground(Color.ORANGE);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 3;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 0.75;
-        gbc.weighty = 1.0;
-        centerContainer.add(tablePanel, gbc);
-
-        gbc.gridx = 3;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.25;
-        centerContainer.add(eastPanel, gbc);
-
-        // set the preferred sizes of the center and east panels
-        tablePanel.setPreferredSize(new Dimension(0, 0));
-        eastPanel.setPreferredSize(new Dimension(0, 0));
+        this.add(northPanel, BorderLayout.NORTH);
+        this.add(tablePanel, BorderLayout.CENTER);
+        this.add(eastPanel, BorderLayout.EAST);
+        this.add(southPanel, BorderLayout.SOUTH);
     }
 
     private JPanel createNorthPanel() {
@@ -134,23 +119,34 @@ public class ParametersPanel extends JPanel
     }
 
     private JPanel createEastPanel() {
-        String htmlContent = HtmlResourceLoader.loadHtmlContent("howToText.html");
-        JLabel label = new JLabel(htmlContent);
-        label.putClientProperty("html.disable", null);
+        JPanel panel = new JPanel();
+        panel.setBorder(BorderFactory.createTitledBorder("How To"));
 
-        JPanel eastPanel = new JPanel(new GridBagLayout());
-        eastPanel.setBorder(BorderFactory.createTitledBorder("How To"));
+        JEditorPane editorPane = createEditorPane("howTo.html");
+        JScrollPane scrollPane = new JScrollPane(editorPane);
+        scrollPane.setBorder(null);
 
-        GridBagConstraints gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new Insets(4, 8, 4, 8);
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
+        Frame suiteFrame = this.montoyaApi.userInterface().swingUtils().suiteFrame();
 
-        eastPanel.add(label, gridBagConstraints);
+        // Eyebolling the height offset
+        scrollPane.setPreferredSize(
+                new Dimension((int) (suiteFrame.getWidth() * 0.25),
+                        suiteFrame.getHeight() - 210));
 
-        return eastPanel;
+        panel.add(scrollPane);
+
+        return panel;
+    }
+
+    private JEditorPane createEditorPane(String resourcePath) {
+        String htmlContent = HtmlResourceLoader.loadHtmlContent(resourcePath);
+
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setContentType("text/html");
+        editorPane.setText(htmlContent);
+        editorPane.setEditable(false);
+
+        return editorPane;
     }
 
     @Override

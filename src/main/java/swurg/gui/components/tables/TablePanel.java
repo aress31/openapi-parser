@@ -53,8 +53,8 @@ public class TablePanel extends JPanel {
         this.setLayout(new GridBagLayout());
 
         this.table = createTable(this.tableModel, this.cellRenderer, this.requestViewer);
+        
         JScrollPane scrollPane = new JScrollPane(this.table);
-
         JPanel filterPanel = new FilterPanel(this.tableRowSorter);
 
         GridBagConstraints gbc = new GridBagConstraints();

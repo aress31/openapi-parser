@@ -37,20 +37,20 @@ public class AboutPanel extends JPanel {
     private void initComponents() {
         this.setLayout(new BorderLayout());
 
-        JPanel svgPanel = createSvgCanvas();
-        svgPanel.setPreferredSize(new Dimension(192, 192));
-        svgPanel.setBorder(new EmptyBorder(16, 16, 0, 16));
+        JPanel northPanel = createNorthPanel();
+        northPanel.setPreferredSize(new Dimension(192, 192));
+        northPanel.setBorder(new EmptyBorder(16, 16, 0, 16));
 
-        JPanel contentPanel = createContentPanel();
-        contentPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
+        JPanel centerPanel = createCenterPanel();
+        centerPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
 
-        this.add(svgPanel, BorderLayout.NORTH);
-        this.add(contentPanel, BorderLayout.CENTER);
+        this.add(northPanel, BorderLayout.NORTH);
+        this.add(centerPanel, BorderLayout.CENTER);
         this.add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
-    private JPanel createSvgCanvas() {
-        JPanel svgPanel = new JPanel(new BorderLayout());
+    private JPanel createNorthPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
         JSVGCanvas svgCanvas = new JSVGCanvas();
 
         try {
@@ -63,27 +63,27 @@ public class AboutPanel extends JPanel {
         svgCanvas.setOpaque(false);
         svgCanvas.setBackground(new Color(0, 0, 0, 0));
 
-        svgPanel.add(svgCanvas, BorderLayout.CENTER);
+        panel.add(svgCanvas, BorderLayout.CENTER);
 
-        return svgPanel;
+        return panel;
     }
 
-    private JPanel createContentPanel() {
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    private JPanel createCenterPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JEditorPane editorPane = createTextLabel();
+        JEditorPane editorPane = createEditorPane("about.html");
         JScrollPane scrollPane = new JScrollPane(editorPane);
 
-        contentPanel.add(scrollPane);
-        contentPanel.add(Box.createVerticalStrut(16));
-        contentPanel.add(createButtonPanel());
+        panel.add(scrollPane);
+        panel.add(Box.createVerticalStrut(16));
+        panel.add(createButtonPanel());
 
-        return contentPanel;
+        return panel;
     }
 
-    private JEditorPane createTextLabel() {
-        String htmlContent = HtmlResourceLoader.loadHtmlContent("aboutText.html");
+    private JEditorPane createEditorPane(String resourcePath) {
+        String htmlContent = HtmlResourceLoader.loadHtmlContent(resourcePath);
         String formattedHtmlContent = MessageFormat.format(htmlContent, VERSION, EXTENSION);
 
         JEditorPane editorPane = new JEditorPane();
