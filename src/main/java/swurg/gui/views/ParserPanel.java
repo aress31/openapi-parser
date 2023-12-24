@@ -102,9 +102,9 @@ public class ParserPanel extends JPanel {
   private void initComponents() {
     setLayout(new BorderLayout());
 
-    add(createNorthPanel(), BorderLayout.NORTH);
-    add(createSplitPane(), BorderLayout.CENTER);
-    add(statusPanel, BorderLayout.SOUTH);
+    this.add(createNorthPanel(), BorderLayout.NORTH);
+    this.add(createSplitPane(), BorderLayout.CENTER);
+    this.add(this.statusPanel, BorderLayout.SOUTH);
   }
 
   private Icon resizeIcon(Icon originalIcon, int iconWidth) {
@@ -149,13 +149,13 @@ public class ParserPanel extends JPanel {
     resourcePanel.add(new JLabel("Parse from local file or URL:"), gbc);
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.weightx = 1;
     gbc.gridx = 1;
+    gbc.weightx = 1;
     gbc.insets = new Insets(0, 0, 0, 0);
     resourcePanel.add(resourceTextField, gbc);
 
-    gbc.weightx = 0;
     gbc.gridx = 2;
+    gbc.weightx = 0;
     gbc.insets = new Insets(0, 0, 0, 5);
     resourcePanel.add(eastPanel, gbc);
 

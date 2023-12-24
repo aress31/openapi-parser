@@ -35,7 +35,7 @@ public class AboutPanel extends JPanel {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
 
         JPanel svgPanel = createSvgCanvas();
         svgPanel.setPreferredSize(new Dimension(192, 192));
@@ -44,9 +44,9 @@ public class AboutPanel extends JPanel {
         JPanel contentPanel = createContentPanel();
         contentPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
 
-        add(svgPanel, BorderLayout.NORTH);
-        add(contentPanel, BorderLayout.CENTER);
-        add(new StatusPanel(), BorderLayout.SOUTH);
+        this.add(svgPanel, BorderLayout.NORTH);
+        this.add(contentPanel, BorderLayout.CENTER);
+        this.add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
     private JPanel createSvgCanvas() {

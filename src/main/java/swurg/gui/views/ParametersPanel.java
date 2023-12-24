@@ -74,7 +74,7 @@ public class ParametersPanel extends JPanel
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
 
         JPanel northPanel = createNorthPanel();
         TablePanel tablePanel = new TablePanel(parametersTableModel, new CustomTableCellRenderer());
@@ -83,12 +83,12 @@ public class ParametersPanel extends JPanel
         JPanel eastPanel = createEastPanel();
         JPanel southPanel = new StatusPanel();
 
-        add(northPanel, BorderLayout.NORTH);
-        add(southPanel, BorderLayout.SOUTH);
+        this.add(northPanel, BorderLayout.NORTH);
+        this.add(southPanel, BorderLayout.SOUTH);
 
         // add a nested JPanel with a GridBagLayout to the CENTER of the main container
         JPanel centerContainer = new JPanel(new GridBagLayout());
-        add(centerContainer, BorderLayout.CENTER);
+        this.add(centerContainer, BorderLayout.CENTER);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;

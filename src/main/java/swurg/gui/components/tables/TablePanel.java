@@ -16,7 +16,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
@@ -31,36 +30,43 @@ import swurg.gui.components.tables.models.ParserTableModel;
 @Data
 public class TablePanel extends JPanel {
 
+    private final TableModel tableModel;
+    private final TableCellRenderer cellRenderer;
+    private final HttpRequestEditor requestViewer;
+
     private JTable table;
     private TableRowSorter<TableModel> tableRowSorter;
-    private JTextField filterTextField;
 
     public TablePanel(TableModel tableModel, TableCellRenderer cellRenderer) {
         this(tableModel, cellRenderer, null);
     }
 
     public TablePanel(TableModel tableModel, TableCellRenderer cellRenderer, HttpRequestEditor requestViewer) {
+        this.tableModel = tableModel;
+        this.cellRenderer = cellRenderer;
+        this.requestViewer = requestViewer;
+
+        initComponents();
+    }
+
+    public void initComponents() {
         this.setLayout(new GridBagLayout());
 
-        filterTextField = new JTextField(32);
-        table = createTable(tableModel, cellRenderer, requestViewer);
+        this.table = createTable(this.tableModel, this.cellRenderer, this.requestViewer);
+        JScrollPane scrollPane = new JScrollPane(this.table);
 
-        JPanel filterPanel = new FilterPanel(filterTextField, tableRowSorter);
-        JScrollPane scrollPane = new JScrollPane(table);
+        JPanel filterPanel = new FilterPanel(this.tableRowSorter);
 
-        GridBagConstraints filterPanelConstraints = new GridBagConstraints();
-        filterPanelConstraints.gridx = 0;
-        filterPanelConstraints.gridy = 0;
-        filterPanelConstraints.anchor = GridBagConstraints.NORTHWEST;
-        this.add(filterPanel, filterPanelConstraints);
+        GridBagConstraints gbc = new GridBagConstraints();
 
-        GridBagConstraints tableConstraints = new GridBagConstraints();
-        tableConstraints.gridx = 0;
-        tableConstraints.gridy = 1;
-        tableConstraints.fill = GridBagConstraints.BOTH;
-        tableConstraints.weightx = 1.0;
-        tableConstraints.weighty = 1.0;
-        this.add(scrollPane, tableConstraints);
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        this.add(filterPanel, gbc);
+
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridy = 1;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        this.add(scrollPane, gbc);
     }
 
     private JTable createTable(TableModel tableModel, TableCellRenderer cellRenderer, HttpRequestEditor requestViewer) {
@@ -83,7 +89,7 @@ public class TablePanel extends JPanel {
         table.setDefaultRenderer(Object.class, cellRenderer);
         table.setAutoCreateRowSorter(true);
 
-        tableRowSorter = new TableRowSorter<>(table.getModel());
+        this.tableRowSorter = new TableRowSorter<>(table.getModel());
         table.setRowSorter(tableRowSorter);
 
         return table;

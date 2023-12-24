@@ -12,12 +12,13 @@ public class StatusPanel extends JPanel {
 
   public StatusPanel() {
     statusLabel = new JLabel(COPYRIGHT);
+
     initComponents();
   }
 
   private void initComponents() {
     statusLabel.putClientProperty("html.disable", null);
-    add(statusLabel);
+    this.add(statusLabel);
   }
 
   public void updateStatus(String status, Color color) {
