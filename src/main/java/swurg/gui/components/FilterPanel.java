@@ -19,7 +19,7 @@ public class FilterPanel extends JPanel {
         this.filterTextField = filterTextField;
         this.tableRowSorter = tableRowSorter;
 
-        this.add(new JLabel("Filter (regular expression, case-sensitive):"));
+        this.add(new JLabel("Filter (regex, case-sensitive):"));
         // Prevents JTextField from collapsing on resizes...
         this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
         this.add(this.filterTextField);
@@ -34,7 +34,7 @@ public class FilterPanel extends JPanel {
                 try {
                     tableRowSorter.setRowFilter(regex.isEmpty() ? null : RowFilter.regexFilter(regex));
                 } catch (PatternSyntaxException e) {
-                    // Display an error message if the regex pattern is invalid
+                    // Show an error message if the regex pattern is invalid.
                 }
             }
 
