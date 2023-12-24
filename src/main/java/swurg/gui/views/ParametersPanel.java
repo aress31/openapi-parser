@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 
 import burp.api.montoya.logging.Logging;
 import burp.http.MyHttpParameter;
+import burp.http.MyHttpRequest;
 import burp.api.montoya.http.handler.HttpHandler;
 import burp.api.montoya.http.handler.HttpRequestToBeSent;
 import burp.api.montoya.http.handler.HttpResponseReceived;
@@ -36,7 +37,6 @@ import swurg.gui.components.tables.models.ParametersTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 import swurg.observers.ParametersPanelObserver;
 import swurg.utilities.HtmlResourceLoader;
-import swurg.utilities.RequestWithMetadata;
 
 public class ParametersPanel extends JPanel
         implements HttpHandler, ParametersPanelObserver {
@@ -56,20 +56,20 @@ public class ParametersPanel extends JPanel
             ToolType.SEQUENCER,
             ToolType.TARGET);
 
-    private List<RequestWithMetadata> requestWithMetadatas;
+    private List<MyHttpRequest> myHttpRequests;
 
-    public ParametersPanel(MontoyaApi montoyaApi, List<RequestWithMetadata> requestWithMetadatas) {
+    public ParametersPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
         this.logging = montoyaApi.logging();
-        this.requestWithMetadatas = requestWithMetadatas;
+        this.myHttpRequests = myHttpRequests;
 
-        parametersTableModel = ParametersTableModel.fromRequestWithMetadataList(requestWithMetadatas);
+        parametersTableModel = ParametersTableModel.fromRequestWithMetadataList(myHttpRequests);
 
         initComponents();
     }
 
     @Override
     public void onRequestWithMetadatasUpdate() {
-        parametersTableModel.updateData(requestWithMetadatas);
+        parametersTableModel.updateData(myHttpRequests);
 
     }
 

@@ -9,15 +9,15 @@ import javax.swing.table.AbstractTableModel;
 import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.http.MyHttpRequest;
 import lombok.Data;
 import swurg.observers.ParserTableModelObserver;
 import swurg.observers.ParametersPanelObserver;
-import swurg.utilities.RequestWithMetadata;
 
 @Data
 public class ParserTableModel extends AbstractTableModel {
 
-    private List<RequestWithMetadata> requestWithMetadatas;
+    private List<MyHttpRequest> myHttpRequests;
     private String[] columnNames = { "#", "Scheme", "Method", "Server", "Path", "Parameters (COOKIE, URL)",
             "Description" };
 
@@ -25,25 +25,25 @@ public class ParserTableModel extends AbstractTableModel {
     private List<ParserTableModelObserver> observers = new ArrayList<>();
     private List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
 
-    public ParserTableModel(List<RequestWithMetadata> requestWithMetadatas) {
-        this.requestWithMetadatas = requestWithMetadatas;
+    public ParserTableModel(List<MyHttpRequest> myHttpRequests) {
+        this.myHttpRequests = myHttpRequests;
     }
 
-    public void addRow(RequestWithMetadata requestWithMetadata) {
+    public void addRow(MyHttpRequest myHttpRequest) {
         int rowCount = getRowCount();
-        requestWithMetadatas.add(requestWithMetadata);
+        myHttpRequests.add(myHttpRequest);
         fireTableRowsInserted(rowCount, rowCount);
         notifyObservers();
     }
 
     public void removeRow(int rowIndex) {
-        requestWithMetadatas.remove(rowIndex);
+        myHttpRequests.remove(rowIndex);
         fireTableRowsDeleted(rowIndex, rowIndex);
         notifyObservers();
     }
 
     public void clear() {
-        requestWithMetadatas.clear();
+        myHttpRequests.clear();
         fireTableDataChanged();
         notifyObservers();
     }
@@ -82,12 +82,12 @@ public class ParserTableModel extends AbstractTableModel {
     }
 
     public HttpRequest getHttpRequestAt(int rowIndex) {
-        return requestWithMetadatas.get(rowIndex).getHttpRequest();
+        return myHttpRequests.get(rowIndex).getHttpRequest();
     }
 
     @Override
     public int getRowCount() {
-        return requestWithMetadatas.size();
+        return myHttpRequests.size();
     }
 
     @Override
@@ -110,28 +110,28 @@ public class ParserTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int column) {
-        RequestWithMetadata requestWithMetadata = requestWithMetadatas.get(row);
+        MyHttpRequest myHttpRequest = myHttpRequests.get(row);
 
         switch (column) {
             case 0:
                 return row;
             case 1:
-                return requestWithMetadata.getHttpRequest().httpService().secure() ? "HTTPS" : "HTTP";
+                return myHttpRequest.getHttpRequest().httpService().secure() ? "HTTPS" : "HTTP";
             case 2:
-                return requestWithMetadata.getHttpRequest().method();
+                return myHttpRequest.getHttpRequest().method();
             case 3:
-                return requestWithMetadata.getHttpRequest().httpService().host();
+                return myHttpRequest.getHttpRequest().httpService().host();
             case 4:
-                return requestWithMetadata.getHttpRequest().path();
+                return myHttpRequest.getHttpRequest().path();
             case 5:
-                return requestWithMetadata.getHttpRequest().parameters()
+                return myHttpRequest.getHttpRequest().parameters()
                         .stream()
                         .filter(parameter -> parameter.type() == HttpParameterType.COOKIE
                                 || parameter.type() == HttpParameterType.URL)
                         .map(ParsedHttpParameter::name)
                         .collect(Collectors.joining(", "));
             case 6:
-                return requestWithMetadata.getDescription() != null ? requestWithMetadata.getDescription() : "N/A";
+                return myHttpRequest.getDescription() != null ? myHttpRequest.getDescription() : "N/A";
             default:
                 throw new IllegalArgumentException("Invalid column index");
         }

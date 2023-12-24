@@ -13,7 +13,6 @@ import javax.swing.UIManager;
 
 import swurg.gui.components.tables.models.ParserTableModel;
 import swurg.gui.views.ParserPanel;
-import swurg.utilities.RequestWithMetadata;
 import swurg.workers.Worker;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
@@ -21,6 +20,7 @@ import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
+import burp.http.MyHttpRequest;
 
 public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
   private MontoyaApi montoyaApi;
@@ -48,10 +48,10 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
           String url = selectedRequest.url();
 
           ParserTableModel tableModel = (ParserTableModel) parserPanel.getTable().getModel();
-          List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(url));
+          List<MyHttpRequest> myHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(url));
 
           SwingUtilities.invokeLater(() -> {
-            requestWithMetadatas.forEach(requestWithMetadata -> tableModel.addRow(requestWithMetadata));
+            myHttpRequests.forEach(myHttpRequest -> tableModel.addRow(myHttpRequest));
 
             parserPanel.getResourceTextField().setText(url);
             parserPanel.getStatusPanel().updateStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));

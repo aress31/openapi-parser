@@ -7,8 +7,8 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import burp.http.MyHttpParameter;
+import burp.http.MyHttpRequest;
 import lombok.Data;
-import swurg.utilities.RequestWithMetadata;
 
 @Data
 public class ParametersTableModel extends AbstractTableModel {
@@ -21,29 +21,29 @@ public class ParametersTableModel extends AbstractTableModel {
         this.httpParameters = httpParameters;
     }
 
-    public static ParametersTableModel fromRequestWithMetadataList(List<RequestWithMetadata> requestWithMetadatas) {
+    public static ParametersTableModel fromRequestWithMetadataList(List<MyHttpRequest> myHttpRequests) {
         Set<MyHttpParameter> httpParameters = new LinkedHashSet<>();
 
-        requestWithMetadatas.forEach(requestWithMetadata -> requestWithMetadata.getHttpRequest().parameters()
-                .forEach(httpParameter -> httpParameters
-                        .add(MyHttpParameter.builder().httpParameter(httpParameter).build())));
+        myHttpRequests.forEach(myHttpRequest -> myHttpRequest.getHttpRequest().parameters()
+                .forEach(myHttpParameter -> httpParameters
+                        .add(MyHttpParameter.builder().httpParameter(myHttpParameter).build())));
 
         return new ParametersTableModel(httpParameters);
     }
 
-    public void updateData(List<RequestWithMetadata> requestWithMetadatas) {
+    public void updateData(List<MyHttpRequest> myHttpRequests) {
         Set<MyHttpParameter> httpParameters = new LinkedHashSet<>();
 
-        requestWithMetadatas.forEach(requestWithMetadata -> requestWithMetadata.getHttpRequest().parameters()
-                .forEach(httpParameter -> httpParameters
-                        .add(MyHttpParameter.builder().httpParameter(httpParameter).build())));
+        myHttpRequests.forEach(myHttpRequest -> myHttpRequest.getHttpRequest().parameters()
+                .forEach(myHttpParameter -> httpParameters
+                        .add(MyHttpParameter.builder().httpParameter(myHttpParameter).build())));
 
         this.httpParameters = httpParameters;
     }
 
-    public void addRow(MyHttpParameter httpParameter) {
+    public void addRow(MyHttpParameter myHttpParameter) {
         int rowCount = getRowCount();
-        httpParameters.add(httpParameter);
+        httpParameters.add(myHttpParameter);
         fireTableRowsInserted(rowCount, rowCount);
     }
 
@@ -82,19 +82,19 @@ public class ParametersTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int column) {
-        MyHttpParameter httpParameter = getHttpParameterAt(row);
+        MyHttpParameter myHttpParameter = getHttpParameterAt(row);
 
         switch (column) {
             case 0:
                 return row;
             case 1:
-                return httpParameter.getHttpParameter().name();
+                return myHttpParameter.getHttpParameter().name();
             case 2:
-                return httpParameter.getHttpParameter().type().toString();
+                return myHttpParameter.getHttpParameter().type().toString();
             case 3:
-                return httpParameter.getHttpParameter().value();
+                return myHttpParameter.getHttpParameter().value();
             case 4:
-                return httpParameter.getEditedValue();
+                return myHttpParameter.getEditedValue();
             default:
                 throw new IllegalArgumentException("Invalid column index");
         }
@@ -107,9 +107,9 @@ public class ParametersTableModel extends AbstractTableModel {
             String editedValue = (String) aValue;
 
             if (editedValue != null && !editedValue.trim().isEmpty()) {
-                MyHttpParameter httpParameter = getHttpParameterAt(rowIndex);
-                if (httpParameter != null) {
-                    httpParameter.setEditedValue(editedValue);
+                MyHttpParameter myHttpParameter = getHttpParameterAt(rowIndex);
+                if (myHttpParameter != null) {
+                    myHttpParameter.setEditedValue(editedValue);
 
                     // Notify the table that the data has changed
                     fireTableCellUpdated(rowIndex, columnIndex);

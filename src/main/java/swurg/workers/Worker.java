@@ -5,6 +5,7 @@ import burp.api.montoya.http.message.HttpHeader;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.logging.Logging;
+import burp.http.MyHttpRequest;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.ByteArray;
 import io.swagger.parser.OpenAPIParser;
@@ -19,16 +20,10 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.http.client.utils.URIBuilder;
-import org.yaml.snakeyaml.util.UriEncoder;
-
-import swurg.utilities.RequestWithMetadata;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,22 +62,26 @@ public class Worker {
     List<String> metadataList = new ArrayList<>();
 
     Optional.ofNullable(openAPI.getSpecVersion())
-        .ifPresent(specVersion -> metadataList.add("Spec Version: " + specVersion.toString()));
+        .map(specVersion -> "Spec Version: " + specVersion.toString())
+        .ifPresent(metadataList::add);
 
     Optional.ofNullable(openAPI.getJsonSchemaDialect())
-        .ifPresent(jsonSchemaDialect -> metadataList.add("Json Schema Dialect: " + jsonSchemaDialect.toString()));
+        .map(jsonSchemaDialect -> "Json Schema Dialect: " + jsonSchemaDialect.toString())
+        .ifPresent(metadataList::add);
 
     Optional.ofNullable(openAPI.getExternalDocs())
-        .ifPresent(externalDoc -> metadataList.add("External Docs: " + externalDoc.toString()));
+        .map(externalDoc -> "External Docs: " + externalDoc.toString())
+        .ifPresent(metadataList::add);
 
     Optional.ofNullable(openAPI.getInfo())
-        .ifPresent(info -> metadataList.add("Info: " + info.toString()));
+        .map(info -> "Info: " + info.toString())
+        .ifPresent(metadataList::add);
 
     return metadataList;
   }
 
-  public List<RequestWithMetadata> parseOpenAPI(OpenAPI openAPI) {
-    List<RequestWithMetadata> logEntries = new ArrayList<>();
+  public List<MyHttpRequest> parseOpenAPI(OpenAPI openAPI) {
+    List<MyHttpRequest> logEntries = new ArrayList<>();
 
     openAPI.getServers().forEach(server -> {
       String serverUrl = Optional.ofNullable(server.getUrl())
@@ -116,7 +115,7 @@ public class Worker {
                         .httpHeader("content-length", String.valueOf(contentLength)));
                   }
 
-                  logEntries.add(new RequestWithMetadata(httpRequest, op.getDescription()));
+                  logEntries.add(new MyHttpRequest(httpRequest, op.getDescription()));
                 } catch (URISyntaxException e) {
                   throw new RuntimeException(e);
                 }

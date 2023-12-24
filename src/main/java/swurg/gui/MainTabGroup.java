@@ -6,11 +6,11 @@ import java.util.List;
 import javax.swing.JTabbedPane;
 
 import burp.api.montoya.MontoyaApi;
+import burp.http.MyHttpRequest;
 import swurg.gui.views.AboutPanel;
 import swurg.gui.views.ParametersPanel;
 import swurg.gui.views.ParserPanel;
 import swurg.observers.ParserTableModelObserver;
-import swurg.utilities.RequestWithMetadata;
 
 import lombok.Data;
 
@@ -23,11 +23,11 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
     private ParametersPanel parametersPanel;
     private AboutPanel aboutPanel;
 
-    List<RequestWithMetadata> requestWithMetadatas;
+    List<MyHttpRequest> myHttpRequests;
 
     public MainTabGroup(MontoyaApi montoyaApi) {
         this.montoyaApi = montoyaApi;
-        this.requestWithMetadatas = new ArrayList<>();
+        this.myHttpRequests = new ArrayList<>();
 
         initComponents();
 
@@ -37,9 +37,9 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
     }
 
     private void initComponents() {
-        parserPanel = new ParserPanel(montoyaApi, requestWithMetadatas);
+        parserPanel = new ParserPanel(montoyaApi, myHttpRequests);
         aboutPanel = new AboutPanel();
-        parametersPanel = new ParametersPanel(montoyaApi, requestWithMetadatas);
+        parametersPanel = new ParametersPanel(montoyaApi, myHttpRequests);
 
         addTab("Parser", parserPanel);
         addTab("About", aboutPanel);
@@ -47,11 +47,11 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
 
     @Override
     public void onRequestWithMetadatasUpdate() {
-        if (indexOfComponent(parametersPanel) == -1 && !requestWithMetadatas.isEmpty()) {
+        if (indexOfComponent(parametersPanel) == -1 && !myHttpRequests.isEmpty()) {
             removeTabAt(indexOfComponent(aboutPanel));
             addTab("Parameters", parametersPanel);
             addTab("About", aboutPanel);
-        } else if (indexOfComponent(parametersPanel) != -1 && requestWithMetadatas.isEmpty())
+        } else if (indexOfComponent(parametersPanel) != -1 && myHttpRequests.isEmpty())
             removeTabAt(indexOfComponent(parametersPanel));
 
     }
