@@ -6,6 +6,9 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
+
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +45,10 @@ import swurg.utilities.HtmlResourceLoader;
 public class ParametersPanel extends JPanel
         implements HttpHandler, ParametersPanelObserver {
 
-    private MontoyaApi montoyaApi;
+    private Frame suiteFrame;
     private Logging logging;
+
+    private JScrollPane scrollPane;
 
     private ParametersTableModel parametersTableModel;
 
@@ -59,13 +64,30 @@ public class ParametersPanel extends JPanel
     private List<MyHttpRequest> myHttpRequests;
 
     public ParametersPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
-        this.montoyaApi = montoyaApi;
+        this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
         this.logging = montoyaApi.logging();
+
         this.myHttpRequests = myHttpRequests;
 
         parametersTableModel = ParametersTableModel.fromRequestWithMetadataList(myHttpRequests);
 
         initComponents();
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                scrollPane.setPreferredSize(
+                        new Dimension((int) (suiteFrame.getWidth() * 0.25),
+                                suiteFrame.getHeight() - 210));
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                scrollPane.setPreferredSize(
+                        new Dimension((int) (suiteFrame.getWidth() * 0.25),
+                                suiteFrame.getHeight() - 210));
+            }
+        });
     }
 
     @Override
@@ -123,15 +145,9 @@ public class ParametersPanel extends JPanel
         panel.setBorder(BorderFactory.createTitledBorder("How To"));
 
         JEditorPane editorPane = createEditorPane("howTo.html");
-        JScrollPane scrollPane = new JScrollPane(editorPane);
+
+        scrollPane = new JScrollPane(editorPane);
         scrollPane.setBorder(null);
-
-        Frame suiteFrame = this.montoyaApi.userInterface().swingUtils().suiteFrame();
-
-        // Eyebolling the height offset
-        scrollPane.setPreferredSize(
-                new Dimension((int) (suiteFrame.getWidth() * 0.25),
-                        suiteFrame.getHeight() - 210));
 
         panel.add(scrollPane);
 
