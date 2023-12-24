@@ -10,6 +10,7 @@ import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import burp.api.montoya.http.message.requests.HttpRequest;
 
@@ -62,12 +63,12 @@ public class ParametersPanel extends JPanel
     private List<MyHttpRequest> myHttpRequests;
 
     public ParametersPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
-        this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
         this.logging = montoyaApi.logging();
+        this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
 
         this.myHttpRequests = myHttpRequests;
 
-        parametersTableModel = ParametersTableModel.fromRequestWithMetadataList(myHttpRequests);
+        parametersTableModel = new ParametersTableModel();
 
         initComponents();
 
@@ -90,7 +91,15 @@ public class ParametersPanel extends JPanel
 
     @Override
     public void onRequestWithMetadatasUpdate() {
-        parametersTableModel.updateData(myHttpRequests);
+        Set<MyHttpParameter> myHttpParameters = myHttpRequests.stream()
+                .flatMap(myHttpRequest -> myHttpRequest.getHttpRequest().parameters().stream()
+                        .map(myHttpParameter -> MyHttpParameter.builder()
+                                .httpParameter(HttpParameter.parameter(myHttpParameter.name(), myHttpParameter.value(),
+                                        myHttpParameter.type()))
+                                .build()))
+                .collect(Collectors.toSet());
+
+        parametersTableModel.setMyHttpParameters(myHttpParameters);
     }
 
     private void initComponents() {

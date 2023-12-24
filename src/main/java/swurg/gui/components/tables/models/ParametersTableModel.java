@@ -1,13 +1,11 @@
 package swurg.gui.components.tables.models;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
 import burp.http.MyHttpParameter;
-import burp.http.MyHttpRequest;
 import lombok.Data;
 
 @Data
@@ -17,27 +15,11 @@ public class ParametersTableModel extends AbstractTableModel {
     private String[] columnNames = { "#", "Parameter", "Type (BODY, COOKIE, URL)",
             "Parsed Value (Example Value or Data type)", "Edited Value" };
 
+    public ParametersTableModel() {
+        this.myHttpParameters = new LinkedHashSet<>();
+    }
+
     public ParametersTableModel(Set<MyHttpParameter> myHttpParameters) {
-        this.myHttpParameters = myHttpParameters;
-    }
-
-    public static ParametersTableModel fromRequestWithMetadataList(List<MyHttpRequest> myHttpRequests) {
-        Set<MyHttpParameter> myHttpParameters = new LinkedHashSet<>();
-
-        myHttpRequests.forEach(myHttpRequest -> myHttpRequest.getHttpRequest().parameters()
-                .forEach(myHttpParameter -> myHttpParameters
-                        .add(MyHttpParameter.builder().httpParameter(myHttpParameter).build())));
-
-        return new ParametersTableModel(myHttpParameters);
-    }
-
-    public void updateData(List<MyHttpRequest> myHttpRequests) {
-        Set<MyHttpParameter> myHttpParameters = new LinkedHashSet<>();
-
-        myHttpRequests.forEach(myHttpRequest -> myHttpRequest.getHttpRequest().parameters()
-                .forEach(myHttpParameter -> myHttpParameters
-                        .add(MyHttpParameter.builder().httpParameter(myHttpParameter).build())));
-
         this.myHttpParameters = myHttpParameters;
     }
 
