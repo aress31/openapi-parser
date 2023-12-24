@@ -19,11 +19,16 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.http.client.utils.URIBuilder;
+import org.yaml.snakeyaml.util.UriEncoder;
+
 import swurg.utilities.RequestWithMetadata;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +63,24 @@ public class Worker {
     }
   }
 
+  public List<String> parseMetadata(OpenAPI openAPI) {
+    List<String> metadataList = new ArrayList<>();
+
+    Optional.ofNullable(openAPI.getSpecVersion())
+        .ifPresent(specVersion -> metadataList.add("Spec Version: " + specVersion.toString()));
+
+    Optional.ofNullable(openAPI.getJsonSchemaDialect())
+        .ifPresent(jsonSchemaDialect -> metadataList.add("Json Schema Dialect: " + jsonSchemaDialect.toString()));
+
+    Optional.ofNullable(openAPI.getExternalDocs())
+        .ifPresent(externalDoc -> metadataList.add("External Docs: " + externalDoc.toString()));
+
+    Optional.ofNullable(openAPI.getInfo())
+        .ifPresent(info -> metadataList.add("Info: " + info.toString()));
+
+    return metadataList;
+  }
+
   public List<RequestWithMetadata> parseOpenAPI(OpenAPI openAPI) {
     List<RequestWithMetadata> logEntries = new ArrayList<>();
 
@@ -70,7 +93,10 @@ public class Worker {
           (path, pathItem) -> getOperationMap(pathItem).forEach((method, operation) -> Optional.ofNullable(operation)
               .ifPresent(op -> {
                 try {
-                  URI baseUrl = new URIBuilder(serverUrl).setPath(path).build();
+                  URI serverUri = new URI(serverUrl);
+                  URI baseUrl = new URIBuilder(serverUri).setPath(serverUri.getPath() + path)
+                      .build();
+
                   HttpService httpService = HttpService.httpService(baseUrl.toString());
 
                   List<HttpHeader> httpHeaders = buildHttp2RequestHeaders(

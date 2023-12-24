@@ -53,7 +53,7 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
           SwingUtilities.invokeLater(() -> {
             requestWithMetadatas.forEach(requestWithMetadata -> tableModel.addRow(requestWithMetadata));
 
-            parserPanel.setResourceTextField(url);
+            parserPanel.getResourceTextField().setText(url);
             parserPanel.getStatusPanel().updateStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
           });
         });

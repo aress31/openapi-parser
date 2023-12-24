@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -22,6 +23,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 import burp.api.montoya.MontoyaApi;
@@ -44,7 +46,10 @@ public class ParserPanel extends JPanel {
 
   private HttpRequestEditor requestViewer;
 
+  @Getter
   private JTextField resourceTextField = new JTextField(64);
+  private JLabel metadataLabel = new JLabel();
+
   @Getter
   private JTable table;
   @Getter
@@ -60,6 +65,8 @@ public class ParserPanel extends JPanel {
     this.parserTableModel = parserTableModel;
 
     initComponents();
+    ToolTipManager.sharedInstance().setInitialDelay(0);
+    ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
   }
 
   private void initComponents() {
@@ -70,10 +77,6 @@ public class ParserPanel extends JPanel {
     add(statusPanel, BorderLayout.SOUTH);
   }
 
-  public void setResourceTextField(String text) {
-    resourceTextField.setText(text);
-  }
-
   public JPanel createNorthPanel() {
     JPanel resourcePanel = new JPanel();
     resourcePanel.setBorder(BorderFactory.createTitledBorder(""));
@@ -82,6 +85,8 @@ public class ParserPanel extends JPanel {
     resourcePanel.add(resourceTextField);
     resourcePanel.add(createButton("Browse", new BrowseButtonListener()));
     resourcePanel.add(createButton("Load", new LoadButtonListener()));
+
+    resourcePanel.add(metadataLabel);
 
     return resourcePanel;
   }
@@ -104,7 +109,6 @@ public class ParserPanel extends JPanel {
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     TablePanel tablePanel = new TablePanel(parserTableModel, new CustomTableCellRenderer(), requestViewer);
-    // Set the context menu using the setter method
     ParserContextMenu contextMenu = new ParserContextMenu(montoyaApi, tablePanel.getTable());
     tablePanel.setContextMenu(contextMenu);
     splitPane.setTopComponent(tablePanel);
@@ -131,18 +135,18 @@ public class ParserPanel extends JPanel {
       HistoryFileChooser fileChooser = new HistoryFileChooser(
           prefs.get("LAST_USED_FOLDER", new File(".").getAbsolutePath()));
 
-      // Add history to the file chooser
+      // Populate the file chooser's history with previously selected files.
       fileChooser.getHistory().forEach(file -> fileChooser.addFileToHistory(file));
 
-      // Find the top-level window (JFrame or JDialog) containing the button
+      // Determine the top-level window (JFrame or JDialog) containing the given
+      // button.
       Component topLevelWindow = SwingUtilities.getWindowAncestor(button);
 
       if (fileChooser.showOpenDialog(topLevelWindow) == JFileChooser.APPROVE_OPTION) {
         File file = fileChooser.getSelectedFile();
         String resource = file.getAbsolutePath();
-        prefs.put("LAST_USED_FOLDER", file.getParent());
 
-        // Add the selected file to history
+        prefs.put("LAST_USED_FOLDER", file.getParent());
         fileChooser.addFileToHistory(file);
 
         return resource;
@@ -164,21 +168,39 @@ public class ParserPanel extends JPanel {
       }
 
       Worker worker = new Worker(montoyaApi);
+
       try {
+        List<String> metadataList = worker.parseMetadata(worker.processOpenAPI(resource));
+        setMetadataLabel(metadataList);
+
         List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(resource));
         updateTableModel(requestWithMetadatas);
+
         statusPanel.updateStatus(COPYRIGHT, UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
       } catch (Exception exception) {
-        logging.logToError(exception);
-        String message = String.format(
-            "Unable to read the OpenAPI resource: %s. Check the extension's error log for the stack trace and report the issue.",
-            resource);
-        statusPanel.updateStatus(message, UIManager.getLookAndFeelDefaults().getColor("BurpPalette.red1"));
+        handleException(exception, resource);
       }
+    }
+
+    private void setMetadataLabel(List<String> metadataList) {
+      Icon icon = metadataList.isEmpty() ? UIManager.getIcon("OptionPane.warningIcon")
+          : UIManager.getIcon("OptionPane.informationIcon");
+      metadataLabel.setIcon(icon);
+      String tooltipText = String.format("%s",
+          metadataList.isEmpty() ? "No metadata available." : String.join("\n", metadataList));
+      metadataLabel.setToolTipText(tooltipText);
     }
 
     private void updateTableModel(List<RequestWithMetadata> requestWithMetadatas) {
       SwingUtilities.invokeLater(() -> requestWithMetadatas.forEach(parserTableModel::addRow));
+    }
+
+    private void handleException(Exception exception, String resource) {
+      logging.logToError(exception);
+      String message = String.format(
+          "Unable to read the OpenAPI resource: %s. Check the extension's error log for the stack trace and report the issue.",
+          resource);
+      statusPanel.updateStatus(message, UIManager.getLookAndFeelDefaults().getColor("BurpPalette.red1"));
     }
   }
 }
