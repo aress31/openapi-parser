@@ -74,6 +74,11 @@ public class ParserContextMenu extends JPopupMenu {
     this.add(addToSiteMap);
   }
 
+  private HttpRequest getHttpRequestAt(int index) {
+    ParserTableModel parserTableModel = (ParserTableModel) table.getModel();
+    return parserTableModel.getMyHttpRequests().get(index).getHttpRequest();
+  }
+
   private void processSelectedRows(Consumer<Integer> action) {
     IntStream.of(table.getSelectedRows())
         .forEach(row -> {
@@ -96,7 +101,7 @@ public class ParserContextMenu extends JPopupMenu {
           source.changeSelection(row, column, false, false);
 
         int index = table.getSelectedRow();
-        HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+        HttpRequest httpRequest = getHttpRequestAt(index);
 
         copyToClipboard.setText(httpRequest.url());
       }
@@ -104,7 +109,7 @@ public class ParserContextMenu extends JPopupMenu {
 
     copyToClipboard.addActionListener(e -> {
       int index = table.getSelectedRow();
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
 
       Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(httpRequest.url()), null);
     });
@@ -112,16 +117,11 @@ public class ParserContextMenu extends JPopupMenu {
     return copyToClipboard;
   }
 
-  private HttpRequest getHttpRequestFromSelectedIndex(int index) {
-    ParserTableModel parserTableModel = (ParserTableModel) table.getModel();
-    return parserTableModel.getHttpRequestAt(index);
-  }
-
   private JMenuItem createAddToScopeMenuItem() {
     JMenuItem addToScope = new JMenuItem("Add to scope");
 
     addToScope.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.scope().includeInScope(httpRequest.url());
     }));
 
@@ -132,7 +132,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToScanner = new JMenuItem("Do passive scan");
 
     sendToScanner.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.scanner()
           .startAudit(AuditConfiguration.auditConfiguration(BuiltInAuditConfiguration.LEGACY_PASSIVE_AUDIT_CHECKS))
           .addRequest(httpRequest);
@@ -145,7 +145,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToScanner = new JMenuItem("Do active scan");
 
     sendToScanner.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.scanner()
           .startAudit(AuditConfiguration.auditConfiguration(BuiltInAuditConfiguration.LEGACY_ACTIVE_AUDIT_CHECKS))
           .addRequest(httpRequest);
@@ -158,7 +158,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
 
     sendToIntruder.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.intruder().sendToIntruder(httpRequest);
     }));
 
@@ -169,7 +169,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
 
     sendToRepeater.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.repeater().sendToRepeater(httpRequest,
           String.format("%s -> %s %s",
               table.getValueAt(index, table.getColumn("Server").getModelIndex()),
@@ -184,7 +184,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToOrganizer = new JMenuItem("Send to Organizer");
 
     sendToOrganizer.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.organizer().sendToOrganizer(httpRequest);
     }));
 
@@ -194,7 +194,7 @@ public class ParserContextMenu extends JPopupMenu {
   private JMenuItem createSendToComparerMenuItem() {
     JMenuItem sendToComparer = new JMenuItem("Send to Comparer (request)");
     sendToComparer.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.comparer().sendToComparer(httpRequest.toByteArray());
     }));
 
@@ -280,7 +280,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
 
     addToSiteMap.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.siteMap().add(HttpRequestResponse.httpRequestResponse(httpRequest, HttpResponse.httpResponse()));
     }));
 

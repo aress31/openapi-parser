@@ -1,10 +1,8 @@
 package swurg.gui.views;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
 
 import java.awt.event.ComponentAdapter;
@@ -98,22 +96,14 @@ public class ParametersPanel extends JPanel
     private void initComponents() {
         this.setLayout(new BorderLayout());
 
-        JPanel northPanel = createNorthPanel();
-
         TablePanel tablePanel = new TablePanel(parametersTableModel, new CustomTableCellRenderer());
         ParametersContextMenu contextMenu = new ParametersContextMenu(tablePanel.getTable());
         tablePanel.setContextMenu(contextMenu);
 
-        JPanel eastPanel = createEastPanel();
-        JPanel southPanel = new StatusPanel();
-
-        JPanel centerContainer = new JPanel(new GridBagLayout());
-        centerContainer.setBackground(Color.ORANGE);
-
-        this.add(northPanel, BorderLayout.NORTH);
+        this.add(createNorthPanel(), BorderLayout.NORTH);
         this.add(tablePanel, BorderLayout.CENTER);
-        this.add(eastPanel, BorderLayout.EAST);
-        this.add(southPanel, BorderLayout.SOUTH);
+        this.add(createEastPanel(), BorderLayout.EAST);
+        this.add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
     private JPanel createNorthPanel() {
@@ -178,7 +168,7 @@ public class ParametersPanel extends JPanel
 
         if (matchingTool != null) {
             HttpRequest updatedHttpRequest = updateHttpRequestToBeSent(httpRequestToBeSent,
-                    this.parametersTableModel.getHttpParameters());
+                    this.parametersTableModel.getMyHttpParameters());
             return RequestToBeSentAction.continueWith(updatedHttpRequest);
         }
 

@@ -72,5 +72,4 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
 
     return new Color(red, green, blue);
   }
-
 }

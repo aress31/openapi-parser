@@ -13,53 +13,41 @@ import lombok.Data;
 @Data
 public class ParametersTableModel extends AbstractTableModel {
 
-    private Set<MyHttpParameter> httpParameters;
+    private Set<MyHttpParameter> myHttpParameters;
     private String[] columnNames = { "#", "Parameter", "Type (BODY, COOKIE, URL)",
             "Parsed Value (Example Value or Data type)", "Edited Value" };
 
-    public ParametersTableModel(Set<MyHttpParameter> httpParameters) {
-        this.httpParameters = httpParameters;
+    public ParametersTableModel(Set<MyHttpParameter> myHttpParameters) {
+        this.myHttpParameters = myHttpParameters;
     }
 
     public static ParametersTableModel fromRequestWithMetadataList(List<MyHttpRequest> myHttpRequests) {
-        Set<MyHttpParameter> httpParameters = new LinkedHashSet<>();
+        Set<MyHttpParameter> myHttpParameters = new LinkedHashSet<>();
 
         myHttpRequests.forEach(myHttpRequest -> myHttpRequest.getHttpRequest().parameters()
-                .forEach(myHttpParameter -> httpParameters
+                .forEach(myHttpParameter -> myHttpParameters
                         .add(MyHttpParameter.builder().httpParameter(myHttpParameter).build())));
 
-        return new ParametersTableModel(httpParameters);
+        return new ParametersTableModel(myHttpParameters);
     }
 
     public void updateData(List<MyHttpRequest> myHttpRequests) {
-        Set<MyHttpParameter> httpParameters = new LinkedHashSet<>();
+        Set<MyHttpParameter> myHttpParameters = new LinkedHashSet<>();
 
         myHttpRequests.forEach(myHttpRequest -> myHttpRequest.getHttpRequest().parameters()
-                .forEach(myHttpParameter -> httpParameters
+                .forEach(myHttpParameter -> myHttpParameters
                         .add(MyHttpParameter.builder().httpParameter(myHttpParameter).build())));
 
-        this.httpParameters = httpParameters;
-    }
-
-    public void addRow(MyHttpParameter myHttpParameter) {
-        int rowCount = getRowCount();
-        httpParameters.add(myHttpParameter);
-        fireTableRowsInserted(rowCount, rowCount);
-    }
-
-    public void removeRow(int rowIndex) {
-        MyHttpParameter toRemove = getHttpParameterAt(rowIndex);
-        httpParameters.remove(toRemove);
-        fireTableRowsDeleted(rowIndex, rowIndex);
+        this.myHttpParameters = myHttpParameters;
     }
 
     public MyHttpParameter getHttpParameterAt(int rowIndex) {
-        return httpParameters.stream().skip(rowIndex).findFirst().orElse(null);
+        return myHttpParameters.stream().skip(rowIndex).findFirst().orElse(null);
     }
 
     @Override
     public int getRowCount() {
-        return httpParameters.size();
+        return myHttpParameters.size();
     }
 
     @Override
@@ -103,17 +91,13 @@ public class ParametersTableModel extends AbstractTableModel {
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (columnIndex == 4) {
-            // Assuming you want to store the edited value as a String
-            String editedValue = (String) aValue;
+            String editedValue = aValue.toString();
 
-            if (editedValue != null && !editedValue.trim().isEmpty()) {
+            if (!editedValue.isBlank()) {
                 MyHttpParameter myHttpParameter = getHttpParameterAt(rowIndex);
-                if (myHttpParameter != null) {
-                    myHttpParameter.setEditedValue(editedValue);
-
-                    // Notify the table that the data has changed
-                    fireTableCellUpdated(rowIndex, columnIndex);
-                }
+                myHttpParameter.setEditedValue(editedValue);
+                // Notify the table that the data has changed.
+                fireTableCellUpdated(rowIndex, columnIndex);
             }
         } else {
             throw new IllegalArgumentException("Invalid column index");

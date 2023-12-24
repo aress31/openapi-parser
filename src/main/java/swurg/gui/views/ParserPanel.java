@@ -107,21 +107,6 @@ public class ParserPanel extends JPanel {
     this.add(this.statusPanel, BorderLayout.SOUTH);
   }
 
-  private Icon resizeIcon(Icon originalIcon, int iconWidth) {
-    BufferedImage bufferedImage = new BufferedImage(
-        originalIcon.getIconWidth(),
-        originalIcon.getIconHeight(),
-        BufferedImage.TYPE_INT_ARGB);
-
-    Graphics2D graphics2D = bufferedImage.createGraphics();
-    originalIcon.paintIcon(null, graphics2D, 0, 0);
-    graphics2D.dispose();
-
-    Image scaledImage = bufferedImage.getScaledInstance(iconWidth, iconWidth, Image.SCALE_SMOOTH);
-
-    return new ImageIcon(scaledImage);
-  }
-
   public JPanel createNorthPanel() {
     JPanel resourcePanel = new JPanel(new GridBagLayout());
 
@@ -162,6 +147,25 @@ public class ParserPanel extends JPanel {
     return resourcePanel;
   }
 
+  private JSplitPane createSplitPane() {
+    requestViewer = montoyaApi.userInterface()
+        .createHttpRequestEditor(burp.api.montoya.ui.editor.EditorOptions.READ_ONLY);
+
+    TablePanel tablePanel = new TablePanel(parserTableModel, new CustomTableCellRenderer(), requestViewer);
+    ParserContextMenu contextMenu = new ParserContextMenu(montoyaApi, tablePanel.getTable());
+    tablePanel.setContextMenu(contextMenu);
+
+    JTabbedPane tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Request", requestViewer.uiComponent());
+
+    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    splitPane.setTopComponent(tablePanel);
+    splitPane.setBottomComponent(tabbedPane);
+    splitPane.setResizeWeight(0.6);
+
+    return splitPane;
+  }
+
   private JButton createButton(String buttonText, ActionListener listener) {
     JButton button = new JButton(buttonText);
     button.setBackground(UIManager.getColor("Burp.burpOrange"));
@@ -172,21 +176,19 @@ public class ParserPanel extends JPanel {
     return button;
   }
 
-  private JSplitPane createSplitPane() {
-    JTabbedPane tabbedPane = new JTabbedPane();
-    requestViewer = montoyaApi.userInterface()
-        .createHttpRequestEditor(burp.api.montoya.ui.editor.EditorOptions.READ_ONLY);
-    tabbedPane.addTab("Request", requestViewer.uiComponent());
+  private Icon resizeIcon(Icon originalIcon, int iconWidth) {
+    BufferedImage bufferedImage = new BufferedImage(
+        originalIcon.getIconWidth(),
+        originalIcon.getIconHeight(),
+        BufferedImage.TYPE_INT_ARGB);
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    TablePanel tablePanel = new TablePanel(parserTableModel, new CustomTableCellRenderer(), requestViewer);
-    ParserContextMenu contextMenu = new ParserContextMenu(montoyaApi, tablePanel.getTable());
-    tablePanel.setContextMenu(contextMenu);
-    splitPane.setTopComponent(tablePanel);
-    splitPane.setBottomComponent(tabbedPane);
-    splitPane.setResizeWeight(0.6);
+    Graphics2D graphics2D = bufferedImage.createGraphics();
+    originalIcon.paintIcon(null, graphics2D, 0, 0);
+    graphics2D.dispose();
 
-    return splitPane;
+    Image scaledImage = bufferedImage.getScaledInstance(iconWidth, iconWidth, Image.SCALE_SMOOTH);
+
+    return new ImageIcon(scaledImage);
   }
 
   class BrowseButtonListener implements ActionListener {

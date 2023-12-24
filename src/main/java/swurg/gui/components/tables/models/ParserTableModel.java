@@ -81,10 +81,6 @@ public class ParserTableModel extends AbstractTableModel {
         }
     }
 
-    public HttpRequest getHttpRequestAt(int rowIndex) {
-        return myHttpRequests.get(rowIndex).getHttpRequest();
-    }
-
     @Override
     public int getRowCount() {
         return myHttpRequests.size();

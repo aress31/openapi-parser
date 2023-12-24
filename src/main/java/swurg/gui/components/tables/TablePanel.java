@@ -21,8 +21,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
+import burp.http.MyHttpRequest;
 import lombok.Data;
 import swurg.gui.components.FilterPanel;
 import swurg.gui.components.tables.models.ParserTableModel;
@@ -53,7 +53,7 @@ public class TablePanel extends JPanel {
         this.setLayout(new GridBagLayout());
 
         this.table = createTable(this.tableModel, this.cellRenderer, this.requestViewer);
-        
+
         JScrollPane scrollPane = new JScrollPane(this.table);
         JPanel filterPanel = new FilterPanel(this.tableRowSorter);
 
@@ -77,10 +77,11 @@ public class TablePanel extends JPanel {
 
                 if (requestViewer != null) {
                     int modelIndex = tableRowSorter.convertRowIndexToModel(row);
-                    HttpRequest selectedHttpRequest = ((ParserTableModel) tableModel).getHttpRequestAt(modelIndex);
+                    MyHttpRequest selectedHttpRequest = ((ParserTableModel) tableModel).getMyHttpRequests()
+                            .get(modelIndex);
 
                     SwingUtilities.invokeLater(() -> {
-                        requestViewer.setRequest(selectedHttpRequest);
+                        requestViewer.setRequest(selectedHttpRequest.getHttpRequest());
                     });
                 }
             }
