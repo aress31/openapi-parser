@@ -11,8 +11,8 @@ sourceCompatibility = '1.8'
 
 dependencies {
     // Compile-time only dependencies
-    compileOnly "org.projectlombok:lombok:1.18.20"
-    annotationProcessor "org.projectlombok:lombok:1.18.20"
+    compileOnly "org.projectlombok:lombok:1.18.30"
+    annotationProcessor "org.projectlombok:lombok:1.18.30"
 
     // Runtime dependencies
     implementation "io.swagger.parser.v3:swagger-parser:2.1.19"
