@@ -11,16 +11,13 @@ import lombok.Data;
 @Data
 public class ParametersTableModel extends AbstractTableModel {
 
-    private Set<MyHttpParameter> myHttpParameters;
-    private String[] columnNames = { "#", "Parameter", "Type (BODY, COOKIE, URL)",
+    private final String[] columnNames = { "#", "Parameter", "Type (BODY, COOKIE, URL)",
             "Parsed Value (Example Value or Data type)", "Edited Value" };
 
-    public ParametersTableModel() {
-        this.myHttpParameters = new LinkedHashSet<>();
-    }
+    private Set<MyHttpParameter> myHttpParameters;
 
-    public ParametersTableModel(Set<MyHttpParameter> myHttpParameters) {
-        this.myHttpParameters = myHttpParameters;
+    public ParametersTableModel() {
+        this.myHttpParameters = new LinkedHashSet<MyHttpParameter>();
     }
 
     public MyHttpParameter getHttpParameterAt(int rowIndex) {

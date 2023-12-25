@@ -23,9 +23,9 @@ import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.http.MyHttpRequest;
 
 public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
-  private MontoyaApi montoyaApi;
-  private ParserPanel parserPanel;
-  private Logging logging;
+  private final MontoyaApi montoyaApi;
+  private final ParserPanel parserPanel;
+  private final Logging logging;
 
   public MyContextMenuItemsProvider(MontoyaApi montoyaApi, ParserPanel parserPanel) {
     this.montoyaApi = montoyaApi;

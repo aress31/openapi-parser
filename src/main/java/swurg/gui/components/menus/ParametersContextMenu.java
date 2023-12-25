@@ -15,7 +15,7 @@ import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 
 public class ParametersContextMenu extends JPopupMenu {
 
-  private JTable table;
+  private final JTable table;
 
   public ParametersContextMenu(JTable table) {
     this.table = table;

@@ -13,10 +13,11 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.TableRowSorter;
 
 public class FilterPanel extends JPanel {
-    private final JTextField filterTextField = new JTextField(32);
+
     private final TableRowSorter<?> tableRowSorter;
 
-    private JLabel eastLabel = new JLabel("0 hits");
+    private final JLabel eastLabel = new JLabel("0 hits");
+    private final JTextField filterTextField = new JTextField(32);
 
     public FilterPanel(TableRowSorter<?> tableRowSorter) {
         this.tableRowSorter = tableRowSorter;

@@ -8,7 +8,6 @@ import javax.swing.table.AbstractTableModel;
 
 import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.http.MyHttpRequest;
 import lombok.Data;
 import swurg.observers.ParserTableModelObserver;
@@ -17,13 +16,12 @@ import swurg.observers.ParametersPanelObserver;
 @Data
 public class ParserTableModel extends AbstractTableModel {
 
-    private List<MyHttpRequest> myHttpRequests;
-    private String[] columnNames = { "#", "Scheme", "Method", "Server", "Path", "Parameters (COOKIE, URL)",
+    private final String[] columnNames = { "#", "Scheme", "Method", "Server", "Path", "Parameters (COOKIE, URL)",
             "Description" };
+    private final List<MyHttpRequest> myHttpRequests;
 
-    // Add a list to hold the observers
-    private List<ParserTableModelObserver> observers = new ArrayList<>();
-    private List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
+    private final List<ParserTableModelObserver> observers = new ArrayList<>();
+    private final List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
 
     public ParserTableModel(List<MyHttpRequest> myHttpRequests) {
         this.myHttpRequests = myHttpRequests;
@@ -60,9 +58,9 @@ public class ParserTableModel extends AbstractTableModel {
 
     // Add a method to notify the observers
     private void notifyObservers() {
-        for (ParserTableModelObserver observer : observers) {
+        for (ParserTableModelObserver observer : observers)
             observer.onRequestWithMetadatasUpdate();
-        }
+
         notifyParametersPanelObservers();
     }
 
@@ -76,9 +74,8 @@ public class ParserTableModel extends AbstractTableModel {
     }
 
     private void notifyParametersPanelObservers() {
-        for (ParametersPanelObserver observer : parametersPanelObservers) {
+        for (ParametersPanelObserver observer : parametersPanelObservers)
             observer.onRequestWithMetadatasUpdate();
-        }
     }
 
     @Override

@@ -30,8 +30,9 @@ import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 
 public class ParserContextMenu extends JPopupMenu {
 
-  private MontoyaApi montoyaApi;
-  private JTable table;
+  private final MontoyaApi montoyaApi;
+
+  private final JTable table;
 
   public ParserContextMenu(MontoyaApi montoyaApi, JTable table) {
     this.montoyaApi = montoyaApi;

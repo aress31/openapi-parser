@@ -17,13 +17,13 @@ import lombok.Data;
 @Data
 public class MainTabGroup extends JTabbedPane implements ParserTableModelObserver {
 
-    private final transient MontoyaApi montoyaApi;
+    private final MontoyaApi montoyaApi;
+
+    private final List<MyHttpRequest> myHttpRequests;
 
     private ParserPanel parserPanel;
     private ParametersPanel parametersPanel;
     private AboutPanel aboutPanel;
-
-    List<MyHttpRequest> myHttpRequests;
 
     public MainTabGroup(MontoyaApi montoyaApi) {
         this.montoyaApi = montoyaApi;
@@ -31,15 +31,15 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
 
         initComponents();
 
-        parserPanel.getParserTableModel().registerObserver(this);
-        parserPanel.getParserTableModel().registerParametersPanelObserver(parametersPanel);
+        this.parserPanel.getParserTableModel().registerObserver(this);
+        this.parserPanel.getParserTableModel().registerParametersPanelObserver(this.parametersPanel);
 
     }
 
     private void initComponents() {
-        parserPanel = new ParserPanel(montoyaApi, myHttpRequests);
+        parserPanel = new ParserPanel(this.montoyaApi, this.myHttpRequests);
         aboutPanel = new AboutPanel();
-        parametersPanel = new ParametersPanel(montoyaApi, myHttpRequests);
+        parametersPanel = new ParametersPanel(this.montoyaApi, this.myHttpRequests);
 
         addTab("Parser", parserPanel);
         addTab("About", aboutPanel);
@@ -47,12 +47,12 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
 
     @Override
     public void onRequestWithMetadatasUpdate() {
-        if (indexOfComponent(parametersPanel) == -1 && !myHttpRequests.isEmpty()) {
-            removeTabAt(indexOfComponent(aboutPanel));
-            addTab("Parameters", parametersPanel);
-            addTab("About", aboutPanel);
-        } else if (indexOfComponent(parametersPanel) != -1 && myHttpRequests.isEmpty())
-            removeTabAt(indexOfComponent(parametersPanel));
+        if (indexOfComponent(this.parametersPanel) == -1 && !this.myHttpRequests.isEmpty()) {
+            removeTabAt(indexOfComponent(this.aboutPanel));
+            addTab("Parameters", this.parametersPanel);
+            addTab("About", this.aboutPanel);
+        } else if (indexOfComponent(this.parametersPanel) != -1 && this.myHttpRequests.isEmpty())
+            removeTabAt(indexOfComponent(this.parametersPanel));
 
     }
 }

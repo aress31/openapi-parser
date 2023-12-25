@@ -15,8 +15,8 @@ import javax.swing.table.TableCellEditor;
 
 // TO FIX: Need to press enter then escape to commit the edit
 public class CustomTextFieldEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
-    private static final long serialVersionUID = 1L;
-    private JTextField textField;
+
+    private final JTextField textField;
 
     public CustomTextFieldEditor() {
         textField = new JTextField();

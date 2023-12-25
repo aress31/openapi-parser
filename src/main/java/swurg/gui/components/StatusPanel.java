@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 
 public class StatusPanel extends JPanel {
 
-  private JLabel statusLabel;
+  private final JLabel statusLabel;
 
   public StatusPanel() {
     statusLabel = new JLabel(COPYRIGHT);

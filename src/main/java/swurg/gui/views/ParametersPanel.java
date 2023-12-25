@@ -44,15 +44,14 @@ import swurg.utilities.HtmlResourceLoader;
 public class ParametersPanel extends JPanel
         implements HttpHandler, ParametersPanelObserver {
 
-    private Frame suiteFrame;
-    private Logging logging;
+    private final Logging logging;
+    private final Frame suiteFrame;
 
-    private JScrollPane scrollPane;
+    private final List<MyHttpRequest> myHttpRequests;
+    private final ParametersTableModel parametersTableModel;
 
-    private ParametersTableModel parametersTableModel;
-
-    private transient List<ToolType> toolsInScope = new ArrayList<>();
-    private List<ToolType> toolsMap = List.of(
+    private final List<ToolType> toolsInScope = new ArrayList<>();
+    private final List<ToolType> toolsMap = List.of(
             ToolType.EXTENSIONS,
             ToolType.INTRUDER,
             ToolType.PROXY,
@@ -60,15 +59,15 @@ public class ParametersPanel extends JPanel
             ToolType.SCANNER,
             ToolType.SEQUENCER,
             ToolType.TARGET);
-    private List<MyHttpRequest> myHttpRequests;
+
+    private JScrollPane scrollPane;
 
     public ParametersPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
         this.logging = montoyaApi.logging();
         this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
 
         this.myHttpRequests = myHttpRequests;
-
-        parametersTableModel = new ParametersTableModel();
+        this.parametersTableModel = new ParametersTableModel();
 
         initComponents();
 

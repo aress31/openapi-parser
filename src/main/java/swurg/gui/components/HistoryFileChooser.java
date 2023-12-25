@@ -13,8 +13,9 @@ public class HistoryFileChooser extends JFileChooser {
 
     private static final String FILE_HISTORY_KEY = "fileHistory";
     private static final int MAX_HISTORY_SIZE = 10;
-    private Preferences preferences;
-    private List<File> fileHistory;
+
+    private final List<File> fileHistory;
+    private final Preferences preferences;
 
     public HistoryFileChooser(String currentDirectoryPath) {
         super(currentDirectoryPath);

@@ -31,7 +31,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
-import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -50,29 +49,32 @@ import lombok.Getter;
 
 public class ParserPanel extends JPanel {
 
-  private MontoyaApi montoyaApi;
-  private Logging logging;
+  private final MontoyaApi montoyaApi;
+  private final Logging logging;
+
+  @Getter
+  private final ParserTableModel parserTableModel;
+  @Getter
+  private final StatusPanel statusPanel = new StatusPanel();
+
+  private final JLabel metadataLabel = new JLabel();
+  @Getter
+  private final JTextField resourceTextField = new JTextField();
 
   private HttpRequestEditor requestViewer;
 
-  @Getter
-  private JTextField resourceTextField = new JTextField();
-  private JLabel metadataLabel = new JLabel();
-  private JButton loadButton;
+  private List<MyHttpRequest> myHttpRequests;
 
+  private JButton loadButton;
   @Getter
   private JTable table;
-  @Getter
-  private StatusPanel statusPanel = new StatusPanel();
-  @Getter
-  private ParserTableModel parserTableModel;
 
   public ParserPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
     this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
 
-    ParserTableModel parserTableModel = new ParserTableModel(myHttpRequests);
-    this.parserTableModel = parserTableModel;
+    this.myHttpRequests = myHttpRequests;
+    this.parserTableModel = new ParserTableModel(myHttpRequests);
 
     initComponents();
 
@@ -110,10 +112,8 @@ public class ParserPanel extends JPanel {
   public JPanel createNorthPanel() {
     JPanel resourcePanel = new JPanel(new GridBagLayout());
 
-    MatteBorder matteBorder = BorderFactory.createMatteBorder(0, 0, 1, 0,
-        UIManager.getLookAndFeelDefaults().getColor("Separator.foreground"));
-
-    resourcePanel.setBorder(matteBorder);
+    resourcePanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0,
+        UIManager.getLookAndFeelDefaults().getColor("Separator.foreground")));
 
     loadButton = createButton("Load", new LoadButtonListener());
     loadButton.setEnabled(false);
@@ -246,7 +246,7 @@ public class ParserPanel extends JPanel {
         List<String> metadataList = worker.parseMetadata(worker.processOpenAPI(resource));
         setMetadataLabel(metadataList);
 
-        List<MyHttpRequest> myHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(resource));
+        myHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(resource));
         updateTableModel(myHttpRequests);
 
         statusPanel.updateStatus(COPYRIGHT, UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
