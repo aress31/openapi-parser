@@ -58,15 +58,14 @@ public class ParametersContextMenu extends JPopupMenu {
   private JMenuItem createHighlightMenuItem(Color color) {
     JMenuItem menuItem = new JMenuItem();
 
+    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
+
     menuItem.setOpaque(true);
     menuItem.setBackground(color);
     menuItem.setForeground(Color.BLACK);
 
-    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
-
-    menuItem.addActionListener(e -> processSelectedRows(index -> {
-      SwingUtilities.invokeLater(() -> renderer.setRowHighlightColor(index, color));
-    }));
+    menuItem.addActionListener(e -> processSelectedRows(
+        index -> SwingUtilities.invokeLater(() -> renderer.setRowHighlightColor(index, color))));
 
     return menuItem;
   }

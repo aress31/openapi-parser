@@ -47,37 +47,28 @@ public class ParserContextMenu extends JPopupMenu {
   }
 
   private void initComponents() {
-    JMenuItem copyToClipboard = createCopyToClipboardMenuItem();
+    this.add(createCopyToClipboardMenuItem());
+    this.add(new JSeparator());
 
-    JMenuItem addToScope = createAddToScopeMenuItem();
-    JMenuItem addToSiteMap = createAddToSiteMapMenuItem();
-    JMenuItem sendToActiveScan = createSendToActiveScanMenuItem();
-    JMenuItem sendToPassiveScan = createSendToPassiveScanMenuItem();
-    JMenuItem sendToIntruder = createSendToIntruderMenuItem();
-    JMenuItem sendToRepeater = createSendToRepeaterMenuItem();
-    JMenuItem sendToOrganizer = createSendToOrganizerMenuItem();
-    JMenuItem sendToComparer = createSendToComparerMenuItem();
-    JMenu highlightMenu = createHighlightMenu();
-    JMenuItem clearItems = createClearItemsMenuItem();
-    JMenuItem clearAll = createClearAllMenuItem();
+    this.add(createAddToScopeMenuItem());
+    this.add(new JSeparator());
 
-    this.add(copyToClipboard);
+    this.add(createSendToPassiveScanMenuItem());
+    this.add(createSendToActiveScanMenuItem());
     this.add(new JSeparator());
-    this.add(addToScope);
+
+    this.add(createSendToIntruderMenuItem());
+    this.add(createSendToRepeaterMenuItem());
+    this.add(createSendToOrganizerMenuItem());
+    this.add(createSendToComparerMenuItem());
     this.add(new JSeparator());
-    this.add(sendToPassiveScan);
-    this.add(sendToActiveScan);
+
+    this.add(createHighlightMenu());
+    this.add(createClearItemsMenuItem());
+    this.add(createClearAllMenuItem());
     this.add(new JSeparator());
-    this.add(sendToIntruder);
-    this.add(sendToRepeater);
-    this.add(sendToOrganizer);
-    this.add(sendToComparer);
-    this.add(new JSeparator());
-    this.add(highlightMenu);
-    this.add(clearItems);
-    this.add(clearAll);
-    this.add(new JSeparator());
-    this.add(addToSiteMap);
+
+    this.add(createAddToSiteMapMenuItem());
   }
 
   private HttpRequest getHttpRequestAt(int index) {
@@ -96,7 +87,7 @@ public class ParserContextMenu extends JPopupMenu {
   private JMenuItem createCopyToClipboardMenuItem() {
     JMenuItem copyToClipboard = new JMenuItem();
 
-    table.addMouseListener(new MouseAdapter() {
+    this.table.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         JTable source = (JTable) e.getSource();
@@ -199,6 +190,7 @@ public class ParserContextMenu extends JPopupMenu {
 
   private JMenuItem createSendToComparerMenuItem() {
     JMenuItem sendToComparer = new JMenuItem("Send to Comparer (request)");
+
     sendToComparer.addActionListener(e -> processSelectedRows(index -> {
       HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.comparer().sendToComparer(httpRequest.toByteArray());
@@ -223,15 +215,14 @@ public class ParserContextMenu extends JPopupMenu {
   private JMenuItem createHighlightMenuItem(Color color) {
     JMenuItem menuItem = new JMenuItem();
 
+    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
+
     menuItem.setOpaque(true);
     menuItem.setBackground(color);
     menuItem.setForeground(Color.BLACK);
 
-    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
-
-    menuItem.addActionListener(e -> processSelectedRows(index -> {
-      SwingUtilities.invokeLater(() -> renderer.setRowHighlightColor(index, color));
-    }));
+    menuItem.addActionListener(e -> processSelectedRows(
+        index -> SwingUtilities.invokeLater(() -> renderer.setRowHighlightColor(index, color))));
 
     return menuItem;
   }
@@ -251,7 +242,6 @@ public class ParserContextMenu extends JPopupMenu {
       // Remove rows individually from the table.
       SwingUtilities.invokeLater(() -> {
         ParserTableModel tableModel = (ParserTableModel) table.getModel();
-
         selectedRows.forEach(index -> {
           int modelRow = table.convertRowIndexToModel(index);
           tableModel.removeRow(modelRow);
@@ -272,13 +262,11 @@ public class ParserContextMenu extends JPopupMenu {
 
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
-    clearAll.addActionListener(e -> {
-      SwingUtilities.invokeLater(() -> {
-        ParserTableModel tableModel = (ParserTableModel) table.getModel();
-        tableModel.clear();
-        renderer.clearAllRowHighlightColors();
-      });
-    });
+    clearAll.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+      ParserTableModel tableModel = (ParserTableModel) table.getModel();
+      tableModel.clear();
+      renderer.clearAllRowHighlightColors();
+    }));
 
     return clearAll;
   }
