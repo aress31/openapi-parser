@@ -140,7 +140,7 @@ public class Worker {
     httpHeaders.add(HttpHeader.httpHeader(":scheme", uri.getScheme()));
     httpHeaders.add(HttpHeader.httpHeader(":method", method));
     httpHeaders.add(HttpHeader.httpHeader(":path", uri.getPath()));
-    httpHeaders.add(HttpHeader.httpHeader(":authority", uri.getHost()));
+    httpHeaders.add(HttpHeader.httpHeader(":authority", uri.getAuthority()));
 
     Optional.ofNullable(apiResponses)
         .map(responses -> responses.get("200"))
