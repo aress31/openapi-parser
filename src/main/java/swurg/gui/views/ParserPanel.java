@@ -200,8 +200,10 @@ public class ParserPanel extends JPanel implements TableModelObserver {
   @Override
   public void onMyHttpRequestsUpdate(int event, List<MyHttpRequest> myHttpRequests) {
     if (event == TableModelEvent.DELETE) {
-      this.metadataLabel.setToolTipText(this.TOOLTIP_TEXT);
       this.requestViewer.setRequest(null);
+
+      if (myHttpRequests.isEmpty())
+        this.metadataLabel.setToolTipText(this.TOOLTIP_TEXT);
     }
   }
 
