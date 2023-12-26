@@ -23,13 +23,12 @@ import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.http.MyHttpRequest;
 
 public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
-  private final MontoyaApi montoyaApi;
   private final ParserPanel parserPanel;
   private final Logging logging;
 
   public MyContextMenuItemsProvider(MontoyaApi montoyaApi, ParserPanel parserPanel) {
-    this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
+
     this.parserPanel = parserPanel;
   }
 
@@ -41,24 +40,24 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
     openApiMenuItem.addActionListener(e -> {
       try {
         List<HttpRequestResponse> selectedHttpRequestResponses = contextMenuEvent.selectedRequestResponses();
-        Worker worker = new Worker(montoyaApi);
+        Worker worker = new Worker();
 
         selectedHttpRequestResponses.forEach(selectedMessage -> {
           HttpRequest selectedRequest = selectedMessage.request();
           String url = selectedRequest.url();
 
-          ParserTableModel tableModel = (ParserTableModel) parserPanel.getTable().getModel();
-          List<MyHttpRequest> myHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(url));
+          ParserTableModel parserTableModel = (ParserTableModel) this.parserPanel.getTable().getModel();
+          List<MyHttpRequest> parsedMyHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(url));
 
           SwingUtilities.invokeLater(() -> {
-            myHttpRequests.forEach(myHttpRequest -> tableModel.addRow(myHttpRequest));
-
+            parserTableModel.addRows(parsedMyHttpRequests);
             parserPanel.getResourceTextField().setText(url);
             parserPanel.getStatusPanel().updateStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
           });
         });
       } catch (Exception exception) {
-        logging.logToError(exception);
+        logging.raiseErrorEvent(exception.getMessage());
+
         String message = String.format(
             "Failed to process request %s. Check the extension's error log for the stack trace and report the issue.",
             ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url());

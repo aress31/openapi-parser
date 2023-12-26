@@ -6,14 +6,16 @@ import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 
 import burp.http.MyHttpParameter;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
 public class ParametersTableModel extends AbstractTableModel {
 
     private final String[] columnNames = { "#", "Parameter", "Type (BODY, COOKIE, URL)",
             "Parsed Value (Example Value or Data type)", "Edited Value" };
 
+    @Getter
+    @Setter
     private Set<MyHttpParameter> myHttpParameters;
 
     public ParametersTableModel() {
@@ -21,22 +23,22 @@ public class ParametersTableModel extends AbstractTableModel {
     }
 
     public MyHttpParameter getHttpParameterAt(int rowIndex) {
-        return myHttpParameters.stream().skip(rowIndex).findFirst().orElse(null);
+        return this.myHttpParameters.stream().skip(rowIndex).findFirst().orElse(null);
     }
 
     @Override
     public int getRowCount() {
-        return myHttpParameters.size();
+        return this.myHttpParameters.size();
     }
 
     @Override
     public int getColumnCount() {
-        return columnNames.length;
+        return this.columnNames.length;
     }
 
     @Override
     public String getColumnName(int column) {
-        return columnNames[column];
+        return this.columnNames[column];
     }
 
     @Override

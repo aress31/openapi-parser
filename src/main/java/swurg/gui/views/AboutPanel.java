@@ -46,7 +46,6 @@ public class AboutPanel extends JPanel {
         this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
 
         initComponents();
-
         addComponentListeners();
     }
 
@@ -73,10 +72,10 @@ public class AboutPanel extends JPanel {
 
     private void initComponents() {
         this.setLayout(new BorderLayout());
-        this.setBorder(new EmptyBorder(INSET, INSET, 0, INSET));
+        this.setBorder(new EmptyBorder(this.INSET, this.INSET, 0, this.INSET));
 
         this.northPanel = createNorthPanel();
-        this.northPanel.setBorder(new EmptyBorder(0, 0, INSET, 0));
+        this.northPanel.setBorder(new EmptyBorder(0, 0, this.INSET, 0));
 
         this.add(northPanel, BorderLayout.NORTH);
         this.add(createCenterPanel(), BorderLayout.CENTER);
@@ -110,7 +109,7 @@ public class AboutPanel extends JPanel {
         scrollPane.setBorder(null);
 
         panel.add(scrollPane);
-        panel.add(Box.createVerticalStrut(INSET));
+        panel.add(Box.createVerticalStrut(this.INSET));
         panel.add(createButtonPanel());
 
         return panel;

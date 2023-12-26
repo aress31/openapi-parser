@@ -21,7 +21,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import burp.api.montoya.logging.Logging;
 import burp.http.MyHttpParameter;
 import burp.http.MyHttpRequest;
 import burp.api.montoya.http.handler.HttpHandler;
@@ -39,16 +38,14 @@ import swurg.gui.components.menus.ParametersContextMenu;
 import swurg.gui.components.tables.TablePanel;
 import swurg.gui.components.tables.models.ParametersTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
-import swurg.observers.MyObserver;
+import swurg.observers.TableModelObserver;
 import swurg.utilities.HtmlResourceLoader;
 
 public class ParametersPanel extends JPanel
-        implements HttpHandler, MyObserver {
+        implements HttpHandler, TableModelObserver {
 
-    private final Logging logging;
     private final Frame suiteFrame;
 
-    private final List<MyHttpRequest> myHttpRequests;
     private final ParametersTableModel parametersTableModel;
 
     private final List<ToolType> toolsInScope = new ArrayList<>();
@@ -63,15 +60,12 @@ public class ParametersPanel extends JPanel
 
     private JScrollPane scrollPane;
 
-    public ParametersPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
-        this.logging = montoyaApi.logging();
+    public ParametersPanel(MontoyaApi montoyaApi) {
         this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
 
-        this.myHttpRequests = myHttpRequests;
         this.parametersTableModel = new ParametersTableModel();
 
         initComponents();
-
         addComponentListeners();
     }
 
@@ -94,19 +88,6 @@ public class ParametersPanel extends JPanel
                 setScrollPanePreferredSize();
             }
         });
-    }
-
-    @Override
-    public void onMyHttpRequestsUpdate() {
-        Set<MyHttpParameter> myHttpParameters = myHttpRequests.stream()
-                .flatMap(myHttpRequest -> myHttpRequest.getHttpRequest().parameters().stream()
-                        .map(myHttpParameter -> MyHttpParameter.builder()
-                                .httpParameter(HttpParameter.parameter(myHttpParameter.name(), myHttpParameter.value(),
-                                        myHttpParameter.type()))
-                                .build()))
-                .collect(Collectors.toSet());
-
-        parametersTableModel.setMyHttpParameters(myHttpParameters);
     }
 
     private void initComponents() {
@@ -219,5 +200,18 @@ public class ParametersPanel extends JPanel
     @Override
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
         return ResponseReceivedAction.continueWith(responseReceived);
+    }
+
+    @Override
+    public void onMyHttpRequestsUpdate(int event, List<MyHttpRequest> myHttpRequests) {
+        Set<MyHttpParameter> myHttpParameters = myHttpRequests.stream()
+                .flatMap(myHttpRequest -> myHttpRequest.getHttpRequest().parameters().stream()
+                        .map(myHttpParameter -> MyHttpParameter.builder()
+                                .httpParameter(HttpParameter.parameter(myHttpParameter.name(), myHttpParameter.value(),
+                                        myHttpParameter.type()))
+                                .build()))
+                .collect(Collectors.toSet());
+
+        parametersTableModel.setMyHttpParameters(myHttpParameters);
     }
 }

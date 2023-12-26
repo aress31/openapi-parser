@@ -4,9 +4,7 @@ import burp.api.montoya.http.HttpService;
 import burp.api.montoya.http.message.HttpHeader;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.logging.Logging;
 import burp.http.MyHttpRequest;
-import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.ByteArray;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -30,12 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class Worker {
-
-  private final Logging logging;
-
-  public Worker(MontoyaApi montoyaApi) {
-    this.logging = montoyaApi.logging();
-  }
 
   public OpenAPI processOpenAPI(String resource) {
     try {

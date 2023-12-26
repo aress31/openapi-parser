@@ -4,67 +4,64 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.http.MyHttpRequest;
-import lombok.Data;
-import swurg.observers.MyObserver;
+import lombok.Getter;
+import swurg.observers.TableModelObserver;
 
-@Data
 public class ParserTableModel extends AbstractTableModel {
 
     private final String[] columnNames = { "#", "Scheme", "Method", "Server", "Path", "Parameters (COOKIE, URL)",
             "Description" };
-    private final List<MyHttpRequest> myHttpRequests;
 
-    private final List<MyObserver> observers = new ArrayList<>();
+    @Getter
+    private final List<MyHttpRequest> myHttpRequests = new ArrayList<MyHttpRequest>();
 
-    public ParserTableModel(List<MyHttpRequest> myHttpRequests) {
-        this.myHttpRequests = myHttpRequests;
+    private final List<TableModelObserver> observers = new ArrayList<>();
+
+    public void addRows(List<MyHttpRequest> myHttpRequests) {
+        this.myHttpRequests.addAll(myHttpRequests);
+        fireTableDataChanged();
+        notifyObservers(TableModelEvent.INSERT);
     }
 
-    public void addRow(MyHttpRequest myHttpRequest) {
-        int rowCount = getRowCount();
-        myHttpRequests.add(myHttpRequest);
-        fireTableRowsInserted(rowCount, rowCount);
-        notifyObservers();
-    }
-
-    public void removeRow(int rowIndex) {
-        myHttpRequests.remove(rowIndex);
-        fireTableRowsDeleted(rowIndex, rowIndex);
-        notifyObservers();
+    public void removeRow(int index) {
+        this.myHttpRequests.remove(index);
+        fireTableRowsDeleted(index, index);
+        notifyObservers(TableModelEvent.DELETE);
     }
 
     public void clear() {
-        myHttpRequests.clear();
+        this.myHttpRequests.clear();
         fireTableDataChanged();
-        notifyObservers();
+        notifyObservers(TableModelEvent.DELETE);
     }
 
-    public void registerObserver(MyObserver observer) {
-        observers.add(observer);
+    public void registerObserver(TableModelObserver observer) {
+        this.observers.add(observer);
     }
 
-    private void notifyObservers() {
-        observers.forEach(observer -> observer.onMyHttpRequestsUpdate());
+    private void notifyObservers(int event) {
+        this.observers.forEach(observer -> observer.onMyHttpRequestsUpdate(event, myHttpRequests));
     }
 
     @Override
     public int getRowCount() {
-        return myHttpRequests.size();
+        return this.myHttpRequests.size();
     }
 
     @Override
     public int getColumnCount() {
-        return columnNames.length;
+        return this.columnNames.length;
     }
 
     @Override
     public String getColumnName(int column) {
-        return columnNames[column];
+        return this.columnNames[column];
     }
 
     @Override
@@ -77,7 +74,7 @@ public class ParserTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int column) {
-        MyHttpRequest myHttpRequest = myHttpRequests.get(row);
+        MyHttpRequest myHttpRequest = this.myHttpRequests.get(row);
 
         switch (column) {
             case 0:

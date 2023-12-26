@@ -33,6 +33,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
 
 import burp.api.montoya.MontoyaApi;
 import swurg.gui.components.HistoryFileChooser;
@@ -41,13 +42,16 @@ import swurg.gui.components.menus.ParserContextMenu;
 import swurg.gui.components.tables.TablePanel;
 import swurg.gui.components.tables.models.ParserTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
+import swurg.observers.TableModelObserver;
 import swurg.workers.Worker;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.http.MyHttpRequest;
 import lombok.Getter;
 
-public class ParserPanel extends JPanel {
+public class ParserPanel extends JPanel implements TableModelObserver {
+
+  private final String TOOLTIP_TEXT = "You need to parse an OpenAPI specification to see its metadata within this tooltip.";
 
   private final MontoyaApi montoyaApi;
   private final Logging logging;
@@ -63,35 +67,38 @@ public class ParserPanel extends JPanel {
 
   private HttpRequestEditor requestViewer;
 
-  private List<MyHttpRequest> myHttpRequests;
-
   private JButton loadButton;
   @Getter
   private JTable table;
 
-  public ParserPanel(MontoyaApi montoyaApi, List<MyHttpRequest> myHttpRequests) {
+  public ParserPanel(MontoyaApi montoyaApi) {
     this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
 
-    this.myHttpRequests = myHttpRequests;
-    this.parserTableModel = new ParserTableModel(myHttpRequests);
+    this.parserTableModel = new ParserTableModel();
 
     initComponents();
+    addDocumentListener();
 
     ToolTipManager.sharedInstance().setInitialDelay(0);
     ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
+  }
 
+  private void addDocumentListener() {
     this.resourceTextField.getDocument().addDocumentListener(new DocumentListener() {
-      @Override
-      public void insertUpdate(DocumentEvent e) {
+      private void updateLoadButton() {
         Boolean enabled = !resourceTextField.getText().isBlank();
         SwingUtilities.invokeLater(() -> loadButton.setEnabled(enabled));
       }
 
       @Override
+      public void insertUpdate(DocumentEvent e) {
+        updateLoadButton();
+      }
+
+      @Override
       public void removeUpdate(DocumentEvent e) {
-        Boolean enabled = !resourceTextField.getText().isBlank();
-        SwingUtilities.invokeLater(() -> loadButton.setEnabled(enabled));
+        updateLoadButton();
       }
 
       @Override
@@ -115,18 +122,17 @@ public class ParserPanel extends JPanel {
     resourcePanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0,
         UIManager.getLookAndFeelDefaults().getColor("Separator.foreground")));
 
-    loadButton = createButton("Load", new LoadButtonListener());
-    loadButton.setEnabled(false);
+    this.loadButton = createButton("Load", new LoadButtonListener());
+    this.loadButton.setEnabled(false);
 
     Icon icon = resizeIcon(UIManager.getIcon("OptionPane.informationIcon"), 26);
-    metadataLabel.setIcon(icon);
-    metadataLabel.setToolTipText(
-        "You need to parse an OpenAPI specification to see its metadata within this tooltip.");
+    this.metadataLabel.setIcon(icon);
+    this.metadataLabel.setToolTipText(this.TOOLTIP_TEXT);
 
     JPanel eastPanel = new JPanel();
-    eastPanel.add(metadataLabel);
+    eastPanel.add(this.metadataLabel);
     eastPanel.add(createButton("Browse", new BrowseButtonListener()));
-    eastPanel.add(loadButton);
+    eastPanel.add(this.loadButton);
 
     GridBagConstraints gbc = new GridBagConstraints();
 
@@ -137,7 +143,7 @@ public class ParserPanel extends JPanel {
     gbc.gridx = 1;
     gbc.weightx = 1;
     gbc.insets = new Insets(0, 0, 0, 0);
-    resourcePanel.add(resourceTextField, gbc);
+    resourcePanel.add(this.resourceTextField, gbc);
 
     gbc.gridx = 2;
     gbc.weightx = 0;
@@ -148,15 +154,15 @@ public class ParserPanel extends JPanel {
   }
 
   private JSplitPane createSplitPane() {
-    requestViewer = montoyaApi.userInterface()
+    this.requestViewer = this.montoyaApi.userInterface()
         .createHttpRequestEditor(burp.api.montoya.ui.editor.EditorOptions.READ_ONLY);
 
-    TablePanel tablePanel = new TablePanel(parserTableModel, new CustomTableCellRenderer(), requestViewer);
-    ParserContextMenu contextMenu = new ParserContextMenu(montoyaApi, tablePanel.getTable());
+    TablePanel tablePanel = new TablePanel(this.parserTableModel, new CustomTableCellRenderer(), this.requestViewer);
+    ParserContextMenu contextMenu = new ParserContextMenu(this.montoyaApi, tablePanel.getTable());
     tablePanel.setContextMenu(contextMenu);
 
     JTabbedPane tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("Request", requestViewer.uiComponent());
+    tabbedPane.addTab("Request", this.requestViewer.uiComponent());
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
     splitPane.setTopComponent(tablePanel);
@@ -189,6 +195,14 @@ public class ParserPanel extends JPanel {
     Image scaledImage = bufferedImage.getScaledInstance(iconWidth, iconWidth, Image.SCALE_SMOOTH);
 
     return new ImageIcon(scaledImage);
+  }
+
+  @Override
+  public void onMyHttpRequestsUpdate(int event, List<MyHttpRequest> myHttpRequests) {
+    if (event == TableModelEvent.DELETE) {
+      this.metadataLabel.setToolTipText(this.TOOLTIP_TEXT);
+      this.requestViewer.setRequest(null);
+    }
   }
 
   class BrowseButtonListener implements ActionListener {
@@ -240,14 +254,14 @@ public class ParserPanel extends JPanel {
         return;
       }
 
-      Worker worker = new Worker(montoyaApi);
+      Worker worker = new Worker();
 
       try {
         List<String> metadataList = worker.parseMetadata(worker.processOpenAPI(resource));
         setMetadataLabel(metadataList);
 
-        myHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(resource));
-        updateTableModel(myHttpRequests);
+        List<MyHttpRequest> parsedMyHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(resource));
+        parserTableModel.addRows(parsedMyHttpRequests);
 
         statusPanel.updateStatus(COPYRIGHT, UIManager.getLookAndFeelDefaults().getColor("TextField.foreground"));
       } catch (Exception exception) {
@@ -260,12 +274,9 @@ public class ParserPanel extends JPanel {
       metadataLabel.setToolTipText(tooltipText);
     }
 
-    private void updateTableModel(List<MyHttpRequest> myHttpRequests) {
-      SwingUtilities.invokeLater(() -> myHttpRequests.forEach(parserTableModel::addRow));
-    }
-
     private void handleException(Exception exception, String resource) {
-      logging.logToError(exception);
+      logging.raiseErrorEvent(exception.getMessage());
+
       String message = String.format(
           "Unable to read the OpenAPI resource: %s. Check the extension's error log for the stack trace and report the issue.",
           resource);

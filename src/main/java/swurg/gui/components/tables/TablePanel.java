@@ -23,17 +23,17 @@ import javax.swing.table.TableRowSorter;
 
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.http.MyHttpRequest;
-import lombok.Data;
+import lombok.Getter;
 import swurg.gui.components.FilterPanel;
 import swurg.gui.components.tables.models.ParserTableModel;
 
-@Data
 public class TablePanel extends JPanel {
 
     private final TableModel tableModel;
     private final TableCellRenderer cellRenderer;
     private final HttpRequestEditor requestViewer;
 
+    @Getter
     private JTable table;
     private TableRowSorter<TableModel> tableRowSorter;
 
