@@ -59,7 +59,7 @@ public class ParserTableModel extends AbstractTableModel {
     // Add a method to notify the observers
     private void notifyObservers() {
         for (ParserTableModelObserver observer : observers)
-            observer.onRequestWithMetadatasUpdate();
+            observer.onMyHttpRequestsUpdate();
 
         notifyParametersPanelObservers();
     }
@@ -75,7 +75,7 @@ public class ParserTableModel extends AbstractTableModel {
 
     private void notifyParametersPanelObservers() {
         for (ParametersPanelObserver observer : parametersPanelObservers)
-            observer.onRequestWithMetadatasUpdate();
+            observer.onMyHttpRequestsUpdate();
     }
 
     @Override

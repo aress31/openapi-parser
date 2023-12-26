@@ -24,21 +24,19 @@ public class FilterPanel extends JPanel {
 
         initComponents();
 
-        addFilterTextFieldListener();
+        addDocumentListener();
     }
 
     public void initComponents() {
-        JLabel westLabel = new JLabel("Filter (regex, case-sensitive):");
-
         // Ensures JTextField size stability during resizing...
         this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
 
-        this.add(westLabel);
+        this.add(new JLabel("Filter (regex, case-sensitive):"));
         this.add(this.filterTextField);
         this.add(this.eastLabel);
     }
 
-    private void addFilterTextFieldListener() {
+    private void addDocumentListener() {
         this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
             private void updateFilter() {
                 SwingUtilities.invokeLater(() -> {

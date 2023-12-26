@@ -97,7 +97,7 @@ public class ParametersPanel extends JPanel
     }
 
     @Override
-    public void onRequestWithMetadatasUpdate() {
+    public void onMyHttpRequestsUpdate() {
         Set<MyHttpParameter> myHttpParameters = myHttpRequests.stream()
                 .flatMap(myHttpRequest -> myHttpRequest.getHttpRequest().parameters().stream()
                         .map(myHttpParameter -> MyHttpParameter.builder()
