@@ -8,21 +8,19 @@ import javax.swing.JPanel;
 
 public class StatusPanel extends JPanel {
 
-  private final JLabel statusLabel;
+  private final JLabel statusLabel = new JLabel(COPYRIGHT);
 
   public StatusPanel() {
-    statusLabel = new JLabel(COPYRIGHT);
-
     initComponents();
   }
 
   private void initComponents() {
-    statusLabel.putClientProperty("html.disable", null);
+    this.statusLabel.putClientProperty("html.disable", null);
     this.add(statusLabel);
   }
 
   public void updateStatus(String status, Color color) {
-    statusLabel.setForeground(color);
-    statusLabel.setText(status);
+    this.statusLabel.setForeground(color);
+    this.statusLabel.setText(status);
   }
 }
