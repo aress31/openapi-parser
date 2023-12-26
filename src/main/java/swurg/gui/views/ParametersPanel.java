@@ -44,6 +44,7 @@ import swurg.utilities.HtmlResourceLoader;
 public class ParametersPanel extends JPanel
         implements HttpHandler, TableModelObserver {
 
+    private final MontoyaApi montoyaApi;
     private final Frame suiteFrame;
 
     private final ParametersTableModel parametersTableModel;
@@ -61,6 +62,7 @@ public class ParametersPanel extends JPanel
     private JScrollPane scrollPane;
 
     public ParametersPanel(MontoyaApi montoyaApi) {
+        this.montoyaApi = montoyaApi;
         this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
 
         this.parametersTableModel = new ParametersTableModel();
@@ -94,7 +96,7 @@ public class ParametersPanel extends JPanel
         this.setLayout(new BorderLayout());
 
         TablePanel tablePanel = new TablePanel(parametersTableModel, new CustomTableCellRenderer());
-        ParametersContextMenu contextMenu = new ParametersContextMenu(tablePanel.getTable());
+        ParametersContextMenu contextMenu = new ParametersContextMenu(this.montoyaApi, tablePanel.getTable());
         tablePanel.setContextMenu(contextMenu);
 
         this.add(createNorthPanel(), BorderLayout.NORTH);
