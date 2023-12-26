@@ -1,5 +1,5 @@
 package swurg.observers;
 
-public interface ParametersPanelObserver {
+public interface MyObserver {
     void onMyHttpRequestsUpdate();
 }

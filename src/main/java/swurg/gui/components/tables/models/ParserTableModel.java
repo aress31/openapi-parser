@@ -10,8 +10,7 @@ import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.http.MyHttpRequest;
 import lombok.Data;
-import swurg.observers.ParserTableModelObserver;
-import swurg.observers.ParametersPanelObserver;
+import swurg.observers.MyObserver;
 
 @Data
 public class ParserTableModel extends AbstractTableModel {
@@ -20,8 +19,7 @@ public class ParserTableModel extends AbstractTableModel {
             "Description" };
     private final List<MyHttpRequest> myHttpRequests;
 
-    private final List<ParserTableModelObserver> observers = new ArrayList<>();
-    private final List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
+    private final List<MyObserver> observers = new ArrayList<>();
 
     public ParserTableModel(List<MyHttpRequest> myHttpRequests) {
         this.myHttpRequests = myHttpRequests;
@@ -46,36 +44,12 @@ public class ParserTableModel extends AbstractTableModel {
         notifyObservers();
     }
 
-    // Add a method to register observers
-    public void registerObserver(ParserTableModelObserver observer) {
+    public void registerObserver(MyObserver observer) {
         observers.add(observer);
     }
 
-    // Add a method to unregister observers
-    public void unregisterObserver(ParserTableModelObserver observer) {
-        observers.remove(observer);
-    }
-
-    // Add a method to notify the observers
     private void notifyObservers() {
-        for (ParserTableModelObserver observer : observers)
-            observer.onMyHttpRequestsUpdate();
-
-        notifyParametersPanelObservers();
-    }
-
-    // Add methods to register, unregister, and notify ParametersPanel observers
-    public void registerParametersPanelObserver(ParametersPanelObserver observer) {
-        parametersPanelObservers.add(observer);
-    }
-
-    public void unregisterParametersPanelObserver(ParametersPanelObserver observer) {
-        parametersPanelObservers.remove(observer);
-    }
-
-    private void notifyParametersPanelObservers() {
-        for (ParametersPanelObserver observer : parametersPanelObservers)
-            observer.onMyHttpRequestsUpdate();
+        observers.forEach(observer -> observer.onMyHttpRequestsUpdate());
     }
 
     @Override

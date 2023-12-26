@@ -10,12 +10,12 @@ import burp.http.MyHttpRequest;
 import swurg.gui.views.AboutPanel;
 import swurg.gui.views.ParametersPanel;
 import swurg.gui.views.ParserPanel;
-import swurg.observers.ParserTableModelObserver;
+import swurg.observers.MyObserver;
 
 import lombok.Data;
 
 @Data
-public class MainTabGroup extends JTabbedPane implements ParserTableModelObserver {
+public class MainTabGroup extends JTabbedPane implements MyObserver {
 
     private final MontoyaApi montoyaApi;
 
@@ -32,8 +32,7 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
         initComponents();
 
         this.parserPanel.getParserTableModel().registerObserver(this);
-        this.parserPanel.getParserTableModel().registerParametersPanelObserver(this.parametersPanel);
-
+        this.parserPanel.getParserTableModel().registerObserver(this.parametersPanel);
     }
 
     private void initComponents() {
@@ -53,6 +52,5 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
             addTab("About", this.aboutPanel);
         } else if (indexOfComponent(this.parametersPanel) != -1 && this.myHttpRequests.isEmpty())
             removeTabAt(indexOfComponent(this.parametersPanel));
-
     }
 }

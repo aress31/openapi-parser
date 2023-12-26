@@ -39,11 +39,11 @@ import swurg.gui.components.menus.ParametersContextMenu;
 import swurg.gui.components.tables.TablePanel;
 import swurg.gui.components.tables.models.ParametersTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
-import swurg.observers.ParametersPanelObserver;
+import swurg.observers.MyObserver;
 import swurg.utilities.HtmlResourceLoader;
 
 public class ParametersPanel extends JPanel
-        implements HttpHandler, ParametersPanelObserver {
+        implements HttpHandler, MyObserver {
 
     private final Logging logging;
     private final Frame suiteFrame;
