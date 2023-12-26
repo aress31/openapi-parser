@@ -73,15 +73,13 @@ public class AboutPanel extends JPanel {
 
     private void initComponents() {
         this.setLayout(new BorderLayout());
+        this.setBorder(new EmptyBorder(INSET, INSET, 0, INSET));
 
         this.northPanel = createNorthPanel();
-        this.northPanel.setBorder(new EmptyBorder(INSET, INSET, 0, 16));
-
-        JPanel centerPanel = createCenterPanel();
-        centerPanel.setBorder(new EmptyBorder(0, INSET, 0, INSET));
+        this.northPanel.setBorder(new EmptyBorder(0, 0, INSET, 0));
 
         this.add(northPanel, BorderLayout.NORTH);
-        this.add(centerPanel, BorderLayout.CENTER);
+        this.add(createCenterPanel(), BorderLayout.CENTER);
         this.add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
