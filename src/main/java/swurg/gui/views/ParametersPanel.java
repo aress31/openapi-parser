@@ -3,10 +3,11 @@ package swurg.gui.views;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.event.ItemEvent;
 
+import java.awt.event.ItemEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -71,19 +72,26 @@ public class ParametersPanel extends JPanel
 
         initComponents();
 
+        addComponentListeners();
+    }
+
+    private void addComponentListeners() {
         this.addComponentListener(new ComponentAdapter() {
+            private void setScrollPanePreferredSize() {
+                int newWidth = (int) (suiteFrame.getWidth() * 0.25);
+                int newHeight = suiteFrame.getHeight() - 210;
+
+                scrollPane.setPreferredSize(new Dimension(newWidth, newHeight));
+            }
+
             @Override
             public void componentResized(ComponentEvent e) {
-                scrollPane.setPreferredSize(
-                        new Dimension((int) (suiteFrame.getWidth() * 0.25),
-                                suiteFrame.getHeight() - 210));
+                setScrollPanePreferredSize();
             }
 
             @Override
             public void componentShown(ComponentEvent e) {
-                scrollPane.setPreferredSize(
-                        new Dimension((int) (suiteFrame.getWidth() * 0.25),
-                                suiteFrame.getHeight() - 210));
+                setScrollPanePreferredSize();
             }
         });
     }
@@ -142,12 +150,10 @@ public class ParametersPanel extends JPanel
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createTitledBorder("How To"));
 
-        JEditorPane editorPane = createEditorPane("howTo.html");
+        this.scrollPane = new JScrollPane(createEditorPane("howTo.html"));
+        this.scrollPane.setBorder(null);
 
-        scrollPane = new JScrollPane(editorPane);
-        scrollPane.setBorder(null);
-
-        panel.add(scrollPane);
+        panel.add(this.scrollPane);
 
         return panel;
     }

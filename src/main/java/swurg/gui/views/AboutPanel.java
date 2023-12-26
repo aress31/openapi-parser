@@ -8,6 +8,11 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
+
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,24 +30,55 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.batik.swing.JSVGCanvas;
 
+import burp.api.montoya.MontoyaApi;
 import swurg.gui.components.StatusPanel;
 import swurg.utilities.HtmlResourceLoader;
 
 public class AboutPanel extends JPanel {
 
-    public AboutPanel() {
+    private final int INSET = 16;
+
+    private final Frame suiteFrame;
+
+    private JPanel northPanel;
+
+    public AboutPanel(MontoyaApi montoyaApi) {
+        this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
+
         initComponents();
+
+        addComponentListeners();
+    }
+
+    private void addComponentListeners() {
+        this.addComponentListener(new ComponentAdapter() {
+            private void setNorthPanelPreferredHeight() {
+                int newHeight = (int) (suiteFrame.getHeight() * 0.2);
+
+                northPanel.setPreferredSize(
+                        new Dimension(northPanel.getPreferredSize().width, newHeight));
+            }
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setNorthPanelPreferredHeight();
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                setNorthPanelPreferredHeight();
+            }
+        });
     }
 
     private void initComponents() {
         this.setLayout(new BorderLayout());
 
-        JPanel northPanel = createNorthPanel();
-        northPanel.setPreferredSize(new Dimension(192, 192));
-        northPanel.setBorder(new EmptyBorder(16, 16, 0, 16));
+        this.northPanel = createNorthPanel();
+        this.northPanel.setBorder(new EmptyBorder(INSET, INSET, 0, 16));
 
         JPanel centerPanel = createCenterPanel();
-        centerPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
+        centerPanel.setBorder(new EmptyBorder(0, INSET, 0, INSET));
 
         this.add(northPanel, BorderLayout.NORTH);
         this.add(centerPanel, BorderLayout.CENTER);
@@ -72,11 +108,11 @@ public class AboutPanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JEditorPane editorPane = createEditorPane("about.html");
-        JScrollPane scrollPane = new JScrollPane(editorPane);
+        JScrollPane scrollPane = new JScrollPane(createEditorPane("about.html"));
+        scrollPane.setBorder(null);
 
         panel.add(scrollPane);
-        panel.add(Box.createVerticalStrut(16));
+        panel.add(Box.createVerticalStrut(INSET));
         panel.add(createButtonPanel());
 
         return panel;

@@ -38,7 +38,7 @@ public class MainTabGroup extends JTabbedPane implements ParserTableModelObserve
 
     private void initComponents() {
         parserPanel = new ParserPanel(this.montoyaApi, this.myHttpRequests);
-        aboutPanel = new AboutPanel();
+        aboutPanel = new AboutPanel(this.montoyaApi);
         parametersPanel = new ParametersPanel(this.montoyaApi, this.myHttpRequests);
 
         addTab("Parser", parserPanel);
