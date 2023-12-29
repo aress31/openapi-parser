@@ -1,6 +1,6 @@
-# swurg
+# openapi-parser
 
-[![Java CI with Gradle](https://github.com/aress31/swurg/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/aress31/swurg/actions/workflows/gradle-build.yml)
+[![Java CI with Gradle](https://github.com/aress31/openapi-parser/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/aress31/openapi-parser/actions/workflows/gradle-build.yml)
 <a href="https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c"><img alt="bapp store" src="https://img.shields.io/badge/BApp-Published-orange.svg"></a>
 <a href="https://www.java.com"><img alt="lang" src="https://img.shields.io/badge/Lang-Java-blue.svg"></a>
 <a href="https://opensource.org/licenses/Apache-2.0"><img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-red.svg"></a>
@@ -9,7 +9,7 @@
 > [!UPDATE]
 > This extension has been updated to use the latest [Burp Montoya Java API](https://portswigger.github.io/burp-extensions-montoya-api/javadoc/burp/api/montoya/package-summary.html). The extension has undergone a complete overhaul to improve both its `UI`/`UX` and performance. These changes ensure that the extension is modern and optimised for use.
 
-## Swurg is a `Burp Suite` extension designed for `OpenAPI`-based `API` testing
+## openapi-parser is a `Burp Suite` extension designed for `OpenAPI`-based `API` testing
 
 > The `OpenAPI` Specification (`OAS`) defines a standard, programming language-agnostic interface description for `REST` `APIs`, which allows both humans and computers to discover and understand the capabilities of a service without requiring access to source code, additional documentation, or inspection of network traffic. When properly defined via `OpenAPI`, a consumer can understand and interact with the remote service with a minimal amount of implementation logic. Similar to what interface descriptions have done for lower-level programming, the `OpenAPI` Specification removes guesswork in calling a service.
 >
@@ -19,7 +19,7 @@
 
 Performing security assessment of `OpenAPI`-based `APIs` can be a tedious task due to `Burp Suite` (industry standard) lacking native `OpenAPI` parsing capabilities. A solution to this situation, is to use third-party tools (e.g. `SOAP-UI`) or to implement custom scripts (often on a per engagement basis) to handle the parsing of `OpenAPI` documents and integrate/chain the results to `Burp Suite` to use its first class scanning capabilities.
 
-Swurg is an `OpenAPI` parser that aims to streamline this entire process by allowing security professionals to use `Burp Suite` as a standalone tool for security assessment of `OpenAPI`-based `APIs`.
+openapi-parser is an `OpenAPI` parser that aims to streamline this entire process by allowing security professionals to use `Burp Suite` as a standalone tool for security assessment of `OpenAPI`-based `APIs`.
 
 ## Features
 
@@ -45,7 +45,7 @@ Swurg is an `OpenAPI` parser that aims to streamline this entire process by allo
 
 ### 2. Build tool
 
-- Gradle: `Version 8.5` or later (recommended). The [build.gradle](https://github.com/aress31/swurg/blob/main/lib/build.gradle) file is provided in the project repository.
+- Gradle: `Version 8.5` or later (recommended). The [build.gradle](https://github.com/aress31/openapi-parser/blob/main/lib/build.gradle) file is provided in the project repository.
 
 ### 3. Environment variables
 
@@ -59,11 +59,11 @@ Please ensure that all system requirements, including a compatible version of `B
 
 1. Ensure you have [Gradle](https://gradle.org/) installed and configured.
 
-2. Download the `swurg` repository:
+2. Download the `openapi-parser` repository:
 
    ```bash
-   git clone https://github.com/aress31/swurg
-   cd .\swurg\
+   git clone https://github.com/aress31/openapi-parser
+   cd .\openapi-parser\
    ```
 
 3. Build the standalone `jar`:
@@ -74,7 +74,7 @@ Please ensure that all system requirements, including a compatible version of `B
 
 ### 2. Loading the Extension Into `Burp Suite`
 
-To install `swurg` in `Burp Suite`, first go to the `Extensions` tab and click on the `Add` button. Then, select the `swurg-all` jar file located in the `.\build\libs` folder to load the extension.
+To install `openapi-parser` in `Burp Suite`, first go to the `Extensions` tab and click on the `Add` button. Then, select the `openapi-parser-all` jar file located in the `.\build\libs` folder to load the extension.
 
 Alternatively, you can skip the [Compilation](#1-compilation) step entirely and download the extension directly from the [BApp Store](https://portswigger.net/bappstore/6bf7574b632847faaaa4eb5e42f1757c).
 
@@ -108,13 +108,13 @@ If this extension has saved you time and hassle during a security assessment, co
 
 Did you find a bug? Well, don't just let it crawl around! Let's squash it together like a couple of bug whisperers! 🐛💪
 
-Please report any issues on the [GitHub issues tracker](https://github.com/aress31/swurg/issues). Together, we'll make this extension as reliable as a cockroach surviving a nuclear apocalypse! 🚀
+Please report any issues on the [GitHub issues tracker](https://github.com/aress31/openapi-parser/issues). Together, we'll make this extension as reliable as a cockroach surviving a nuclear apocalypse! 🚀
 
 ## Contributing
 
 Looking to make a splash with your mad coding skills? 💻
 
-Awesome! Contributions are welcome and greatly appreciated. Please submit all PRs on the [GitHub pull requests tracker](https://github.com/aress31/swurg/pulls). Together we can make this extension even more amazing! 🚀
+Awesome! Contributions are welcome and greatly appreciated. Please submit all PRs on the [GitHub pull requests tracker](https://github.com/aress31/openapi-parser/pulls). Together we can make this extension even more amazing! 🚀
 
 ## License
 
