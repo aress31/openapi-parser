@@ -85,14 +85,16 @@ _Note: The version distributed on the [BApp Store](https://portswigger.net/bapps
 - [ ] Beautify the graphical user interface.
 - [ ] Deep parsing of `OpenAPI` schemas to collect all nested parameters along with their example/type.
 - [ ] Code simplification/refactoring.
-  - [ ] Use `MyHttpRequest` instead of `RequestWithMetadata`.
+  - [x] Use `MyHttpRequest` instead of `RequestWithMetadata`.
 - [x] Enable cells editing to change `API` calls directly from the `GUI`.
 - [ ] Fix the custom request editor tab to work properly with intercepted requests based on the match and replace rulesets.
 - [x] Further optimise the source code.
 - [ ] Implement support for authenticated testing (via user-supplied `API`-keys).
 - [x] Improve the `Param` column by adding parameters type (e.g. `inquery`, `inbody`).
-- [ ] Improve the tables and context menus.
+- [x] Improve the tables and context menus.
 - [x] Increase the extension verbosity (via the bottom panel).
+
+See [TODO](TODO.md) for additional outstanding tasks.
 
 ## Project Information
 
