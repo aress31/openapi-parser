@@ -25,9 +25,9 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
     Map<Object, Color> newRowHighlightColors = new HashMap<>();
     rowHighlightColors.forEach((currentRowId, color) -> {
       int currentRowIndex = (int) currentRowId;
-      if (currentRowIndex > clearedRowIndex) {
+      if (currentRowIndex > clearedRowIndex)
         currentRowIndex--;
-      }
+
       newRowHighlightColors.put(currentRowIndex, color);
     });
 
@@ -51,16 +51,15 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
     if (isSelected && highlightColor != null) {
       c.setForeground(Color.BLACK);
       c.setBackground(blendColors(table.getSelectionBackground(), highlightColor, 0.5f));
-    } else if (isSelected) {
+    } else if (isSelected)
       c.setBackground(table.getSelectionBackground());
-    } else if (highlightColor != null) {
+    else if (highlightColor != null) {
       c.setForeground(Color.BLACK);
       c.setBackground(highlightColor);
-    } else if (row % 2 != 0) {
+    } else if (row % 2 != 0)
       c.setBackground(alternateColor);
-    } else {
+    else
       c.setBackground(table.getBackground());
-    }
 
     return c;
   }
@@ -73,5 +72,4 @@ public class CustomTableCellRenderer extends DefaultTableCellRenderer {
 
     return new Color(red, green, blue);
   }
-
 }

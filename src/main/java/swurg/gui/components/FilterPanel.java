@@ -7,35 +7,55 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.TableRowSorter;
 
 public class FilterPanel extends JPanel {
-    private final JTextField filterTextField;
+
     private final TableRowSorter<?> tableRowSorter;
 
-    public FilterPanel(JTextField filterTextField, TableRowSorter<?> tableRowSorter) {
-        this.filterTextField = filterTextField;
+    private final JLabel eastLabel = new JLabel("0 hits");
+    private final JTextField filterTextField = new JTextField(32);
+
+    public FilterPanel(TableRowSorter<?> tableRowSorter) {
         this.tableRowSorter = tableRowSorter;
 
-        this.add(new JLabel("Filter (regular expression, case-sensitive):"));
-        // Prevents JTextField from collapsing on resizes...
-        this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
-        this.add(this.filterTextField);
+        initComponents();
 
-        this.setUpFilterTextField();
+        addDocumentListener();
     }
 
-    private void setUpFilterTextField() {
+    public void initComponents() {
+        // Ensures JTextField size stability during resizing...
+        this.filterTextField.setMinimumSize(new Dimension(this.filterTextField.getPreferredSize()));
+
+        this.add(new JLabel("Filter (regex, case-sensitive):"));
+        this.add(this.filterTextField);
+        this.add(this.eastLabel);
+    }
+
+    private void addDocumentListener() {
         this.filterTextField.getDocument().addDocumentListener(new DocumentListener() {
             private void updateFilter() {
-                String regex = filterTextField.getText();
-                try {
-                    tableRowSorter.setRowFilter(regex.isEmpty() ? null : RowFilter.regexFilter(regex));
-                } catch (PatternSyntaxException e) {
-                    // Display an error message if the regex pattern is invalid
-                }
+                SwingUtilities.invokeLater(() -> {
+                    String regex = filterTextField.getText();
+
+                    try {
+                        if (regex.isBlank()) {
+                            tableRowSorter.setRowFilter(null);
+                            eastLabel.setText("0 hits");
+                        } else {
+                            tableRowSorter.setRowFilter(RowFilter.regexFilter(regex));
+
+                            int rowCount = tableRowSorter.getViewRowCount();
+                            eastLabel.setText(String.format("%d hit%s", rowCount, (rowCount != 1 ? "s" : "")));
+                        }
+                    } catch (PatternSyntaxException e) {
+                        // Show an error message if the regex pattern is invalid.
+                    }
+                });
             }
 
             @Override
@@ -50,7 +70,7 @@ public class FilterPanel extends JPanel {
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                // No action needed
+                // TODO Auto-generated method stub
             }
         });
     }

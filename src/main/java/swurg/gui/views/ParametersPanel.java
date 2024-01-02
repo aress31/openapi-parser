@@ -2,28 +2,34 @@ package swurg.gui.views;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Frame;
+
 import java.awt.event.ItemEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import burp.api.montoya.http.message.requests.HttpRequest;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
-import burp.api.montoya.logging.Logging;
 import burp.http.MyHttpParameter;
+import burp.http.MyHttpRequest;
 import burp.api.montoya.http.handler.HttpHandler;
 import burp.api.montoya.http.handler.HttpRequestToBeSent;
 import burp.api.montoya.http.handler.HttpResponseReceived;
 import burp.api.montoya.http.handler.RequestToBeSentAction;
 import burp.api.montoya.http.handler.ResponseReceivedAction;
 import burp.api.montoya.http.message.params.HttpParameter;
-import burp.api.montoya.core.Annotations;
+import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.core.ToolType;
 
 import burp.api.montoya.MontoyaApi;
@@ -32,20 +38,19 @@ import swurg.gui.components.menus.ParametersContextMenu;
 import swurg.gui.components.tables.TablePanel;
 import swurg.gui.components.tables.models.ParametersTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
-import swurg.observers.ParametersPanelObserver;
+import swurg.observers.TableModelObserver;
 import swurg.utilities.HtmlResourceLoader;
-import swurg.utilities.RequestWithMetadata;
 
 public class ParametersPanel extends JPanel
-        implements HttpHandler, ParametersPanelObserver {
+        implements HttpHandler, TableModelObserver {
 
-    private Logging logging;
+    private final MontoyaApi montoyaApi;
+    private final Frame suiteFrame;
 
-    private transient List<ToolType> toolsInScope = new ArrayList<>();
+    private final ParametersTableModel parametersTableModel;
 
-    private ParametersTableModel parametersTableModel;
-
-    private List<ToolType> toolsMap = List.of(
+    private final List<ToolType> toolsInScope = new ArrayList<>();
+    private final List<ToolType> toolsMap = List.of(
             ToolType.EXTENSIONS,
             ToolType.INTRUDER,
             ToolType.PROXY,
@@ -54,145 +59,161 @@ public class ParametersPanel extends JPanel
             ToolType.SEQUENCER,
             ToolType.TARGET);
 
-    private List<RequestWithMetadata> requestWithMetadatas;
+    private JScrollPane scrollPane;
 
-    public ParametersPanel(MontoyaApi montoyaApi, List<RequestWithMetadata> requestWithMetadatas) {
-        this.logging = montoyaApi.logging();
-        this.requestWithMetadatas = requestWithMetadatas;
+    public ParametersPanel(MontoyaApi montoyaApi) {
+        this.montoyaApi = montoyaApi;
+        this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
 
-        parametersTableModel = ParametersTableModel.fromRequestWithMetadataList(requestWithMetadatas);
+        this.parametersTableModel = new ParametersTableModel();
 
         initComponents();
+        addComponentListeners();
     }
 
-    @Override
-    public void onRequestWithMetadatasUpdate() {
-        parametersTableModel.updateData(requestWithMetadatas);
+    private void addComponentListeners() {
+        this.addComponentListener(new ComponentAdapter() {
+            private void setScrollPanePreferredSize() {
+                int newWidth = (int) (suiteFrame.getWidth() * 0.25);
+                int newHeight = suiteFrame.getHeight() - 210;
 
+                scrollPane.setPreferredSize(new Dimension(newWidth, newHeight));
+            }
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setScrollPanePreferredSize();
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                setScrollPanePreferredSize();
+            }
+        });
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
 
-        JPanel northPanel = createNorthPanel();
         TablePanel tablePanel = new TablePanel(parametersTableModel, new CustomTableCellRenderer());
-        ParametersContextMenu contextMenu = new ParametersContextMenu(tablePanel.getTable());
+        ParametersContextMenu contextMenu = new ParametersContextMenu(this.montoyaApi, tablePanel.getTable());
         tablePanel.setContextMenu(contextMenu);
-        JPanel eastPanel = createEastPanel();
-        JPanel southPanel = new StatusPanel();
 
-        add(northPanel, BorderLayout.NORTH);
-        add(southPanel, BorderLayout.SOUTH);
-
-        // add a nested JPanel with a GridBagLayout to the CENTER of the main container
-        JPanel centerContainer = new JPanel(new GridBagLayout());
-        add(centerContainer, BorderLayout.CENTER);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 3;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 0.75;
-        gbc.weighty = 1.0;
-        centerContainer.add(tablePanel, gbc);
-
-        gbc.gridx = 3;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.25;
-        centerContainer.add(eastPanel, gbc);
-
-        // set the preferred sizes of the center and east panels
-        tablePanel.setPreferredSize(new Dimension(0, 0));
-        eastPanel.setPreferredSize(new Dimension(0, 0));
+        this.add(createNorthPanel(), BorderLayout.NORTH);
+        this.add(tablePanel, BorderLayout.CENTER);
+        this.add(createEastPanel(), BorderLayout.EAST);
+        this.add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
     private JPanel createNorthPanel() {
         JPanel northPanel = new JPanel();
         northPanel.setBorder(BorderFactory.createTitledBorder("Match/Replace Scope"));
 
-        for (ToolType tool : toolsMap) {
+        toolsMap.forEach(tool -> {
             JCheckBox checkBox = new JCheckBox(tool.name());
             checkBox.setSelected(tool.equals(ToolType.PROXY) || tool.equals(ToolType.REPEATER));
 
-            if (checkBox.isSelected()) {
+            if (checkBox.isSelected())
                 toolsInScope.add(tool);
-            }
 
             checkBox.addItemListener(e -> {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
+                if (e.getStateChange() == ItemEvent.SELECTED)
                     toolsInScope.add(tool);
-                } else {
+                else
                     toolsInScope.remove(tool);
-                }
             });
 
             northPanel.add(checkBox);
-        }
+        });
 
         return northPanel;
     }
 
     private JPanel createEastPanel() {
-        String htmlContent = HtmlResourceLoader.loadHtmlContent("howToText.html");
-        JLabel label = new JLabel(htmlContent);
-        label.putClientProperty("html.disable", null);
+        JPanel panel = new JPanel();
+        panel.setBorder(BorderFactory.createTitledBorder("How To"));
 
-        JPanel eastPanel = new JPanel(new GridBagLayout());
-        eastPanel.setBorder(BorderFactory.createTitledBorder("How To"));
+        this.scrollPane = new JScrollPane(createEditorPane("howTo.html"));
+        this.scrollPane.setBorder(null);
 
-        GridBagConstraints gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new Insets(4, 8, 4, 8);
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
+        panel.add(this.scrollPane);
 
-        eastPanel.add(label, gridBagConstraints);
+        return panel;
+    }
 
-        return eastPanel;
+    private JEditorPane createEditorPane(String resourcePath) {
+        String htmlContent = HtmlResourceLoader.loadHtmlContent(resourcePath);
+
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setContentType("text/html");
+        editorPane.setText(htmlContent);
+        editorPane.setEditable(false);
+
+        return editorPane;
     }
 
     @Override
     public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent httpRequestToBeSent) {
-        Annotations annotations = httpRequestToBeSent.annotations();
-        HttpRequest updatedHttpRequest = httpRequestToBeSent;
-
-        for (ToolType toolInScope : toolsInScope) {
-            if (httpRequestToBeSent.toolSource().isFromTool(toolInScope)) {
-                updatedHttpRequest = updateRequestParameters(httpRequestToBeSent);
-            }
+        if (!httpRequestToBeSent.hasParameters()) {
+            return RequestToBeSentAction.continueWith(httpRequestToBeSent);
         }
 
-        // Return the modified request to Burp with updated annotations.
-        return RequestToBeSentAction.continueWith(updatedHttpRequest, annotations);
-    }
+        ToolType matchingTool = toolsInScope.stream()
+                .filter(toolInScope -> httpRequestToBeSent.toolSource().isFromTool(toolInScope))
+                .findFirst()
+                .orElse(null);
 
-    private HttpRequest updateRequestParameters(HttpRequestToBeSent httpRequestToBeSent) {
-        HttpRequest updatedHttpRequest = httpRequestToBeSent;
-
-        for (HttpParameter httpParameterToBeSent : httpRequestToBeSent.parameters()) {
-            for (MyHttpParameter httpParameter : this.parametersTableModel.getHttpParameters()) {
-                if (shouldProcessParameter(httpParameterToBeSent, httpParameter)) {
-
-                    MyHttpParameter editedParameter = new MyHttpParameter(httpParameterToBeSent);
-                    editedParameter.setValue(httpParameter.getEditedValue());
-
-                    updatedHttpRequest = updatedHttpRequest.withUpdatedParameters(editedParameter);
-                    break;
-                }
-            }
+        if (matchingTool != null) {
+            HttpRequest updatedHttpRequest = updateHttpRequestToBeSent(httpRequestToBeSent,
+                    this.parametersTableModel.getMyHttpParameters());
+            return RequestToBeSentAction.continueWith(updatedHttpRequest);
         }
 
-        return updatedHttpRequest;
+        return RequestToBeSentAction.continueWith(httpRequestToBeSent);
     }
 
-    private boolean shouldProcessParameter(HttpParameter httpParameterToBeSent, MyHttpParameter httpParameter) {
-        return httpParameter.equals(httpParameterToBeSent) && httpParameter.getEditedValue() != null;
+    private HttpRequest updateHttpRequestToBeSent(HttpRequestToBeSent httpRequestToBeSent,
+            Set<MyHttpParameter> tableParameters) {
+        List<ParsedHttpParameter> parsedParametersToBeSent = httpRequestToBeSent.parameters();
+        List<HttpParameter> updatedParameters = new ArrayList<>();
+
+        parsedParametersToBeSent.forEach(parsedParameterToBeSent -> {
+            HttpParameter parameterToBeSent = HttpParameter.parameter(
+                    parsedParameterToBeSent.name(),
+                    parsedParameterToBeSent.value(),
+                    parsedParameterToBeSent.type());
+
+            tableParameters.stream()
+                    .filter(tableHttpParameter -> parameterToBeSent.equals(tableHttpParameter.getHttpParameter())
+                            && tableHttpParameter.getEditedValue() != null)
+                    .findFirst()
+                    .ifPresent(tableParameter -> {
+                        HttpParameter updatedParameter = HttpParameter.parameter(
+                                parameterToBeSent.name(),
+                                tableParameter.getEditedValue(),
+                                parameterToBeSent.type());
+                        updatedParameters.add(updatedParameter);
+                    });
+        });
+
+        return httpRequestToBeSent.withUpdatedParameters(updatedParameters);
     }
 
     @Override
     public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived) {
         return ResponseReceivedAction.continueWith(responseReceived);
+    }
+
+    @Override
+    public void onMyHttpRequestsUpdate(int event, List<MyHttpRequest> myHttpRequests) {
+        Set<MyHttpParameter> myHttpParameters = myHttpRequests.stream()
+                .flatMap(myHttpRequest -> myHttpRequest.getHttpRequest().parameters().stream()
+                        .map(myHttpParameter -> MyHttpParameter.builder()
+                                .httpParameter(HttpParameter.parameter(myHttpParameter.name(), myHttpParameter.value(),
+                                        myHttpParameter.type()))
+                                .build()))
+                .collect(Collectors.toSet());
+
+        parametersTableModel.setMyHttpParameters(myHttpParameters);
     }
 }

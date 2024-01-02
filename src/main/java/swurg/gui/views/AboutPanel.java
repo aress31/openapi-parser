@@ -7,62 +7,84 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Font;
+import java.awt.Frame;
+
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JLabel;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+
 import org.apache.batik.swing.JSVGCanvas;
 
+import burp.api.montoya.MontoyaApi;
 import swurg.gui.components.StatusPanel;
 import swurg.utilities.HtmlResourceLoader;
 
 public class AboutPanel extends JPanel {
 
-    public AboutPanel() {
+    private final int INSET = 16;
+
+    private final Frame suiteFrame;
+
+    private JPanel northPanel;
+
+    public AboutPanel(MontoyaApi montoyaApi) {
+        this.suiteFrame = montoyaApi.userInterface().swingUtils().suiteFrame();
+
         initComponents();
+        addComponentListeners();
+    }
+
+    private void addComponentListeners() {
+        this.addComponentListener(new ComponentAdapter() {
+            private void setNorthPanelPreferredHeight() {
+                int newHeight = (int) (suiteFrame.getHeight() * 0.2);
+
+                northPanel.setPreferredSize(
+                        new Dimension(northPanel.getPreferredSize().width, newHeight));
+            }
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setNorthPanelPreferredHeight();
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                setNorthPanelPreferredHeight();
+            }
+        });
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        this.setLayout(new BorderLayout());
+        this.setBorder(new EmptyBorder(this.INSET, this.INSET, 0, this.INSET));
 
-        JPanel centerPanel = createCenterPanel();
+        this.northPanel = createNorthPanel();
+        this.northPanel.setBorder(new EmptyBorder(0, 0, this.INSET, 0));
 
-        add(centerPanel, BorderLayout.CENTER);
-        add(new StatusPanel(), BorderLayout.SOUTH);
+        this.add(northPanel, BorderLayout.NORTH);
+        this.add(createCenterPanel(), BorderLayout.CENTER);
+        this.add(new StatusPanel(), BorderLayout.SOUTH);
     }
 
-    private JPanel createCenterPanel() {
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-
-        JPanel svgCanvas = createSvgCanvas();
-        centerPanel.add(svgCanvas);
-
-        JPanel mainPanel = createContentPanel();
-        centerPanel.add(mainPanel);
-
-        JPanel centerContainer = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.CENTER;
-        centerContainer.add(centerPanel, gbc);
-
-        return centerContainer;
-    }
-
-    private JPanel createSvgCanvas() {
-        JPanel svgContainer = new JPanel(new BorderLayout());
+    private JPanel createNorthPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
         JSVGCanvas svgCanvas = new JSVGCanvas();
-
-        svgContainer.setPreferredSize(new Dimension(512, 512)); // Set fixed size
 
         try {
             URI svgFileURI = getClass().getResource("/images/logo.svg").toURI();
@@ -74,52 +96,40 @@ public class AboutPanel extends JPanel {
         svgCanvas.setOpaque(false);
         svgCanvas.setBackground(new Color(0, 0, 0, 0));
 
-        svgContainer.add(svgCanvas, BorderLayout.CENTER);
+        panel.add(svgCanvas, BorderLayout.CENTER);
 
-        return svgContainer;
+        return panel;
     }
 
-    private JPanel createContentPanel() {
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.NORTHWEST;
+    private JPanel createCenterPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JLabel textLabel = createTextLabel();
-        textLabel.setMaximumSize(new Dimension(400, textLabel.getPreferredSize().height));
-        mainPanel.add(textLabel, gbc);
+        JScrollPane scrollPane = new JScrollPane(createEditorPane("about.html"));
+        scrollPane.setBorder(null);
 
-        gbc.gridy++;
-        JPanel buttonPanel = createButtonPanel();
-        mainPanel.add(buttonPanel, gbc);
+        panel.add(scrollPane);
+        panel.add(Box.createVerticalStrut(this.INSET));
+        panel.add(createButtonPanel());
 
-        return mainPanel;
+        return panel;
     }
 
-    private JLabel createTextLabel() {
-        String htmlContent = HtmlResourceLoader.loadHtmlContent("howToText.html");
-
+    private JEditorPane createEditorPane(String resourcePath) {
+        String htmlContent = HtmlResourceLoader.loadHtmlContent(resourcePath);
         String formattedHtmlContent = MessageFormat.format(htmlContent, VERSION, EXTENSION);
 
-        JLabel label = new JLabel(formattedHtmlContent);
-        label.putClientProperty("html.disable", null);
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setContentType("text/html");
+        editorPane.setText(formattedHtmlContent);
+        editorPane.setEditable(false);
 
-        return label;
+        return editorPane;
     }
 
     private JPanel createButtonPanel() {
-        JPanel buttonPanel = new JPanel(new GridBagLayout());
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
         Map<String, String> buttonMap = Map.of(
                 "<html>Get in touch with <b>Aegis Cyber</b></html>", "https://www.aegiscyber.co.uk",
@@ -127,25 +137,28 @@ public class AboutPanel extends JPanel {
                 "<html>Follow me on <b>GitHub</b></html>", "https://github.com/aress31",
                 "<html>Submit a <b>pull request</b> or report a <b>bug</b></html>", "https://github.com/aress31/swurg");
 
-        for (Map.Entry<String, String> entry : buttonMap.entrySet()) {
-            JButton button = new JButton();
+        buttonMap.forEach((key, value) -> {
+            JButton button = new JButton(key);
             button.putClientProperty("html.disable", null);
-            button.setPreferredSize(new Dimension(192, 40));
-            button.setText(entry.getKey());
+            button.setAlignmentX(CENTER_ALIGNMENT);
+
             button.addActionListener(e -> {
                 try {
-                    Desktop.getDesktop().browse(new URI(entry.getValue()));
+                    Desktop.getDesktop().browse(new URI(value));
                 } catch (IOException | URISyntaxException ex) {
                     // Do nothing
                 }
             });
 
-            gbc.gridwidth = GridBagConstraints.REMAINDER; // Set gridwidth to REMAINDER
-            gbc.insets = new Insets(5, 5, (gbc.gridy == buttonMap.size() - 1 ? 20 : 5), 5); // Add extra space before
-                                                                                            // last button
-            buttonPanel.add(button, gbc);
-            gbc.gridy++; // Increment gridy
-        }
+            if (key.equals(buttonMap.keySet().iterator().next())) {
+                button.setBackground(UIManager.getColor("Burp.burpOrange"));
+                button.setFont(new Font(button.getFont().getName(), Font.BOLD, button.getFont().getSize()));
+                button.setForeground(UIManager.getColor("Burp.primaryButtonForeground"));
+            }
+
+            buttonPanel.add(button);
+            buttonPanel.add(Box.createVerticalStrut(4));
+        });
 
         return buttonPanel;
     }

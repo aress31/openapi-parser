@@ -2,126 +2,100 @@ package swurg.gui.components.tables.models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
-import burp.api.montoya.http.message.requests.HttpRequest;
-import lombok.Data;
-import swurg.observers.ParserTableModelObserver;
-import swurg.observers.ParametersPanelObserver;
-import swurg.utilities.RequestWithMetadata;
+import burp.api.montoya.http.message.params.HttpParameterType;
+import burp.api.montoya.http.message.params.ParsedHttpParameter;
+import burp.http.MyHttpRequest;
+import lombok.Getter;
+import swurg.observers.TableModelObserver;
 
-@Data
 public class ParserTableModel extends AbstractTableModel {
 
-    private List<RequestWithMetadata> requestWithMetadatas;
-    private String[] columnNames = { "#", "Method", "Server", "Path", "Parameters (COOKIE, URL)", "Description" };
+    private final String[] columnNames = { "#", "Scheme", "Method", "Server", "Path", "Parameters (COOKIE, URL)",
+            "Description" };
 
-    // Add a list to hold the observers
-    private List<ParserTableModelObserver> observers = new ArrayList<>();
-    private List<ParametersPanelObserver> parametersPanelObservers = new ArrayList<>();
+    @Getter
+    private final List<MyHttpRequest> myHttpRequests = new ArrayList<MyHttpRequest>();
 
+    private final List<TableModelObserver> observers = new ArrayList<>();
 
-    public ParserTableModel(List<RequestWithMetadata> requestWithMetadatas) {
-        this.requestWithMetadatas = requestWithMetadatas;
+    public void addRows(List<MyHttpRequest> myHttpRequests) {
+        this.myHttpRequests.addAll(myHttpRequests);
+        fireTableDataChanged();
+        notifyObservers(TableModelEvent.INSERT);
     }
 
-    public void addRow(RequestWithMetadata requestWithMetadata) {
-        int rowCount = getRowCount();
-        requestWithMetadatas.add(requestWithMetadata);
-        fireTableRowsInserted(rowCount, rowCount);
-        notifyObservers();
-    }
-
-    public void removeRow(int rowIndex) {
-        requestWithMetadatas.remove(rowIndex);
-        fireTableRowsDeleted(rowIndex, rowIndex);
-        notifyObservers();
+    public void removeRow(int index) {
+        this.myHttpRequests.remove(index);
+        fireTableRowsDeleted(index, index);
+        notifyObservers(TableModelEvent.DELETE);
     }
 
     public void clear() {
-        requestWithMetadatas.clear();
+        this.myHttpRequests.clear();
         fireTableDataChanged();
-        notifyObservers();
+        notifyObservers(TableModelEvent.DELETE);
     }
 
-    // Add a method to register observers
-    public void registerObserver(ParserTableModelObserver observer) {
-        observers.add(observer);
+    public void registerObserver(TableModelObserver observer) {
+        this.observers.add(observer);
     }
 
-    // Add a method to unregister observers
-    public void unregisterObserver(ParserTableModelObserver observer) {
-        observers.remove(observer);
-    }
-
-    // Add a method to notify the observers
-    private void notifyObservers() {
-        for (ParserTableModelObserver observer : observers) {
-            observer.onRequestWithMetadatasUpdate();
-        }
-        notifyParametersPanelObservers();
-    }
-
-    // Add methods to register, unregister, and notify ParametersPanel observers
-    public void registerParametersPanelObserver(ParametersPanelObserver observer) {
-        parametersPanelObservers.add(observer);
-    }
-
-    public void unregisterParametersPanelObserver(ParametersPanelObserver observer) {
-        parametersPanelObservers.remove(observer);
-    }
-
-    private void notifyParametersPanelObservers() {
-        for (ParametersPanelObserver observer : parametersPanelObservers) {
-            observer.onRequestWithMetadatasUpdate();
-        }
-    }
-
-    public HttpRequest getHttpRequestAt(int rowIndex) {
-        return requestWithMetadatas.get(rowIndex).getHttpRequest();
+    private void notifyObservers(int event) {
+        this.observers.forEach(observer -> observer.onMyHttpRequestsUpdate(event, myHttpRequests));
     }
 
     @Override
     public int getRowCount() {
-        return requestWithMetadatas.size();
+        return this.myHttpRequests.size();
     }
 
     @Override
     public int getColumnCount() {
-        return columnNames.length;
+        return this.columnNames.length;
     }
 
     @Override
     public String getColumnName(int column) {
-        return columnNames[column];
+        return this.columnNames[column];
     }
 
     @Override
     public Class<?> getColumnClass(int column) {
-        if (column == 0) {
+        if (column == 0)
             return Integer.class;
-        }
+
         return super.getColumnClass(column);
     }
 
     @Override
     public Object getValueAt(int row, int column) {
-        RequestWithMetadata requestWithMetadata = requestWithMetadatas.get(row);
+        MyHttpRequest myHttpRequest = this.myHttpRequests.get(row);
 
         switch (column) {
             case 0:
                 return row;
             case 1:
-                return requestWithMetadata.getHttpRequest().method();
+                return myHttpRequest.getHttpRequest().httpService().secure() ? "HTTPS" : "HTTP";
             case 2:
-                return requestWithMetadata.getHttpRequest().httpService().host();
+                return myHttpRequest.getHttpRequest().method();
             case 3:
-                return requestWithMetadata.getHttpRequest().path();
+                return myHttpRequest.getHttpRequest().httpService().host();
             case 4:
-                return requestWithMetadata.getParameters();
+                return myHttpRequest.getHttpRequest().path();
             case 5:
-                return requestWithMetadata.getDescription() != null ? requestWithMetadata.getDescription() : "N/A";
+                return myHttpRequest.getHttpRequest().parameters()
+                        .stream()
+                        .filter(parameter -> parameter.type() == HttpParameterType.COOKIE
+                                || parameter.type() == HttpParameterType.URL)
+                        .map(ParsedHttpParameter::name)
+                        .collect(Collectors.joining(", "));
+            case 6:
+                return myHttpRequest.getDescription() != null ? myHttpRequest.getDescription() : "N/A";
             default:
                 throw new IllegalArgumentException("Invalid column index");
         }

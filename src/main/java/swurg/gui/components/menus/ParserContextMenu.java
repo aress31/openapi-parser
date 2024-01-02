@@ -20,86 +20,60 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.HighlightColor;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.scanner.AuditConfiguration;
 import burp.api.montoya.scanner.BuiltInAuditConfiguration;
+import burp.api.montoya.ui.swing.SwingUtils;
 import swurg.gui.components.tables.models.ParserTableModel;
 import swurg.gui.components.tables.renderers.CustomTableCellRenderer;
 
 public class ParserContextMenu extends JPopupMenu {
 
-  private MontoyaApi montoyaApi;
-  private JTable table;
+  private final MontoyaApi montoyaApi;
+  private final SwingUtils swingUtils;
+
+  private final JTable table;
 
   public ParserContextMenu(MontoyaApi montoyaApi, JTable table) {
     this.montoyaApi = montoyaApi;
+    this.swingUtils = montoyaApi.userInterface().swingUtils();
+
     this.table = table;
 
     initComponents();
   }
 
   private void initComponents() {
-    JMenuItem copyToClipboard = createCopyToClipboardMenuItem();
+    this.add(createCopyToClipboardMenuItem());
+    this.add(new JSeparator());
 
-    JMenuItem addToScope = createAddToScopeMenuItem();
-    JMenuItem addToSiteMap = createAddToSiteMapMenuItem();
-    JMenuItem sendToActiveScan = createSendToActiveScanMenuItem();
-    JMenuItem sendToPassiveScan = createSendToPassiveScanMenuItem();
-    JMenuItem sendToIntruder = createSendToIntruderMenuItem();
-    JMenuItem sendToRepeater = createSendToRepeaterMenuItem();
-    JMenuItem sendToComparer = createSendToComparerMenuItem();
-    JMenu highlightMenu = createHighlightMenu();
-    JMenuItem clearItems = createClearItemsMenuItem();
-    JMenuItem clearAll = createClearAllMenuItem();
+    this.add(createAddToScopeMenuItem());
+    this.add(new JSeparator());
 
-    this.add(copyToClipboard);
+    this.add(createSendToPassiveScanMenuItem());
+    this.add(createSendToActiveScanMenuItem());
     this.add(new JSeparator());
-    this.add(addToScope);
+
+    this.add(createSendToIntruderMenuItem());
+    this.add(createSendToRepeaterMenuItem());
+    this.add(createSendToOrganizerMenuItem());
+    this.add(createSendToComparerMenuItem());
     this.add(new JSeparator());
-    this.add(sendToPassiveScan);
-    this.add(sendToActiveScan);
+
+    this.add(createHighlightMenu());
+    this.add(createClearItemsMenuItem());
+    this.add(createClearAllMenuItem());
     this.add(new JSeparator());
-    this.add(sendToIntruder);
-    this.add(sendToRepeater);
-    this.add(sendToComparer);
-    this.add(new JSeparator());
-    this.add(highlightMenu);
-    this.add(clearItems);
-    this.add(clearAll);
-    this.add(new JSeparator());
-    this.add(addToSiteMap);
+
+    this.add(createAddToSiteMapMenuItem());
   }
 
-  private JMenuItem createCopyToClipboardMenuItem() {
-    JMenuItem copyToClipboard = new JMenuItem();
-
-    table.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        JTable source = (JTable) e.getSource();
-        int row = source.rowAtPoint(e.getPoint());
-        int column = source.columnAtPoint(e.getPoint());
-
-        if (!source.isRowSelected(row))
-          source.changeSelection(row, column, false, false);
-
-        int index = table.getSelectedRow();
-        HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
-
-        copyToClipboard.setText(httpRequest.url());
-      }
-    });
-
-    copyToClipboard.addActionListener(e -> {
-      int index = table.getSelectedRow();
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
-
-      Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(httpRequest.url()), null);
-    });
-
-    return copyToClipboard;
+  private HttpRequest getHttpRequestAt(int index) {
+    ParserTableModel parserTableModel = (ParserTableModel) table.getModel();
+    return parserTableModel.getMyHttpRequests().get(index).getHttpRequest();
   }
 
   private void processSelectedRows(Consumer<Integer> action) {
@@ -110,16 +84,41 @@ public class ParserContextMenu extends JPopupMenu {
         });
   }
 
-  private HttpRequest getHttpRequestFromSelectedIndex(int index) {
-    ParserTableModel parserTableModel = (ParserTableModel) table.getModel();
-    return parserTableModel.getHttpRequestAt(index);
+  private JMenuItem createCopyToClipboardMenuItem() {
+    JMenuItem copyToClipboard = new JMenuItem();
+
+    this.table.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        JTable source = (JTable) e.getSource();
+        int row = source.rowAtPoint(e.getPoint());
+        int column = source.columnAtPoint(e.getPoint());
+
+        if (!source.isRowSelected(row))
+          source.changeSelection(row, column, false, false);
+
+        int index = table.getSelectedRow();
+        HttpRequest httpRequest = getHttpRequestAt(index);
+
+        copyToClipboard.setText(httpRequest.url());
+      }
+    });
+
+    copyToClipboard.addActionListener(e -> {
+      int index = table.getSelectedRow();
+      HttpRequest httpRequest = getHttpRequestAt(index);
+
+      Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(httpRequest.url()), null);
+    });
+
+    return copyToClipboard;
   }
 
   private JMenuItem createAddToScopeMenuItem() {
     JMenuItem addToScope = new JMenuItem("Add to scope");
 
     addToScope.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.scope().includeInScope(httpRequest.url());
     }));
 
@@ -130,7 +129,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToScanner = new JMenuItem("Do passive scan");
 
     sendToScanner.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.scanner()
           .startAudit(AuditConfiguration.auditConfiguration(BuiltInAuditConfiguration.LEGACY_PASSIVE_AUDIT_CHECKS))
           .addRequest(httpRequest);
@@ -143,7 +142,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToScanner = new JMenuItem("Do active scan");
 
     sendToScanner.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.scanner()
           .startAudit(AuditConfiguration.auditConfiguration(BuiltInAuditConfiguration.LEGACY_ACTIVE_AUDIT_CHECKS))
           .addRequest(httpRequest);
@@ -156,7 +155,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToIntruder = new JMenuItem("Send to Intruder");
 
     sendToIntruder.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.intruder().sendToIntruder(httpRequest);
     }));
 
@@ -167,7 +166,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem sendToRepeater = new JMenuItem("Send to Repeater");
 
     sendToRepeater.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.repeater().sendToRepeater(httpRequest,
           String.format("%s -> %s %s",
               table.getValueAt(index, table.getColumn("Server").getModelIndex()),
@@ -178,10 +177,22 @@ public class ParserContextMenu extends JPopupMenu {
     return sendToRepeater;
   }
 
+  private JMenuItem createSendToOrganizerMenuItem() {
+    JMenuItem sendToOrganizer = new JMenuItem("Send to Organizer");
+
+    sendToOrganizer.addActionListener(e -> processSelectedRows(index -> {
+      HttpRequest httpRequest = getHttpRequestAt(index);
+      montoyaApi.organizer().sendToOrganizer(httpRequest);
+    }));
+
+    return sendToOrganizer;
+  }
+
   private JMenuItem createSendToComparerMenuItem() {
     JMenuItem sendToComparer = new JMenuItem("Send to Comparer (request)");
+
     sendToComparer.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.comparer().sendToComparer(httpRequest.toByteArray());
     }));
 
@@ -191,12 +202,12 @@ public class ParserContextMenu extends JPopupMenu {
   private JMenu createHighlightMenu() {
     JMenu highlightMenu = new JMenu("Highlight");
 
-    for (Color color : Arrays.asList(null, Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE,
-        Color.MAGENTA, Color.PINK, Color.GRAY)) {
-      JMenuItem menuItem = createHighlightMenuItem(color);
-
-      highlightMenu.add(menuItem);
-    }
+    Arrays.stream(HighlightColor.values())
+        .forEach(highlightColor -> {
+          Color color = (highlightColor.compareTo(HighlightColor.NONE) == 0) ? null
+              : this.swingUtils.colorForHighLight(highlightColor);
+          highlightMenu.add(createHighlightMenuItem(color));
+        });
 
     return highlightMenu;
   }
@@ -204,25 +215,14 @@ public class ParserContextMenu extends JPopupMenu {
   private JMenuItem createHighlightMenuItem(Color color) {
     JMenuItem menuItem = new JMenuItem();
 
+    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
+
     menuItem.setOpaque(true);
     menuItem.setBackground(color);
     menuItem.setForeground(Color.BLACK);
 
-    CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
-
-    menuItem.addActionListener(e -> {
-      int[] selectedRows = table.getSelectedRows();
-
-      // Set the highlight color for each selected row
-      for (int row : selectedRows) {
-        // Mapping view row to model row using a unique identifier
-        Object rowId = table.getValueAt(row, table.getColumn("#").getModelIndex());
-
-        SwingUtilities.invokeLater(() -> {
-          renderer.setRowHighlightColor(rowId, color);
-        });
-      }
-    });
+    menuItem.addActionListener(e -> processSelectedRows(
+        index -> SwingUtilities.invokeLater(() -> renderer.setRowHighlightColor(index, color))));
 
     return menuItem;
   }
@@ -233,27 +233,23 @@ public class ParserContextMenu extends JPopupMenu {
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
     clear.addActionListener(e -> {
-      // Get the selected rows and sort them in reverse order
+      // Retrieve the selected rows and arrange them in descending order.
       List<Integer> selectedRows = IntStream.of(table.getSelectedRows())
           .boxed()
           .sorted(Collections.reverseOrder())
           .collect(Collectors.toList());
 
-      // Remove the rows one by one from the table
+      // Remove rows individually from the table.
       SwingUtilities.invokeLater(() -> {
         ParserTableModel tableModel = (ParserTableModel) table.getModel();
-
-        for (Integer row : selectedRows) {
-          int modelRow = table.convertRowIndexToModel(row);
-          // Mapping view row to model row using a unique identifier
-          Object rowId = table.getValueAt(row, table.getColumn("#").getModelIndex());
-
+        selectedRows.forEach(index -> {
+          int modelRow = table.convertRowIndexToModel(index);
           tableModel.removeRow(modelRow);
-          renderer.clearRowHighlightColor(rowId);
-        }
+          renderer.clearRowHighlightColor(index);
+        });
       });
 
-      // Updating the rows' index (reindexing table)
+      // Reindexing the table by updating the rows' indices.
       IntStream.range(0, table.getRowCount())
           .forEach(row -> table.getModel().setValueAt(row, row, table.getColumn("#").getModelIndex()));
     });
@@ -266,13 +262,11 @@ public class ParserContextMenu extends JPopupMenu {
 
     CustomTableCellRenderer renderer = (CustomTableCellRenderer) table.getDefaultRenderer(Object.class);
 
-    clearAll.addActionListener(e -> {
-      SwingUtilities.invokeLater(() -> {
-        ParserTableModel tableModel = (ParserTableModel) table.getModel();
-        tableModel.clear();
-        renderer.clearAllRowHighlightColors();
-      });
-    });
+    clearAll.addActionListener(e -> SwingUtilities.invokeLater(() -> {
+      ParserTableModel tableModel = (ParserTableModel) table.getModel();
+      tableModel.clear();
+      renderer.clearAllRowHighlightColors();
+    }));
 
     return clearAll;
   }
@@ -281,7 +275,7 @@ public class ParserContextMenu extends JPopupMenu {
     JMenuItem addToSiteMap = new JMenuItem("Add to site map");
 
     addToSiteMap.addActionListener(e -> processSelectedRows(index -> {
-      HttpRequest httpRequest = getHttpRequestFromSelectedIndex(index);
+      HttpRequest httpRequest = getHttpRequestAt(index);
       montoyaApi.siteMap().add(HttpRequestResponse.httpRequestResponse(httpRequest, HttpResponse.httpResponse()));
     }));
 

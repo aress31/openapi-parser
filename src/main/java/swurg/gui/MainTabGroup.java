@@ -1,58 +1,53 @@
 package swurg.gui;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTabbedPane;
 
 import burp.api.montoya.MontoyaApi;
+import burp.http.MyHttpRequest;
+import lombok.Getter;
 import swurg.gui.views.AboutPanel;
 import swurg.gui.views.ParametersPanel;
 import swurg.gui.views.ParserPanel;
-import swurg.observers.ParserTableModelObserver;
-import swurg.utilities.RequestWithMetadata;
+import swurg.observers.TableModelObserver;
 
-import lombok.Data;
+public class MainTabGroup extends JTabbedPane implements TableModelObserver {
 
-@Data
-public class MainTabGroup extends JTabbedPane implements ParserTableModelObserver {
+    private final MontoyaApi montoyaApi;
 
-    private final transient MontoyaApi montoyaApi;
-
+    @Getter
     private ParserPanel parserPanel;
+    @Getter
     private ParametersPanel parametersPanel;
     private AboutPanel aboutPanel;
 
-    List<RequestWithMetadata> requestWithMetadatas;
-
     public MainTabGroup(MontoyaApi montoyaApi) {
         this.montoyaApi = montoyaApi;
-        this.requestWithMetadatas = new ArrayList<>();
 
         initComponents();
 
-        parserPanel.getParserTableModel().registerObserver(this);
-        parserPanel.getParserTableModel().registerParametersPanelObserver(parametersPanel);
-
+        this.parserPanel.getParserTableModel().registerObserver(this);
+        this.parserPanel.getParserTableModel().registerObserver(this.parserPanel);
+        this.parserPanel.getParserTableModel().registerObserver(this.parametersPanel);
     }
 
     private void initComponents() {
-        parserPanel = new ParserPanel(montoyaApi, requestWithMetadatas);
-        aboutPanel = new AboutPanel();
-        parametersPanel = new ParametersPanel(montoyaApi, requestWithMetadatas);
+        parserPanel = new ParserPanel(this.montoyaApi);
+        aboutPanel = new AboutPanel(this.montoyaApi);
+        parametersPanel = new ParametersPanel(this.montoyaApi);
 
-        addTab("Parser", parserPanel);
-        addTab("About", aboutPanel);
+        this.addTab("Parser", parserPanel);
+        this.addTab("About", aboutPanel);
     }
 
     @Override
-    public void onRequestWithMetadatasUpdate() {
-        if (indexOfComponent(parametersPanel) == -1 && !requestWithMetadatas.isEmpty()) {
-            addTab("Parameters", parametersPanel);
-        } else {
-            if (indexOfComponent(parametersPanel) != -1 && requestWithMetadatas.isEmpty()) {
-                removeTabAt(indexOfComponent(parametersPanel));
-            }
-        }
+    public void onMyHttpRequestsUpdate(int event, List<MyHttpRequest> myHttpRequests) {
+        if (indexOfComponent(this.parametersPanel) == -1 && !myHttpRequests.isEmpty()) {
+            this.removeTabAt(indexOfComponent(this.aboutPanel));
+            this.addTab("Parameters", this.parametersPanel);
+            this.addTab("About", this.aboutPanel);
+        } else if (indexOfComponent(this.parametersPanel) != -1 && myHttpRequests.isEmpty())
+            this.removeTabAt(indexOfComponent(this.parametersPanel));
     }
 }

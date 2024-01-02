@@ -13,7 +13,6 @@ import javax.swing.UIManager;
 
 import swurg.gui.components.tables.models.ParserTableModel;
 import swurg.gui.views.ParserPanel;
-import swurg.utilities.RequestWithMetadata;
 import swurg.workers.Worker;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
@@ -21,15 +20,15 @@ import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.logging.Logging;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
+import burp.http.MyHttpRequest;
 
 public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
-  private MontoyaApi montoyaApi;
-  private ParserPanel parserPanel;
-  private Logging logging;
+  private final ParserPanel parserPanel;
+  private final Logging logging;
 
   public MyContextMenuItemsProvider(MontoyaApi montoyaApi, ParserPanel parserPanel) {
-    this.montoyaApi = montoyaApi;
     this.logging = montoyaApi.logging();
+
     this.parserPanel = parserPanel;
   }
 
@@ -41,31 +40,29 @@ public class MyContextMenuItemsProvider implements ContextMenuItemsProvider {
     openApiMenuItem.addActionListener(e -> {
       try {
         List<HttpRequestResponse> selectedHttpRequestResponses = contextMenuEvent.selectedRequestResponses();
-        Worker worker = new Worker(montoyaApi);
+        Worker worker = new Worker();
 
-        for (HttpRequestResponse selectedMessage : selectedHttpRequestResponses) {
+        selectedHttpRequestResponses.forEach(selectedMessage -> {
           HttpRequest selectedRequest = selectedMessage.request();
           String url = selectedRequest.url();
 
-          ParserTableModel tableModel = (ParserTableModel) parserPanel.getTable().getModel();
-          List<RequestWithMetadata> requestWithMetadatas = worker.parseOpenAPI(worker.processOpenAPI(url));
+          ParserTableModel parserTableModel = (ParserTableModel) this.parserPanel.getTable().getModel();
+          List<MyHttpRequest> parsedMyHttpRequests = worker.parseOpenAPI(worker.processOpenAPI(url));
 
           SwingUtilities.invokeLater(() -> {
-            for (RequestWithMetadata requestWithMetadata : requestWithMetadatas) {
-              tableModel.addRow(requestWithMetadata);
-            }
-
-            parserPanel.setResourceTextField(url);
+            parserTableModel.addRows(parsedMyHttpRequests);
+            parserPanel.getResourceTextField().setText(url);
             parserPanel.getStatusPanel().updateStatus(COPYRIGHT, UIManager.getColor("TextField.foreground"));
           });
-        }
+        });
       } catch (Exception exception) {
-        String errorMessage = String.format("Failed to process request %s: %s",
-            ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url(),
-            exception.getMessage());
-        logging.logToOutput(errorMessage);
+        logging.raiseErrorEvent(exception.getMessage());
+
+        String message = String.format(
+            "Failed to process request %s. Check the extension's error log for the stack trace and report the issue.",
+            ((HttpRequestResponse) contextMenuEvent.selectedRequestResponses().get(0)).request().url());
         SwingUtilities.invokeLater(() -> {
-          parserPanel.getStatusPanel().updateStatus(errorMessage, UIManager.getColor("BurpPalette.red1"));
+          parserPanel.getStatusPanel().updateStatus(message, UIManager.getColor("BurpPalette.red1"));
         });
       }
     });

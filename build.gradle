@@ -11,33 +11,25 @@ sourceCompatibility = '1.8'
 
 dependencies {
     // Compile-time only dependencies
-    compileOnly "org.projectlombok:lombok:1.18.20"
-    annotationProcessor "org.projectlombok:lombok:1.18.20"
+    compileOnly "org.projectlombok:lombok:1.18.30"
+    annotationProcessor "org.projectlombok:lombok:1.18.30"
 
     // Runtime dependencies
-    implementation "io.swagger.parser.v3:swagger-parser:2.1.0"
-    implementation 'io.swagger.core.v3:swagger-models:2.1.11'
-    implementation "net.portswigger.burp.extensions:montoya-api:2023.3"
+    implementation "io.swagger.parser.v3:swagger-parser:2.1.19"
+    implementation 'io.swagger.core.v3:swagger-models:2.2.19'
+    implementation 'net.portswigger.burp.extensions:montoya-api:2023.12.1'
     implementation "org.apache.commons:commons-collections4:4.4"
-    implementation "org.apache.xmlgraphics:batik-swing:1.14"
-
-    // Test dependencies
-    testImplementation "junit:junit:4.13.2"
-    testImplementation "org.slf4j:slf4j-simple:2.0.0-alpha5"
+    implementation "org.apache.xmlgraphics:batik-swing:1.17"
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(20))
     }
 }
 
-test {
-    testLogging.showStandardStreams = true   
-}
-
 task fatJar(type: Jar) {
-    baseName = project.name + '-all'
+    archiveBaseName = project.name + '-all'
     duplicatesStrategy = 'exclude'
     from { 
         configurations.runtimeClasspath.collect { 
