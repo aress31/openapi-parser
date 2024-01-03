@@ -102,10 +102,9 @@ public class Worker {
                       .withAddedParameters(httpParameters);
 
                   int contentLength = httpRequest.body().length();
-                  if (contentLength > 0) {
+                  if (contentLength > 0)
                     httpRequest = httpRequest.withAddedHeader(HttpHeader
                         .httpHeader("content-length", String.valueOf(contentLength)));
-                  }
 
                   logEntries.add(new MyHttpRequest(httpRequest, op.getDescription()));
                 } catch (URISyntaxException e) {
@@ -169,11 +168,10 @@ public class Worker {
               .map(Schema::getType)
               .orElse(null);
 
-          if ("header".equals(in)) {
+          if ("header".equals(in))
             httpParameters.add(HttpParameter.cookieParameter(name, value));
-          } else if ("query".equals(in)) {
+          else if ("query".equals(in))
             httpParameters.add(HttpParameter.urlParameter(name, value));
-          }
         }));
 
     Optional.ofNullable(requestBody)
