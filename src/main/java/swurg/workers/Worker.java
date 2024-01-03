@@ -54,7 +54,7 @@ public class Worker {
     List<String> metadataList = new ArrayList<>();
 
     Optional.ofNullable(openAPI.getSpecVersion())
-        .map(specVersion -> "Spec Version: " + specVersion.toString())
+        .map(specVersion -> "Specification Version: " + specVersion.toString())
         .ifPresent(metadataList::add);
 
     Optional.ofNullable(openAPI.getJsonSchemaDialect())
@@ -62,11 +62,11 @@ public class Worker {
         .ifPresent(metadataList::add);
 
     Optional.ofNullable(openAPI.getExternalDocs())
-        .map(externalDoc -> "External Docs: " + externalDoc.toString())
+        .map(externalDoc -> "External Documentation: " + externalDoc.toString())
         .ifPresent(metadataList::add);
 
     Optional.ofNullable(openAPI.getInfo())
-        .map(info -> "Info: " + info.toString())
+        .map(info -> "Information: " + info.toString())
         .ifPresent(metadataList::add);
 
     return metadataList;
